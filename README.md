@@ -40,6 +40,7 @@ Requires JDK 17 and the Android SDK (compileSdk 36).
 | Walk postcards (save / share) | `postcard/PostcardRenderer.kt`, `ui/PostcardScreen.kt` |
 | Mist colour through the day, pause at vehicle speed | `fog/MistPalette.kt`, `record/SpeedGate.kt` |
 | Battery logging for test runs (debug builds only) | `debug/BatteryLog.kt`, project folder `debug/` |
+| Pins: labels, rules, map icons, sheets, storage | `pin/`, `ui/PinSheet.kt`, `data/PinStore.kt`, icons in `assets/pins.txt` |
 | UI (Compose) | `ui/MistyScreen.kt` |
 
 - **Recording:** GPS fixes with accuracy worse than 35 m are dropped. A spot is stored every 10 m or more;

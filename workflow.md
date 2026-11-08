@@ -21,6 +21,7 @@ An Android app (Kotlin, Jetpack Compose and osmdroid) that covers the OpenStreet
 - **Fog through the day:** the mist is tinted by the sun's height where you are (worked out from the clock, no network): blue-grey at night, lilac at blue hour, rosy around sunrise and sunset, warm in golden hour, white by day. Updates once a minute (`fog/MistPalette.kt`).
 - **Battery logging (debug builds only):** writes `battery.csv` and `sessions.csv` to the app's private `files/debug/`. Pull them with `debug/run.sh`. See `debug/README.md`.
 - **Launcher icon:** the pixel trail cat in a cleared patch of map. It is generated from the sprite data.
+- **Pins:** leave a note where something caught your eye. While wandering, "Drop a pin" puts one where you stand; a long-press on ground you have already cleared adds one there (in the fog: "Walk here first to leave a pin"). Pick one of 12 labels in four groups (Rest, Senses, Animals, Finds) or "Something else", plus an optional note of up to 80 characters. Pins show as pixel icons on the map (dots when zoomed out, hidden below zoom 10), on the walk's postcard, in the walk log and under "Your places" on the stats page. Tap one to read, edit or delete it. Stored in the `pins` table, included in export/import, never sent anywhere. Icons are in `assets/pins.txt`, same format as the characters. Design: `docs/superpowers/specs/2026-11-09-pins-design.md`.
 
 ## Project layout
 
@@ -110,6 +111,20 @@ Installed and running; the map and the stats page were checked on the phone. The
 - [ ] Bike ride while recording: the fog keeps clearing the whole way, even fast downhill.
 - [ ] Car or train ride while recording: after ~15–30 s above 32 km/h the "Too fast for the mist" chip shows, the notification changes, and the fog stops clearing. Out and walking: clearing resumes, with no line drawn across the ride.
 - [ ] Mist colour: open the app around sunset and after dark. Rosy, then blue-grey; status bar icons still readable.
+
+## Test pins (built 2026-11-09, on branch `pins`)
+
+Install over the current Dev build (don't uninstall first): the database upgrades from version 4 to 5.
+
+- [ ] Install over the current build: old fog still there.
+- [ ] Walk, drop a pin with a label and a note: it appears where you stood.
+- [ ] Drop a pin while walking: it lands where you stood, linked to the walk.
+- [ ] Long-press on cleared ground: sheet opens, pin lands there. Long-press in fog: "Walk here first to leave a pin".
+- [ ] Tap a pin: read, edit label and note, delete.
+- [ ] Zoom out past 14: pins turn into dots; past 10: gone.
+- [ ] Postcard of the walk shows its pins; the walk log row shows the icons.
+- [ ] "Your places": groups and counts right; tapping a row flies to the pin.
+- [ ] Export, wipe the app's data, import: pins come back. Import again: no doubles.
 
 ## Publishing (own F-Droid-style repo, by Potloodgum)
 
