@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
+import com.mistysteps.app.data.PinStore
 import com.mistysteps.app.postcard.PostcardRenderer
 import com.mistysteps.app.postcard.PostcardShare
 import kotlinx.coroutines.Dispatchers
@@ -72,7 +73,7 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
             return@LaunchedEffect
         }
         card = try {
-            PostcardRenderer.render(context, walk.first, walk.second, Characters.selected.value)
+            PostcardRenderer.render(context, walk.first, walk.second, Characters.selected.value, PinStore.forWalk(walkId))
         } catch (e: Exception) {
             failed = true
             null

@@ -23,6 +23,8 @@ import com.mistysteps.app.data.Session
 import com.mistysteps.app.data.TrailPoint
 import com.mistysteps.app.fog.FogTexture
 import com.mistysteps.app.fog.MistPalette
+import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinSprites
 import com.mistysteps.app.ui.formatArea
 import com.mistysteps.app.ui.formatDistance
 import com.mistysteps.app.ui.formatDuration
@@ -59,12 +61,14 @@ object PostcardRenderer {
     private val EMBER = Color.rgb(180, 83, 106)
 
     /** Must be called on the main thread (tiles come from osmdroid's tile provider). */
-    suspend fun render(context: Context, walk: Session, points: List<TrailPoint>, character: Character?): Bitmap {
+    suspend fun render(
+        context: Context, walk: Session, points: List<TrailPoint>, character: Character?, pins: List<Pin> = emptyList(),
+    ): Bitmap {
         val mapRect = Rect(MARGIN, MARGIN, W - MARGIN, MARGIN + MAP_H)
         val view = View.fit(points, mapRect.width(), mapRect.height())
         val map = Bitmap.createBitmap(mapRect.width(), mapRect.height(), Bitmap.Config.ARGB_8888)
         drawTiles(context, Canvas(map), view)
-        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character) }
+        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins) }
     }
 
     /** Which part of the world the map shows: mercator centre and pixels per mercator unit. */
@@ -135,6 +139,7 @@ object PostcardRenderer {
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,
+        pins: List<Pin>,
     ): Bitmap {
         val last = points.lastOrNull()
         val palette = MistPalette.at(walk.endTime ?: walk.startTime, last?.lat ?: 52.0, last?.lon ?: 5.0)
@@ -180,6 +185,15 @@ object PostcardRenderer {
                 strokeWidth = 11f
                 pathEffect = DashPathEffect(floatArrayOf(0.01f, 22f), 0f)
             })
+        }
+        // The pins dropped on this walk.
+        val shadow = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x40000000 }
+        for (pin in pins) {
+            val size = PinSprites.SIZE * 4f
+            val x = view.x(pin.lon)
+            val y = view.y(pin.lat)
+            mc.drawOval(x - size * 0.25f, y - size * 0.06f, x + size * 0.25f, y + size * 0.06f, shadow)
+            mc.drawBitmap(PinSprites.bitmap(pin.label), null, RectF(x - size / 2, y - size * 0.95f, x + size / 2, y + size * 0.05f), pixelPaint())
         }
         // Your character where the walk ended.
         if (character != null && last != null) {
