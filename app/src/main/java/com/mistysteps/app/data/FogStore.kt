@@ -82,6 +82,11 @@ object FogStore {
 
     private var last: Location? = null
 
+    /** The latest GPS fix good enough to record, walking or not. For dropping pins. */
+    @Volatile
+    var lastGoodFix: Location? = null
+        private set
+
     /** Most recent place we know you were (last fix, or end of the stored trail). */
     @Volatile
     var lastKnown: Pair<Double, Double>? = null
@@ -89,6 +94,7 @@ object FogStore {
 
     fun init(context: Context) {
         db = TrailDatabase(context.applicationContext)
+        PinStore.init(db)
         prefs = context.getSharedPreferences("misty", Context.MODE_PRIVATE)
         _distanceMeters.value = prefs.getFloat("distance_m", 0f).toDouble()
         savedDistance = _distanceMeters.value
@@ -248,6 +254,7 @@ object FogStore {
     fun onLocation(loc: Location) {
         if (loc.hasAccuracy() && loc.accuracy > MAX_ACCURACY_M) return
         lastKnown = loc.latitude to loc.longitude
+        lastGoodFix = loc
         if (session != null) {
             val vehicle = gate.update(loc.elapsedRealtimeNanos / 1_000_000, loc.latitude, loc.longitude)
             if (vehicle != _inVehicle.value) _inVehicle.value = vehicle

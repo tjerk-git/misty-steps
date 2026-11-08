@@ -4,6 +4,7 @@ import android.app.Application
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.debug.BatteryLog
+import com.mistysteps.app.pin.PinSprites
 import org.osmdroid.config.Configuration
 
 class MistyApplication : Application() {
@@ -17,6 +18,7 @@ class MistyApplication : Application() {
         }
         FogStore.init(this)
         Characters.init(this)
+        PinSprites.init(this)
         BatteryLog.init(this)
     }
 }

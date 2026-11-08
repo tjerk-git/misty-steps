@@ -4,15 +4,18 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 4) {
+    SQLiteOpenHelper(context, "trails.db", null, 5) {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
         createSessions(db)
         db.execSQL("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
+        createPins(db)
     }
 
     private fun createPoints(db: SQLiteDatabase) {
@@ -44,6 +47,90 @@ class TrailDatabase(context: Context) :
         if (oldVersion < 4) {
             db.execSQL("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
         }
+        if (oldVersion < 5) createPins(db)
+    }
+
+    /** Things you noticed and left on the map (see pin/Pin.kt). */
+    private fun createPins(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE pins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lat REAL NOT NULL,
+                lon REAL NOT NULL,
+                time INTEGER NOT NULL,
+                label TEXT NOT NULL,
+                note TEXT,
+                session_id INTEGER
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS pins_session ON pins(session_id)")
+    }
+
+    // ---- pins ------------------------------------------------------------------------------
+
+    /** Returns the new pin's id. */
+    fun insertPin(p: Pin): Long = writableDatabase.insert("pins", null, pinValues(p))
+
+    fun updatePin(id: Long, labelKey: String, note: String?) {
+        writableDatabase.update(
+            "pins",
+            ContentValues(2).apply {
+                put("label", labelKey)
+                if (note != null) put("note", note) else putNull("note")
+            },
+            "id = ?", arrayOf(id.toString()),
+        )
+    }
+
+    fun deletePin(id: Long) {
+        writableDatabase.delete("pins", "id = ?", arrayOf(id.toString()))
+    }
+
+    /** Newest first. */
+    fun loadPins(): List<Pin> {
+        val out = ArrayList<Pin>()
+        readableDatabase.rawQuery(
+            "SELECT id, lat, lon, time, label, note, session_id FROM pins ORDER BY time DESC, id DESC", null,
+        ).use { c ->
+            while (c.moveToNext()) {
+                out += Pin(
+                    id = c.getLong(0),
+                    lat = c.getDouble(1),
+                    lon = c.getDouble(2),
+                    time = c.getLong(3),
+                    labelKey = c.getString(4),
+                    note = if (c.isNull(5)) null else c.getString(5),
+                    sessionId = if (c.isNull(6)) null else c.getLong(6),
+                )
+            }
+        }
+        return out
+    }
+
+    /** Adds a backup's pins, skipping ones already here (same time and place). Returns how many were added. */
+    fun importPins(pins: List<Pin>): Int {
+        val fresh = PinRules.newPins(loadPins(), pins)
+        if (fresh.isEmpty()) return 0
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            for (p in fresh) db.insert("pins", null, pinValues(p))
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return fresh.size
+    }
+
+    private fun pinValues(p: Pin) = ContentValues(6).apply {
+        put("lat", p.lat)
+        put("lon", p.lon)
+        put("time", p.time)
+        put("label", p.labelKey)
+        if (p.note != null) put("note", p.note) else putNull("note")
+        if (p.sessionId != null) put("session_id", p.sessionId) else putNull("session_id")
     }
 
     /** One row per walk. The id is the start time in epoch millis. */
