@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,11 +42,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.data.FogStore
+import com.mistysteps.app.data.PinStore
+import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinLabel
+import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.data.Session
 import com.mistysteps.app.debug.BatteryLog
 import com.mistysteps.app.stats.AreaStat
@@ -68,6 +74,7 @@ fun StatsScreen(
     onClose: () -> Unit,
     onOpenWalk: (Long) -> Unit,
     onOpenAbout: () -> Unit,
+    onOpenPin: (Long) -> Unit,
 ) {
     BackHandler(onBack = onClose)
     val context = LocalContext.current
@@ -98,6 +105,10 @@ fun StatsScreen(
         }
     }
     LaunchedEffect(refresh) { walks = withContext(Dispatchers.IO) { FogStore.loadSessions() } }
+    val pins by PinStore.pins.collectAsState()
+    val pinsByWalk = remember(pins) {
+        pins.filter { it.sessionId != null }.sortedBy { it.time }.groupBy { it.sessionId!! }
+    }
 
     Box(
         Modifier
@@ -157,8 +168,12 @@ fun StatsScreen(
                     Spacer(Modifier.height(24.dp))
                     Text("YOUR WALKS", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
                     Spacer(Modifier.height(8.dp))
-                    WalkLog(walks, onOpenWalk)
+                    WalkLog(walks, pinsByWalk, onOpenWalk)
                 }
+                Spacer(Modifier.height(24.dp))
+                Text("YOUR PLACES", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+                Spacer(Modifier.height(8.dp))
+                YourPlaces(pins, onOpenPin)
                 Spacer(Modifier.height(24.dp))
                 Text(
                     "Borders and streets come from OpenStreetMap. Only your rough location (about 1 km) " +
@@ -222,8 +237,9 @@ private fun MadeBy(onClick: () -> Unit) {
 }
 
 @Composable
-private fun WalkLog(walks: List<Session>, onOpenWalk: (Long) -> Unit) {
+private fun WalkLog(walks: List<Session>, pinsByWalk: Map<Long, List<Pin>>, onOpenWalk: (Long) -> Unit) {
     val when_ = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
+    val icons = rememberPinIcons()
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
             for ((i, w) in walks.withIndex()) {
@@ -247,8 +263,83 @@ private fun WalkLog(walks: List<Session>, onOpenWalk: (Long) -> Unit) {
                             }
                         }
                         Text(details.joinToString(" · "), color = Dusk, fontSize = 12.sp)
+                        pinsByWalk[w.id]?.let { walkPins ->
+                            val (shown, more) = PinRules.walkBadge(walkPins)
+                            Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                for (label in shown) {
+                                    PinIcon(icons.getValue(label), 16)
+                                    Spacer(Modifier.width(4.dp))
+                                }
+                                if (more > 0) Text("+$more", color = Dusk, fontSize = 12.sp)
+                            }
+                        }
                     }
                     Text(formatDistance(w.distanceM), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+/** Your pins, grouped by label. Tap a group to open it, tap a pin to see it on the map. */
+@Composable
+private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
+    val icons = rememberPinIcons()
+    val day = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
+    val groups = remember(pins) { PinRules.groupByLabel(pins) }
+    var open by remember { mutableStateOf<PinLabel?>(null) }
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+            if (groups.isEmpty()) {
+                Text(
+                    "Leave a pin when something catches your eye.",
+                    color = Dusk,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+            for ((i, group) in groups.withIndex()) {
+                val (label, labelPins) = group
+                if (i > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE3E7F1)))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { open = if (open == label) null else label }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PinIcon(icons.getValue(label), 28)
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "${stringResource(label.text)} (${labelPins.size})",
+                        color = Ink,
+                        fontSize = 15.sp,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(if (open == label) "–" else "+", color = Dusk, fontSize = 18.sp)
+                }
+                if (open == label) {
+                    for (pin in labelPins) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onOpenPin(pin.id) }
+                                .padding(start = 40.dp, top = 6.dp, bottom = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            PinIcon(icons.getValue(pin.label), 18)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                pin.note ?: stringResource(pin.label.text),
+                                color = Ink,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(day.format(Date(pin.time)), color = Dusk, fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         }

@@ -353,6 +353,13 @@ fun MistyScreen() {
                     postcardWalk = id
                 },
                 onOpenAbout = { showAbout = true },
+                onOpenPin = { id ->
+                    PinStore.byId(id)?.let {
+                        showStats = false
+                        map.flyTo(it.lat, it.lon)
+                        pinSheet = PinSheetState.Open(id)
+                    }
+                },
             )
         }
         if (showCharacters) {
