@@ -117,8 +117,9 @@ Installed and running; the map and the stats page were checked on the phone. The
 Install over the current Dev build (don't uninstall first): the database upgrades from version 4 to 5.
 
 - [ ] Install over the current build: old fog still there.
-- [ ] Walk, drop a pin with a label and a note: it appears where you stood.
-- [ ] Drop a pin while walking: it lands where you stood, linked to the walk.
+- [ ] Walk, drop a pin with a label and a note: it appears where you stood, linked to the walk (shows in its walk log row).
+- [ ] Stand still for more than 30 s while wandering, then drop a pin: the sheet opens (no "Looking for you in the mist…").
+- [ ] Two pins on the same spot: tapping opens the newest (the one on top).
 - [ ] Long-press on cleared ground: sheet opens, pin lands there. Long-press in fog: "Walk here first to leave a pin".
 - [ ] Tap a pin: read, edit label and note, delete.
 - [ ] Zoom out past 14: pins turn into dots; past 10: gone.

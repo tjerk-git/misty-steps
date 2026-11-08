@@ -120,4 +120,25 @@ class PinRulesTest {
         assertEquals(listOf(PinLabel.SIT, PinLabel.CROW, PinLabel.OTHER), groups.map { it.first })
         assertEquals(listOf(3L, 2L), groups[0].second.map { it.time })
     }
+
+    @Test
+    fun twoPinsOnTheSameSpotOpenTheOneDrawnOnTop() {
+        // Pins come newest first, and the newest is drawn on top.
+        val same = 100f to 100f
+        assertEquals("new", PinRules.pickPin(listOf("new", "old"), 100f, 100f, 60f) { same })
+    }
+
+    private data class Fix(val ageMs: Long, val accuracyM: Float?)
+
+    @Test
+    fun theFreshestGoodFixIsUsedForAPin() {
+        val walkingFix = Fix(ageMs = 45_000, accuracyM = 8f) // stood still: recording sends no new fixes
+        val mapFix = Fix(ageMs = 1_000, accuracyM = 12f)
+        val vague = Fix(ageMs = 500, accuracyM = 60f)
+        val noAccuracy = Fix(ageMs = 2_000, accuracyM = null)
+        assertEquals(mapFix, PinRules.freshestFix(listOf(walkingFix, mapFix, vague), { it.ageMs }, { it.accuracyM }))
+        assertEquals(noAccuracy, PinRules.freshestFix(listOf(walkingFix, noAccuracy), { it.ageMs }, { it.accuracyM }))
+        assertNull(PinRules.freshestFix(listOf(walkingFix, vague), { it.ageMs }, { it.accuracyM }))
+        assertNull(PinRules.freshestFix(emptyList<Fix>(), { it.ageMs }, { it.accuracyM }))
+    }
 }

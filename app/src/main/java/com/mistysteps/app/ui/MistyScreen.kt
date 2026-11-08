@@ -127,9 +127,14 @@ fun MistyScreen() {
     LaunchedEffect(map) { PinStore.justPlaced.collect { map.refresh() } }
 
     fun dropPin() {
-        val fix = FogStore.lastGoodFix
-        val ageMs = fix?.let { (SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000 }
-        if (fix == null || ageMs == null || !PinRules.isFresh(ageMs)) {
+        // Recording only hears from GPS every 5 m, so when you stand still use the map's fix too.
+        val now = SystemClock.elapsedRealtimeNanos()
+        val fix = PinRules.freshestFix(
+            listOfNotNull(FogStore.lastGoodFix, map.me.lastFix),
+            ageMs = { (now - it.elapsedRealtimeNanos) / 1_000_000 },
+            accuracyM = { if (it.hasAccuracy()) it.accuracy else null },
+        )
+        if (fix == null) {
             Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
         } else {
             pinSheet = PinSheetState.New(fix.latitude, fix.longitude, FogStore.session?.id)

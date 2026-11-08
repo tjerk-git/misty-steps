@@ -63,6 +63,16 @@ object PinRules {
 
     fun isFresh(fixAgeMs: Long): Boolean = fixAgeMs <= FIX_MAX_AGE_MS
 
+    /** Longest accepted GPS accuracy for a pin, the same as for recording. */
+    const val MAX_ACCURACY_M = 35f
+
+    /**
+     * The youngest fix that is fresh and accurate enough to drop a pin on, or null. Standing
+     * still, recording sends no new fixes, so the map's own fixes are offered too.
+     */
+    fun <T> freshestFix(fixes: List<T>, ageMs: (T) -> Long, accuracyM: (T) -> Float?): T? =
+        fixes.filter { isFresh(ageMs(it)) && (accuracyM(it) ?: 0f) <= MAX_ACCURACY_M }.minByOrNull(ageMs)
+
     /**
      * The item closest to the tap, if it's within [maxDistPx]. [screenPos] gives an item's
      * position on screen, or null when it isn't on screen.
@@ -73,7 +83,8 @@ object PinRules {
         for (item in items) {
             val (x, y) = screenPos(item) ?: continue
             val d2 = (x - tapX) * (x - tapX) + (y - tapY) * (y - tapY)
-            if (d2 <= bestD2) {
+            // Strictly closer: on a tie the earlier item (the newest pin, drawn on top) wins.
+            if (d2 < bestD2 || (best == null && d2 <= bestD2)) {
                 best = item
                 bestD2 = d2
             }

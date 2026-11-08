@@ -82,7 +82,7 @@ object FogStore {
 
     private var last: Location? = null
 
-    /** The latest GPS fix good enough to record, walking or not. For dropping pins. */
+    /** The latest GPS fix good enough to record, while wandering. For dropping pins. */
     @Volatile
     var lastGoodFix: Location? = null
         private set
