@@ -126,6 +126,8 @@ Before the first public release:
 - [x] **Repo** (live 2026-11-08): **https://fdroid.potloodgum.com/repo**, fingerprint `df66fa48438843de50b11a6fece8ad44c5793d6740134f5cb068b79887cab209`. A landing page at https://fdroid.potloodgum.com explains how to add it. The repo's own signing key is `~/Keystores/potloodgum/fdroid-repo.p12` (password in `fdroid/config.yml`, not in git). **Back it up together with the app key**; losing it means everyone has to re-add the repo. The listing (`fdroid/metadata/com.potloodgum.mistysteps.yml`) has Donate, WebSite, License and categories. Hosting: a static-assets Cloudflare Worker `potloodgum-fdroid` (config in `fdroid/site/`, deployed with the `cf` CLI) on the custom domain fdroid.potloodgum.com.
 - [x] **License:** GPL-3.0 (`LICENSE`). The code is still in a private GitHub repo; making it public is a separate choice.
 
+- [x] **Website** (2026-11-08): post at https://www.potloodgum.com/posts/misty-steps/ and a side project card and page at /websites/misty-steps/ (repo `~/Projects/pgum_11ty`, Eleventy; Vercel publishes on push to main). The post was written with Claude at Tjerk's request; he'll check it. The blog elsewhere says it's "A.I free".
+
 ### Releasing an update
 
 1. Raise `versionCode` and `versionName` in `app/build.gradle.kts`.
