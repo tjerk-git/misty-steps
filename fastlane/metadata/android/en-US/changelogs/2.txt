@@ -1,0 +1,2 @@
+- Export your trails and walks to a file, and import them again: for a backup or a new phone. Nothing on your phone is ever deleted by an import.
+- Send feedback straight from the app, from the stats page or the About screen.
