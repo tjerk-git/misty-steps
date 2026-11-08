@@ -1,0 +1,17 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.kotlin/
+keystore.properties
+*.jks
+*.keystore
+__pycache__/
+# Personal: Claude Code settings for this machine.
+.claude/settings.local.json
+# Test-run data pulled from the phone (battery dumps, ride times). Findings go in workflow.md.
+debug/runs/*
+!debug/runs/.gitkeep

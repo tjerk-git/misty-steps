@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Misty Steps</string>
+    <string name="channel_name">Wandering</string>
+    <string name="notif_title">Wandering through the mist</string>
+    <string name="notif_text">Your steps are clearing the fog</string>
+    <string name="notif_text_vehicle">Too fast for the mist: it only clears under your own steam</string>
+    <string name="notif_stop">Stop</string>
+
+    <!-- About screen. Plain text; edit freely. -->
+    <string name="about_title">About Misty Steps</string>
+    <string name="about_maker">Made by Tjerk at Potloodgum, a one-person studio in Leeuwarden. Fixing the world in tiny steps.</string>
+    <string name="about_why">I wanted a reason to walk down streets I had never been down. Misty Steps turns your own neighbourhood into a map to uncover, one step (or pedal, or push) at a time.</string>
+    <string name="about_promise">No ads, no accounts, no tracking. Your trails never leave your phone.</string>
+    <string name="about_donate_text">If it gets you out the door, you can buy me a coffee. It keeps the mist drifting.</string>
+    <string name="about_donate_button">Buy me a coffee</string>
+    <string name="about_credits">Map data © OpenStreetMap contributors. Borders and streets from OpenStreetMap\'s Nominatim and Overpass services.</string>
+</resources>
