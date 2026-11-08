@@ -1,5 +1,6 @@
 package com.mistysteps.app.data
 
+import com.mistysteps.app.pin.Pin
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -11,8 +12,10 @@ import org.json.JSONObject
  *   "format": "misty-steps-backup", "version": 1, "exportedAt": <ms>, "app": "1.1.0",
  *   "distanceM": 21700.0, "character": "horse",
  *   "sessions": [ { "id", "start", "end", "distanceM", "points", "batteryStart", "batteryEnd", "newAreaM2" } ],
- *   "points": [ [lat, lon, time, radius, sessionId or null], ... ]
+ *   "points": [ [lat, lon, time, radius, sessionId or null], ... ],
+ *   "pins": [ { "lat", "lon", "time", "label", "note" or null, "sessionId" or null } ]
  * }
+ * "pins" was added later without a version bump: older files simply don't have it.
  */
 data class Backup(
     val exportedAt: Long,
@@ -21,6 +24,7 @@ data class Backup(
     val character: String?,
     val sessions: List<Session>,
     val points: List<TrailPoint>,
+    val pins: List<Pin> = emptyList(),
 ) {
     fun toJson(): String {
         val root = JSONObject()
@@ -48,10 +52,39 @@ data class Backup(
                 put(p.sessionId ?: JSONObject.NULL)
             })
         })
+        root.put("pins", JSONArray().also { arr ->
+            for (p in pins) arr.put(JSONObject().apply {
+                put("lat", p.lat)
+                put("lon", p.lon)
+                put("time", p.time)
+                put("label", p.labelKey)
+                put("note", p.note ?: JSONObject.NULL)
+                put("sessionId", p.sessionId ?: JSONObject.NULL)
+            })
+        })
         return root.toString()
     }
 
     companion object {
+        private const val BROKEN_PIN = "This backup has a broken pin in it."
+
+        private fun readPin(o: JSONObject?): Pin {
+            require(o != null) { BROKEN_PIN }
+            val lat = o.optDouble("lat", Double.NaN)
+            val lon = o.optDouble("lon", Double.NaN)
+            val label = if (o.isNull("label")) "" else o.optString("label")
+            require(lat in -90.0..90.0 && lon in -180.0..180.0 && label.isNotBlank() && o.has("time")) { BROKEN_PIN }
+            return Pin(
+                id = 0,
+                lat = lat,
+                lon = lon,
+                time = o.optLong("time"),
+                labelKey = label,
+                note = if (o.isNull("note")) null else o.optString("note").ifBlank { null },
+                sessionId = if (o.isNull("sessionId")) null else o.optLong("sessionId"),
+            )
+        }
+
         const val FORMAT = "misty-steps-backup"
         const val VERSION = 1
 
@@ -66,6 +99,7 @@ data class Backup(
             require(root.optInt("version") <= VERSION) { "This backup comes from a newer Misty Steps. Update the app first." }
             val sessions = root.optJSONArray("sessions") ?: JSONArray()
             val points = root.optJSONArray("points") ?: JSONArray()
+            val pins = root.optJSONArray("pins") ?: JSONArray()
             fun JSONObject.longOrNull(k: String) = if (has(k) && !isNull(k)) getLong(k) else null
             fun JSONObject.intOrNull(k: String) = if (has(k) && !isNull(k)) getInt(k) else null
             fun JSONObject.doubleOrNull(k: String) = if (has(k) && !isNull(k)) getDouble(k) else null
@@ -94,6 +128,7 @@ data class Backup(
                     require(lat in -90.0..90.0 && lon in -180.0..180.0) { "This backup has a broken spot in it." }
                     TrailPoint(lat, lon, p.getLong(2), p.getDouble(3), if (p.isNull(4)) null else p.getLong(4))
                 },
+                pins = (0 until pins.length()).map { i -> readPin(pins.optJSONObject(i)) },
             )
         }
     }

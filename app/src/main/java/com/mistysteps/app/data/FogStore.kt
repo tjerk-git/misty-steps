@@ -142,12 +142,14 @@ object FogStore {
             character = character,
             sessions = db.loadSessions(null),
             points = db.loadAll(),
+            pins = db.loadPins(),
         )
     }.get()
 
     data class ImportResult(
         val spots: Int,
         val walks: Int,
+        val pins: Int,
         /** True when this phone had no trails yet, so the backup's settings (character) can be used too. */
         val wasEmpty: Boolean,
     )
@@ -160,6 +162,7 @@ object FogStore {
         val wasEmpty = db.countPoints() == 0L
         val knownWalks = db.loadSessions(null).map { it.id }.toSet()
         val (spots, walks) = db.importData(backup.points, backup.sessions)
+        val pins = db.importPins(backup.pins)
         // Distance walked: on an empty phone take the backup's total, otherwise add the new walks.
         val extra = if (wasEmpty) backup.distanceM
             else backup.sessions.filter { it.id !in knownWalks }.sumOf { it.distanceM }
@@ -168,7 +171,8 @@ object FogStore {
             flush()
         }
         loadFromDatabase(keepLive = false)
-        ImportResult(spots, walks, wasEmpty)
+        PinStore.reload()
+        ImportResult(spots, walks, pins, wasEmpty)
     }.get()
 
     /**

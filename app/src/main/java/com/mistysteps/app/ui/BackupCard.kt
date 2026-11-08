@@ -149,7 +149,7 @@ fun BackupCard(onImported: () -> Unit) {
                             // A fresh phone also takes the wanderer from the backup.
                             if (r.wasEmpty) backup.character?.let { id -> Characters.all.firstOrNull { it.id == id }?.let(Characters::select) }
                             onImported()
-                            "Added ${n.format(r.spots)} spots and ${n.format(r.walks)} walks"
+                            "Added ${n.format(r.spots)} spots, ${n.format(r.walks)} walks and ${n.format(r.pins)} pins"
                         } catch (e: Exception) {
                             "Couldn't import the trails"
                         }

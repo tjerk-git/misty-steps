@@ -5,6 +5,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.mistysteps.app.pin.Pin
+import org.json.JSONArray
+import org.json.JSONObject
 
 class BackupTest {
 
@@ -21,6 +24,10 @@ class BackupTest {
             TrailPoint(52.3794, 4.8631, 1_794_142_884_000, 100.0, 1_794_142_883_836),
             TrailPoint(52.3801, 4.8640, 1_794_142_886_000, 50.0, 1_794_142_883_836),
             TrailPoint(53.2000, 5.8000, 1_700_000_000_000, 50.0, null), // from before walks were logged
+        ),
+        pins = listOf(
+            Pin(0, 52.3795, 4.8632, 1_794_142_900_000, "crow", "on the church", 1_794_142_883_836),
+            Pin(0, 53.2001, 5.8001, 1_794_150_000_000, "sit", null, null), // placed later by long-press
         ),
     )
 
@@ -51,5 +58,32 @@ class BackupTest {
     fun refusesBrokenCoordinates() {
         val broken = sample.copy(points = listOf(TrailPoint(123.0, 5.0, 0L)))
         assertThrows(IllegalArgumentException::class.java) { Backup.fromJson(broken.toJson()) }
+    }
+
+    @Test
+    fun pinsRoundTrip() {
+        val back = Backup.fromJson(sample.toJson())
+        assertEquals(sample.pins, back.pins)
+        assertNull(back.pins[1].note)
+        assertNull(back.pins[1].sessionId)
+    }
+
+    @Test
+    fun anOldBackupWithoutPinsStillLoads() {
+        val old = JSONObject(sample.toJson()).apply { remove("pins") }.toString()
+        assertEquals(emptyList<Pin>(), Backup.fromJson(old).pins)
+    }
+
+    @Test
+    fun aBrokenPinIsReported() {
+        fun withPin(pin: String) = JSONObject(sample.toJson()).apply { put("pins", JSONArray("[$pin]")) }.toString()
+        val outOfRange = assertThrows(IllegalArgumentException::class.java) {
+            Backup.fromJson(withPin("""{"lat":95,"lon":5,"time":1,"label":"sit"}"""))
+        }
+        assertEquals("This backup has a broken pin in it.", outOfRange.message)
+        val noLabel = assertThrows(IllegalArgumentException::class.java) {
+            Backup.fromJson(withPin("""{"lat":53,"lon":5,"time":1}"""))
+        }
+        assertEquals("This backup has a broken pin in it.", noLabel.message)
     }
 }
