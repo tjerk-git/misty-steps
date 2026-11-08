@@ -19,8 +19,7 @@ class Character(
 
 /** Loads the characters from `assets/characters.txt` and remembers which one you picked. */
 object Characters {
-    const val SIZE = 18
-    private const val OUTLINE = 0xFF1B1B2A.toInt()
+    const val SIZE = PixelArt.SIZE
 
     lateinit var all: List<Character>
         private set
@@ -106,19 +105,7 @@ object Characters {
         )
     }
 
-    /** Pads 16x16 to 18x18 and draws a 1 px dark outline around every opaque pixel. */
-    private fun outlined(src: IntArray): Bitmap {
-        val out = IntArray(SIZE * SIZE)
-        for (y in 0 until 16) for (x in 0 until 16) out[(y + 1) * SIZE + x + 1] = src[y * 16 + x]
-        val result = out.copyOf()
-        for (y in 0 until SIZE) for (x in 0 until SIZE) {
-            if (out[y * SIZE + x] != 0) continue
-            val near = (x > 0 && out[y * SIZE + x - 1] != 0) || (x < SIZE - 1 && out[y * SIZE + x + 1] != 0) ||
-                (y > 0 && out[(y - 1) * SIZE + x] != 0) || (y < SIZE - 1 && out[(y + 1) * SIZE + x] != 0)
-            if (near) result[y * SIZE + x] = OUTLINE
-        }
-        return Bitmap.createBitmap(result, SIZE, SIZE, Bitmap.Config.ARGB_8888)
-    }
+    private fun outlined(src: IntArray): Bitmap = PixelArt.bitmap(PixelArt.outline(src))
 
     /** Frame to show at [timeMs]: walk cycle while moving, a slow breath while standing. */
     fun frameAt(c: Character, walking: Boolean, timeMs: Long): Bitmap =
