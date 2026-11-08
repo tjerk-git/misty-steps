@@ -49,8 +49,8 @@ Needs JDK 17 and the Android SDK at `/opt/homebrew/share/android-commandlinetool
 ```sh
 export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
 ./gradlew testDebugUnitTest assembleDebug
-adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp install -r app/build/outputs/apk/debug/app-debug.apk
-adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp shell am start -n com.potloodgum.mistysteps.debug/com.mistysteps.app.MainActivity   # the Dev app
+adb -s <phone> install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s <phone> shell am start -n com.potloodgum.mistysteps.debug/com.mistysteps.app.MainActivity   # the Dev app
 ```
 
 ### Connecting the Pixel 10 Pro
@@ -58,7 +58,7 @@ adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp shell am start -n com.pot
 - **Use wireless debugging, not USB.** adb over USB can't see the phone from Claude Code's sandbox.
 - The Mac is already paired with the phone. To reconnect: on the phone, turn on Developer options → **Wireless debugging**, then run `adb mdns services` to find the IP:port and `adb connect <ip:port>`. The port changes whenever wireless debugging restarts.
 - The phone can show up twice (manual connection plus auto-discovered), so always pass `-s <ip:port>`.
-- The auto-discovered name doesn't change when the port does, so it works as a serial too: `-s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp` (also as `ADB_SERIAL` for `debug/run.sh`).
+- The auto-discovered name doesn't change when the port does, so it works as a serial too: `-s <phone>`, where `<phone>` is the `adb-…._adb-tls-connect._tcp` name `adb devices` shows (also as `ADB_SERIAL` for `debug/run.sh`).
 - Screenshots come out black when the phone is locked. Keep it unlocked while testing, or run `adb shell svc power stayon true` while it charges (undo with `false`).
 
 ### Editing characters

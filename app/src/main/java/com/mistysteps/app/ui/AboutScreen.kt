@@ -52,6 +52,7 @@ import com.mistysteps.app.character.Characters
 
 const val DONATE_URL = "https://buymeacoffee.com/tjerk"
 const val STUDIO_URL = "https://potloodgum.com"
+const val FEEDBACK_EMAIL = "debug@potloodgum.com"
 
 /** Who made the app and why, with a way to support it. */
 @Composable
@@ -122,12 +123,42 @@ fun AboutScreen(onClose: () -> Unit) {
                     ) { Text("☕  " + stringResource(R.string.about_donate_button), fontSize = 16.sp) }
                 }
             }
+            Spacer(Modifier.height(16.dp))
+
+            Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
+                Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.about_feedback_text), color = Ink, fontSize = 16.sp, lineHeight = 22.sp)
+                    Spacer(Modifier.height(14.dp))
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { sendFeedback(context) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
+                    ) { Text("✉  " + stringResource(R.string.about_feedback_button), fontSize = 16.sp) }
+                }
+            }
             Spacer(Modifier.height(24.dp))
             Text(stringResource(R.string.about_credits), color = Dusk, fontSize = 12.sp, lineHeight = 16.sp)
             Spacer(Modifier.height(6.dp))
             Text("Version ${BuildConfig.VERSION_NAME}", color = Dusk, fontSize = 12.sp)
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+/**
+ * Opens the mail app with a feedback email to [FEEDBACK_EMAIL]. The app version and phone model
+ * are filled in below the message, visible, so people can see (and remove) what they send.
+ */
+fun sendFeedback(context: Context) {
+    val body = "\n\n\n—\nMisty Steps ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
+        "Android ${android.os.Build.VERSION.RELEASE}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n"
+    val uri = Uri.parse(
+        "mailto:$FEEDBACK_EMAIL?subject=" + Uri.encode("Misty Steps feedback") + "&body=" + Uri.encode(body)
+    )
+    try {
+        context.startActivity(Intent(Intent.ACTION_SENDTO, uri))
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "No mail app found. Write to $FEEDBACK_EMAIL", Toast.LENGTH_LONG).show()
     }
 }
 

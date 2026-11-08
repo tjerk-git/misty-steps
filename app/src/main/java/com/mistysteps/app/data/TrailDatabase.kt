@@ -118,6 +118,58 @@ class TrailDatabase(context: Context) :
         )
     }
 
+    /**
+     * Adds a backup's walks and spots. Only adds: spots already here (same place and time) and
+     * walks already here (same id) are skipped, nothing is changed or deleted.
+     * Returns (spots added, walks added).
+     */
+    fun importData(points: List<TrailPoint>, sessions: List<Session>): Pair<Int, Int> {
+        val db = writableDatabase
+        val have = HashSet<String>()
+        db.rawQuery("SELECT lat, lon, time FROM points", null).use { c ->
+            while (c.moveToNext()) have += key(c.getDouble(0), c.getDouble(1), c.getLong(2))
+        }
+        var addedPoints = 0
+        var addedSessions = 0
+        db.beginTransaction()
+        try {
+            for (s in sessions) {
+                val v = ContentValues(8).apply {
+                    put("id", s.id)
+                    put("start_time", s.startTime)
+                    s.endTime?.let { put("end_time", it) }
+                    put("distance_m", s.distanceM)
+                    put("points", s.points)
+                    s.batteryStart?.let { put("battery_start", it) }
+                    s.batteryEnd?.let { put("battery_end", it) }
+                    s.newAreaM2?.let { put("new_area_m2", it) }
+                }
+                if (db.insertWithOnConflict("sessions", null, v, SQLiteDatabase.CONFLICT_IGNORE) != -1L) addedSessions++
+            }
+            val v = ContentValues(5)
+            for (p in points) {
+                if (!have.add(key(p.lat, p.lon, p.time))) continue
+                v.put("lat", p.lat)
+                v.put("lon", p.lon)
+                v.put("time", p.time)
+                v.put("radius", p.radius)
+                if (p.sessionId != null) v.put("session_id", p.sessionId) else v.putNull("session_id")
+                db.insert("points", null, v)
+                addedPoints++
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return addedPoints to addedSessions
+    }
+
+    fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
+        c.moveToFirst(); c.getLong(0)
+    }
+
+    private fun key(lat: Double, lon: Double, time: Long) = "$lat,$lon,$time"
+
     /** Gives walks that never got an end time (app killed) the time of their last spot. */
     fun closeDanglingSessions() {
         writableDatabase.execSQL(
@@ -130,11 +182,11 @@ class TrailDatabase(context: Context) :
         )
     }
 
-    /** Newest first. */
-    fun loadSessions(limit: Int): List<Session> {
+    /** Newest first. [limit] null = all. */
+    fun loadSessions(limit: Int?): List<Session> {
         val out = ArrayList<Session>()
         readableDatabase.rawQuery(
-            "$SESSION_COLUMNS FROM sessions ORDER BY start_time DESC LIMIT $limit", null,
+            "$SESSION_COLUMNS FROM sessions ORDER BY start_time DESC" + (limit?.let { " LIMIT $it" } ?: ""), null,
         ).use { c -> while (c.moveToNext()) out += readSession(c) }
         return out
     }

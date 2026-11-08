@@ -1,15 +1,28 @@
 # Misty Steps
 
-An Android app (Kotlin) that covers the OpenStreetMap world in a white fog. The only way to clear
-the fog is to walk with recording on: everywhere you go, the fog lifts in a 50 m circle around you (100 m where a walk starts).
-Your trails stay on this device.
+An Android app that covers the whole OpenStreetMap world in drifting fog. The only way to clear it
+is to go outside: wherever you walk, cycle or roll with recording on, the fog lifts in a 50 m circle
+around you. A pixel-art animal in hiking boots walks along. No ads, no accounts, no tracking: your
+trails stay on your phone.
+
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_map.png" width="260" alt="The map in Misty Steps"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_characters.png" width="260" alt="The characters"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_postcard.png" width="260" alt="A walk postcard">
+
+## Install
+
+Add the Potloodgum F-Droid repo: open **https://fdroid.potloodgum.com** on your phone and tap
+"Add to F-Droid" (works with F-Droid and Droid-ify), or download the APK from the same page.
+
+## Feedback
+
+Use "Send feedback" in the app (it emails debug@potloodgum.com), or open an
+[issue](https://github.com/tjerk-git/misty-steps/issues).
 
 ## Build
 
 Requires JDK 17 and the Android SDK (compileSdk 36).
 
 ```sh
-./gradlew assembleDebug      # app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug      # "Misty Steps Dev": app/build/outputs/apk/debug/app-debug.apk
 ./gradlew installDebug       # onto a connected device
 ./gradlew testDebugUnitTest
 ```

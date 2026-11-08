@@ -13,5 +13,7 @@
     <string name="about_promise">No ads, no accounts, no tracking. Your trails never leave your phone.</string>
     <string name="about_donate_text">If it gets you out the door, you can buy me a coffee. It keeps the mist drifting.</string>
     <string name="about_donate_button">Buy me a coffee</string>
+    <string name="about_feedback_text">Found a bug, or have an idea? Tell me. I read everything.</string>
+    <string name="about_feedback_button">Send feedback</string>
     <string name="about_credits">Map data © OpenStreetMap contributors. Borders and streets from OpenStreetMap\'s Nominatim and Overpass services.</string>
 </resources>

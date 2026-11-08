@@ -75,7 +75,9 @@ fun StatsScreen(
     var stats by remember { mutableStateOf<Stats?>(null) }
     var walks by remember { mutableStateOf<List<Session>>(emptyList()) }
     var hood by remember { mutableStateOf<NeighbourhoodResult?>(null) }
-    LaunchedEffect(here) {
+    // Bumped after an import, so everything is counted again.
+    var refresh by remember { mutableStateOf(0) }
+    LaunchedEffect(here, refresh) {
         stats = repo.compute(here?.first, here?.second)
         // Slower (borders and streets may need fetching), so it comes in after the rest.
         if (here != null) hood = repo.neighbourhood(here.first, here.second)
@@ -85,7 +87,7 @@ fun StatsScreen(
     var streetsFailed by remember { mutableStateOf(false) }
     var streetsAttempt by remember { mutableStateOf(0) }
     val hoodBoundary = hood?.stat?.boundary
-    LaunchedEffect(hoodBoundary, streetsAttempt) {
+    LaunchedEffect(hoodBoundary, streetsAttempt, refresh) {
         if (hoodBoundary == null) return@LaunchedEffect
         streetsFailed = false
         streets = try {
@@ -95,7 +97,7 @@ fun StatsScreen(
             null
         }
     }
-    LaunchedEffect(Unit) { walks = withContext(Dispatchers.IO) { FogStore.loadSessions() } }
+    LaunchedEffect(refresh) { walks = withContext(Dispatchers.IO) { FogStore.loadSessions() } }
 
     Box(
         Modifier
@@ -168,8 +170,33 @@ fun StatsScreen(
                 )
             }
             Spacer(Modifier.height(20.dp))
+            BackupCard(onImported = { refresh++ })
+            Spacer(Modifier.height(12.dp))
             MadeBy(onOpenAbout)
+            Spacer(Modifier.height(12.dp))
+            FeedbackRow()
             Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+/** A bug or an idea: straight to the maker's inbox. */
+@Composable
+private fun FeedbackRow() {
+    val context = LocalContext.current
+    Surface(
+        onClick = { sendFeedback(context) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Frost,
+        shadowElevation = 2.dp,
+    ) {
+        Row(Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Send feedback", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text("A bug, an idea, a street that's wrong: I read everything", color = Dusk, fontSize = 12.sp)
+            }
+            Text("✉", fontSize = 22.sp, color = Ink)
         }
     }
 }

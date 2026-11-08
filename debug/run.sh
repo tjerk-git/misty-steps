@@ -5,7 +5,7 @@
 #   debug/run.sh pull [label]          copy logs + battery stats into debug/runs/<date>_<label>/
 #
 # Pick the phone with ADB_SERIAL=<ip:port> (wireless debugging), e.g.
-#   ADB_SERIAL=adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp debug/run.sh pull pocket-walk
+#   ADB_SERIAL=<phone> debug/run.sh pull pocket-walk
 set -eu
 
 PKG=com.potloodgum.mistysteps.debug   # battery logging only exists in the Dev build

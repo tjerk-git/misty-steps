@@ -95,26 +95,75 @@ object FogStore {
         io.execute {
             // A walk the app was killed during never got its final update; close it at its last spot.
             db.closeDanglingSessions()
-            val points = db.loadAll()
-            points.lastOrNull()?.let { if (lastKnown == null) lastKnown = it.lat to it.lon }
-            // Projecting every point is the slow part, so do it here, not on the main thread.
-            val built = PointIndex()
-            val builtTrails = Trails()
-            for (p in points) {
-                built.add(p.lat, p.lon, p.radius)
-                builtTrails.add(p)
-            }
-            main.post {
-                // Keep anything recorded while we were loading.
-                built.addAll(index)
-                index = built
-                builtTrails.addAll(trails)
-                trails = builtTrails
-                _loaded.value = true
-                _version.value++
-            }
+            loadFromDatabase(keepLive = true)
         }
     }
+
+    /**
+     * IO thread. Rebuilds the in-memory spots and trail lines from the database. With [keepLive],
+     * spots recorded while this was loading (only possible at app start) are kept as well.
+     */
+    private fun loadFromDatabase(keepLive: Boolean) {
+        val points = db.loadAll()
+        points.lastOrNull()?.let { if (lastKnown == null) lastKnown = it.lat to it.lon }
+        // Projecting every point is the slow part, so do it here, not on the main thread.
+        val built = PointIndex()
+        val builtTrails = Trails()
+        for (p in points) {
+            built.add(p.lat, p.lon, p.radius)
+            builtTrails.add(p)
+        }
+        main.post {
+            if (keepLive) {
+                built.addAll(index)
+                builtTrails.addAll(trails)
+            }
+            index = built
+            trails = builtTrails
+            _loaded.value = true
+            _version.value++
+        }
+    }
+
+    // ---- backup ---------------------------------------------------------------------------
+
+    /** Everything worth keeping, for a backup file. Blocking; call off the main thread. */
+    fun exportBackup(appVersion: String, character: String?): Backup = io.submit<Backup> {
+        Backup(
+            exportedAt = System.currentTimeMillis(),
+            appVersion = appVersion,
+            distanceM = _distanceMeters.value,
+            character = character,
+            sessions = db.loadSessions(null),
+            points = db.loadAll(),
+        )
+    }.get()
+
+    data class ImportResult(
+        val spots: Int,
+        val walks: Int,
+        /** True when this phone had no trails yet, so the backup's settings (character) can be used too. */
+        val wasEmpty: Boolean,
+    )
+
+    /**
+     * Adds a backup to what's on this phone; nothing here is deleted or changed. Don't call while
+     * recording. Blocking; call off the main thread.
+     */
+    fun importBackup(backup: Backup): ImportResult = io.submit<ImportResult> {
+        val wasEmpty = db.countPoints() == 0L
+        val knownWalks = db.loadSessions(null).map { it.id }.toSet()
+        val (spots, walks) = db.importData(backup.points, backup.sessions)
+        // Distance walked: on an empty phone take the backup's total, otherwise add the new walks.
+        val extra = if (wasEmpty) backup.distanceM
+            else backup.sessions.filter { it.id !in knownWalks }.sumOf { it.distanceM }
+        main.post {
+            _distanceMeters.value = _distanceMeters.value + extra
+            flush()
+        }
+        loadFromDatabase(keepLive = false)
+        ImportResult(spots, walks, wasEmpty)
+    }.get()
 
     /**
      * Starts a fresh walk: the next fix won't be joined to the previous walk's last one,

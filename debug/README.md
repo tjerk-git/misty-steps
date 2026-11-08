@@ -16,7 +16,7 @@ The walks also appear on the stats page ("Your walks"). In debug builds each wal
 ## Doing a test run
 
 ```sh
-export ADB_SERIAL=adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp   # the Pixel; stays the same when the port changes
+export ADB_SERIAL=<phone>   # the Pixel; stays the same when the port changes
 debug/run.sh start                    # resets Android's battery stats and clears the app's logs
 # unplug the phone, then do the test
 debug/run.sh pull pocket-walk         # saves everything to debug/runs/<date>_pocket-walk/
