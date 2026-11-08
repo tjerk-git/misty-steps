@@ -7,6 +7,7 @@ import android.content.Intent
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -35,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -70,6 +72,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
+import com.mistysteps.app.data.PinStore
+import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.record.RecordingService
 
 private enum class PermissionDialog { RATIONALE, SETTINGS }
@@ -100,6 +104,8 @@ fun MistyScreen() {
     val inVehicle by FogStore.inVehicle.collectAsState()
     var dialog by remember { mutableStateOf<PermissionDialog?>(null) }
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
+    // A pin being placed or looked at. Not saved: a half-made pin is lost if the app is killed.
+    var pinSheet by remember { mutableStateOf<PinSheetState?>(null) }
 
     fun currentPlace(): Pair<Double, Double>? =
         map.me.myLocation?.let { it.latitude to it.longitude } ?: FogStore.lastKnown
@@ -107,6 +113,27 @@ fun MistyScreen() {
     // Redraw the fog whenever new ground is uncovered.
     LaunchedEffect(map) {
         FogStore.version.collect { map.refresh() }
+    }
+
+    // Pins: open one on tap, leave one with a long-press on ground you've cleared.
+    LaunchedEffect(map) {
+        map.setPinCallbacks(
+            onTap = { pinSheet = PinSheetState.Open(it.id) },
+            onCleared = { lat, lon -> pinSheet = PinSheetState.New(lat, lon, null) },
+            onFog = { Toast.makeText(context, "Walk here first to leave a pin", Toast.LENGTH_SHORT).show() },
+        )
+    }
+    LaunchedEffect(map) { PinStore.pins.collect { map.refresh() } }
+    LaunchedEffect(map) { PinStore.justPlaced.collect { map.refresh() } }
+
+    fun dropPin() {
+        val fix = FogStore.lastGoodFix
+        val ageMs = fix?.let { (SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000 }
+        if (fix == null || ageMs == null || !PinRules.isFresh(ageMs)) {
+            Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+        } else {
+            pinSheet = PinSheetState.New(fix.latitude, fix.longitude, FogStore.session?.id)
+        }
     }
 
     // A postcard when a walk ends (skip tiny ones, like a start-stop by mistake).
@@ -249,6 +276,21 @@ fun MistyScreen() {
                 Icon(Icons.Filled.LocationOn, contentDescription = "Show my location")
             }
 
+            // Drop a pin where you stand (only while wandering).
+            if (recording) {
+                FloatingActionButton(
+                    onClick = ::dropPin,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 20.dp, bottom = 180.dp),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = Ink,
+                    shape = CircleShape,
+                ) {
+                    Icon(Icons.Filled.Place, contentDescription = "Drop a pin")
+                }
+            }
+
             // In a car, train or bus: clearing is paused until you're moving under your own power again.
             if (recording && inVehicle) {
                 Surface(
@@ -322,6 +364,36 @@ fun MistyScreen() {
         postcardWalk?.let { id ->
             PostcardScreen(walkId = id, onClose = { postcardWalk = null })
         }
+    }
+
+    when (val sheet = pinSheet) {
+        is PinSheetState.New -> NewPinSheet(
+            onPlace = { key, note ->
+                PinStore.add(sheet.lat, sheet.lon, key, note, sheet.sessionId)
+                pinSheet = null
+            },
+            onDismiss = { pinSheet = null },
+        )
+        is PinSheetState.Open -> {
+            val pin = PinStore.byId(sheet.pinId)
+            if (pin == null) {
+                LaunchedEffect(sheet) { pinSheet = null }
+            } else {
+                PinDetailSheet(
+                    pin = pin,
+                    onSave = { key, note ->
+                        PinStore.update(pin.id, key, note)
+                        pinSheet = null
+                    },
+                    onDelete = {
+                        PinStore.delete(pin.id)
+                        pinSheet = null
+                    },
+                    onDismiss = { pinSheet = null },
+                )
+            }
+        }
+        null -> Unit
     }
 
     when (dialog) {
