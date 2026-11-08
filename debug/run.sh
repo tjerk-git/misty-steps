@@ -8,7 +8,7 @@
 #   ADB_SERIAL=adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp debug/run.sh pull pocket-walk
 set -eu
 
-PKG=com.potloodgum.mistysteps
+PKG=com.potloodgum.mistysteps.debug   # battery logging only exists in the Dev build
 HERE=$(cd "$(dirname "$0")" && pwd)
 adb_() { if [ -n "${ADB_SERIAL:-}" ]; then adb -s "$ADB_SERIAL" "$@"; else adb "$@"; fi; }
 # run-as reads the app's private files; it works because the debug APK is debuggable.

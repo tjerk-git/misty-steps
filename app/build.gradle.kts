@@ -6,6 +6,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Single source of the version: version.properties (bumped by tools/release.sh).
+val version = Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
+
 android {
     namespace = "com.mistysteps.app"
     compileSdk = 36
@@ -16,8 +19,8 @@ android {
         applicationId = "com.potloodgum.mistysteps"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = version.getProperty("versionCode").toInt()
+        versionName = version.getProperty("versionName")
     }
 
     // Release signing reads ../keystore.properties (kept out of git). Without it, release
@@ -36,8 +39,19 @@ android {
     }
 
     buildTypes {
+        // Your local build: installs next to the F-Droid release as "Misty Steps Dev",
+        // with its own data, and keeps the battery logging.
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Misty Steps Dev")
+        }
         release {
+            resValue("string", "app_name", "Misty Steps")
             signingConfigs.findByName("release")?.let { signingConfig = it }
+            // Only for moving data into a release install by hand (run-as needs a debuggable app):
+            // ./gradlew assembleRelease -PdebuggableRelease. tools/release.sh refuses such builds.
+            isDebuggable = project.hasProperty("debuggableRelease")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }

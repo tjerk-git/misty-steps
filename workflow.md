@@ -50,7 +50,7 @@ Needs JDK 17 and the Android SDK at `/opt/homebrew/share/android-commandlinetool
 export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
 ./gradlew testDebugUnitTest assembleDebug
 adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp install -r app/build/outputs/apk/debug/app-debug.apk
-adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp shell am start -n com.potloodgum.mistysteps/com.mistysteps.app.MainActivity
+adb -s adb-57291FDCH000SR-zksp6T._adb-tls-connect._tcp shell am start -n com.potloodgum.mistysteps.debug/com.mistysteps.app.MainActivity   # the Dev app
 ```
 
 ### Connecting the Pixel 10 Pro
@@ -130,21 +130,24 @@ Before the first public release:
 
 ### Releasing an update
 
-1. Raise `versionCode` and `versionName` in `app/build.gradle.kts`.
-2. Write `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
-3. Run `tools/publish.sh`. It runs the tests, builds and signs the release, updates the repo index, and deploys. Use `--no-deploy` to look at `fdroid/site/public` first.
-4. Commit and push.
-- [ ] **OpenStreetMap services.** The map tiles, Nominatim and Overpass are free public services for light use. The app identifies itself and caches what it can, but if many people use it, switch the tiles to another provider (see the note at the bottom of README.md).
+Ask Claude to "release a new version" (the `/fdroid-release` skill in `.claude/skills/`), or do it by hand:
 
+1. Write `fastlane/metadata/android/en-US/changelogs/<next versionCode>.txt` (for users, max 500 characters).
+2. Commit everything else.
+3. `tools/release.sh patch|minor|major --dry-run`: tests, lint, signed build, APK checks and repo build, without publishing.
+4. `tools/release.sh patch|minor|major`: does it all for real, deploys, checks it's live, then commits, tags `v<version>` and pushes.
 
+**Versions:** `version.properties` is the only place the version is set. The release script bumps it: `versionCode` +1 per release (never reused), `versionName` as semver. Git tags are `v1.0.1` and so on.
 
-- **Netherlands looks too big:** the country area (64,809 km²) includes territorial waters from the OSM border. Land plus inland water is about 41,500 km², so the country percentage reads about 35% low. Possible fix: measure against land-only borders.
-- **"City" means the town itself:** for Leeuwarden that's 58.66 km², not the whole municipality (about 255 km²).
-- **No export:** trails can't be exported or backed up. GPX export is on the roadmap (Later).
-- **Public tile servers:** the app uses OSM's public tiles. Switch provider if more people start using it.
-- **Battery (fixed 2026-11-08):** the map was redrawing at 60 fps all the time. The camera follow tried to move by fractions of a pixel, the map rounded them away, and the loop never settled. The camera now keeps its own exact position and stops once centred (with an 8 px deadband for GPS jitter). The fog also moved from CPU to GPU drawing and runs at ~12 fps (`FRAME_MS` in `FogOverlay.kt`); with battery saver on it stands still. Measured with the map open: 1238 → 388 frames per 20 s, and CPU 1.27 → 0.24 cores. The fog still pauses when the stats or character page is open. Re-measure the "map on screen" drain (was 13.6 %/h) on the next test run.
-- **Notification icon:** the small icon is still the footprints, not the cat.
-- **Trail drawing at scale:** the trail path is rebuilt every frame while panning. Fine for months of walks; if it ever stutters, cache it per zoom level.
+**Two apps on the phone:**
+- **Misty Steps** (`com.potloodgum.mistysteps`): the release from F-Droid.
+- **Misty Steps Dev** (`com.potloodgum.mistysteps.debug`, version `x.y.z-dev`): the local build from `./gradlew installDebug`. It has its own data and keeps the battery logging.
+
+**Tests:** 28 unit tests plus lint run on every push (GitHub Actions, `.github/workflows/test.yml`) and again in every release.
+
+### Releases
+
+- **1.0.0** (versionCode 1, 2026-11-08): first release. (Published as "1.0" before the version system existed.)
 
 ## Roadmap (chosen 2026-11-08)
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Misty Steps</string>
+    <!-- app_name comes from the build type: "Misty Steps" (release) or "Misty Steps Dev" (debug). -->
     <string name="channel_name">Wandering</string>
     <string name="notif_title">Wandering through the mist</string>
     <string name="notif_text">Your steps are clearing the fog</string>
