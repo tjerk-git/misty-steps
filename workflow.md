@@ -147,7 +147,7 @@ Ask Claude to "release a new version" (the `/fdroid-release` skill in `.claude/s
 
 ### Releases
 
-- **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. The F-Droid listing now links the source and issues (the repo went public the same day).
+- **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
 - **1.0.0** (versionCode 1, 2026-11-08): first release. (Published as "1.0" before the version system existed.)
 
 ## Roadmap (chosen 2026-11-08)
