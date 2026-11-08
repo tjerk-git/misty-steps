@@ -50,6 +50,8 @@ object PostcardRenderer {
     private const val MARGIN = 54
     private const val MAP_H = 1010
     private const val BORDER = 8f
+    /** Room kept free at the map's edges: about the size of the drawn character (18 px × 6). */
+    private const val CHARACTER_MARGIN_PX = 120
 
     private val PAPER = Color.rgb(246, 243, 236)
     private val INK = Color.rgb(46, 53, 80)
@@ -74,10 +76,10 @@ object PostcardRenderer {
         companion object {
             fun fit(points: List<TrailPoint>, w: Int, h: Int): View {
                 val lat0 = points.firstOrNull()?.lat ?: 0.0
-                var minX = points.minOfOrNull { Mercator.x(it.lon) } ?: 0.5
-                var maxX = points.maxOfOrNull { Mercator.x(it.lon) } ?: 0.5
-                var minY = points.minOfOrNull { Mercator.y(it.lat) } ?: 0.5
-                var maxY = points.maxOfOrNull { Mercator.y(it.lat) } ?: 0.5
+                val minX = points.minOfOrNull { Mercator.x(it.lon) } ?: 0.5
+                val maxX = points.maxOfOrNull { Mercator.x(it.lon) } ?: 0.5
+                val minY = points.minOfOrNull { Mercator.y(it.lat) } ?: 0.5
+                val maxY = points.maxOfOrNull { Mercator.y(it.lat) } ?: 0.5
                 // At least ~400 m across, plus room for the clearing around the trail.
                 val minSpan = Mercator.metersToUnits(400.0, lat0)
                 val pad = Mercator.metersToUnits(120.0, lat0)
@@ -85,7 +87,10 @@ object PostcardRenderer {
                 val cy = (minY + maxY) / 2
                 val spanX = max(maxX - minX + 2 * pad, minSpan)
                 val spanY = max(maxY - minY + 2 * pad, minSpan)
-                var scale = min(w / spanX, h / spanY)
+                // Keep the character (drawn above and beside the last spot) inside the frame.
+                val usableW = (w - 2 * CHARACTER_MARGIN_PX).coerceAtLeast(w / 2)
+                val usableH = (h - 2 * CHARACTER_MARGIN_PX).coerceAtLeast(h / 2)
+                var scale = min(usableW / spanX, usableH / spanY)
                 // Keep to zoom levels the tiles exist for.
                 scale = scale.coerceIn(256 * 2.0.pow(3), 256 * 2.0.pow(17.5))
                 return View(cx, cy, scale, w, h)

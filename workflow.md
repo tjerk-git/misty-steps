@@ -122,9 +122,16 @@ Before the first public release:
 - [ ] Debug builds (what goes on the phone during development) are signed with a different key, so switching that phone to the release APK means uninstalling first. Copy the data over with run-as first, like the move from the old app id.
 - [ ] **Version numbers.** Raise `versionCode` (and `versionName`) in `app/build.gradle.kts` for every release.
 - [ ] **Release build.** `./gradlew assembleRelease`. The battery logging is debug-only, so it's not in the release build.
-- [ ] **Store texts.** Add `fastlane/metadata/android/en-US/` with `title.txt`, `short_description.txt`, `full_description.txt`, `images/phoneScreenshots/`, and `changelogs/<versionCode>.txt`. F-Droid tools read these.
-- [ ] **Repo.** `fdroid init` and `fdroid update` (fdroidserver), then host the `repo/` folder as static files (e.g. under potloodgum.com). Users add the repo URL and fingerprint to F-Droid or Droid-ify. In the metadata, set `Donate: https://buymeacoffee.com/tjerk` and `WebSite: https://potloodgum.com`.
-- [ ] **License.** Pick one (e.g. GPL-3.0 or MIT) and add a `LICENSE` file, if the source is going public.
+- [x] **Store texts** (2026-11-08): `fastlane/metadata/android/en-US/`: title, short and full description, `changelogs/1.txt`, icon (`tools/make_store_icon.py`) and 5 screenshots (map, stats, postcard, characters, About), taken with a clean demo status bar. Tjerk OK'd showing his neighbourhood and route in them.
+- [x] **Repo** (live 2026-11-08): **https://fdroid.potloodgum.com/repo**, fingerprint `df66fa48438843de50b11a6fece8ad44c5793d6740134f5cb068b79887cab209`. A landing page at https://fdroid.potloodgum.com explains how to add it. The repo's own signing key is `~/Keystores/potloodgum/fdroid-repo.p12` (password in `fdroid/config.yml`, not in git). **Back it up together with the app key**; losing it means everyone has to re-add the repo. The listing (`fdroid/metadata/com.potloodgum.mistysteps.yml`) has Donate, WebSite, License and categories. Hosting: a static-assets Cloudflare Worker `potloodgum-fdroid` (config in `fdroid/site/`, deployed with the `cf` CLI) on the custom domain fdroid.potloodgum.com.
+- [x] **License:** GPL-3.0 (`LICENSE`). The code is still in a private GitHub repo; making it public is a separate choice.
+
+### Releasing an update
+
+1. Raise `versionCode` and `versionName` in `app/build.gradle.kts`.
+2. Write `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
+3. Run `tools/publish.sh`. It runs the tests, builds and signs the release, updates the repo index, and deploys. Use `--no-deploy` to look at `fdroid/site/public` first.
+4. Commit and push.
 - [ ] **OpenStreetMap services.** The map tiles, Nominatim and Overpass are free public services for light use. The app identifies itself and caches what it can, but if many people use it, switch the tiles to another provider (see the note at the bottom of README.md).
 
 

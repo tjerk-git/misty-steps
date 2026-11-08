@@ -46,3 +46,9 @@ Requires JDK 17 and the Android SDK (compileSdk 36).
 Note: the public OSM tile servers are for light use only
 ([tile usage policy](https://operations.osmfoundation.org/policies/tiles/)). If many people will use
 the app, switch `TileSourceFactory.MAPNIK` to your own or a commercial tile provider.
+
+## License and publishing
+
+Misty Steps is made by [Potloodgum](https://potloodgum.com) and licensed under the GNU General Public License v3.0 (see `LICENSE`).
+It's published in the Potloodgum F-Droid repo at https://fdroid.potloodgum.com (see `tools/publish.sh` and the
+"Publishing" section of `workflow.md`).

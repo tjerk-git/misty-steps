@@ -1,0 +1,6 @@
+First release.
+
+- Clear the fog by walking, cycling or rolling
+- Trails, walk log and walk postcards
+- Neighbourhood, city and country stats, plus street completion
+- Six animal companions in hiking boots

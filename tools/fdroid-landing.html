@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potloodgum apps · F-Droid repo</title>
+<style>
+  :root { --ink: #2e3550; --dusk: #5b6b8c; --ember: #b4536a; --frost: #fafbff; }
+  body { margin: 0; font: 17px/1.55 system-ui, sans-serif; color: var(--ink);
+         background: linear-gradient(#f4f5fa, #dce1ee) fixed; }
+  main { max-width: 38rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  h1, h2 { font-family: Georgia, serif; line-height: 1.2; }
+  h1 { font-size: 2.1rem; margin: .2rem 0 .4rem; }
+  .card { background: var(--frost); border-radius: 22px; padding: 1.25rem 1.4rem; margin: 1.2rem 0;
+          box-shadow: 0 2px 10px #2e355018; }
+  .app { display: flex; gap: 1rem; align-items: center; }
+  .app img { width: 72px; height: 72px; border-radius: 18px; image-rendering: pixelated; }
+  a { color: var(--ember); }
+  .button { display: inline-block; background: var(--ember); color: #fff; text-decoration: none;
+            padding: .7rem 1.2rem; border-radius: 999px; font-weight: 600; margin: .3rem .4rem .3rem 0; }
+  .button.quiet { background: none; color: var(--ember); border: 2px solid var(--ember); }
+  code { font-size: .8rem; word-break: break-all; background: #eef0f7; padding: .15rem .35rem; border-radius: 6px; }
+  small, .muted { color: var(--dusk); }
+</style>
+</head>
+<body>
+<main>
+  <small>Potloodgum · Fixing the world in tiny steps</small>
+  <h1>Apps by Potloodgum</h1>
+  <p>This is an F-Droid repository: add it once to F-Droid or Droid-ify on your Android phone and you'll get updates automatically. No ads, no accounts, no tracking.</p>
+
+  <div class="card app">
+    <img src="repo/icons/potloodgum.png" alt="">
+    <div>
+      <h2 style="margin:0">Misty Steps</h2>
+      <div class="muted">Walk, cycle or roll to clear the fog from your own map.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Add the repo</h2>
+    <p>On your phone, with F-Droid or Droid-ify installed:</p>
+    <a class="button" href="fdroidrepos://fdroid.potloodgum.com/repo?fingerprint=@FINGERPRINT@">Add to F-Droid</a>
+    <p class="muted">Or add it by hand: <code>https://fdroid.potloodgum.com/repo</code><br>
+    Fingerprint: <code>@FINGERPRINT@</code></p>
+    <p class="muted">No F-Droid? <a href="repo/@APK@">Download the app directly</a> (you won't get automatic updates).</p>
+  </div>
+
+  <div class="card">
+    <p style="margin-top:0">Made by Tjerk at <a href="https://potloodgum.com">Potloodgum</a>, a one-person studio in Leeuwarden. If an app gets you out the door, you can buy me a coffee.</p>
+    <a class="button quiet" href="https://buymeacoffee.com/tjerk">☕ Buy me a coffee</a>
+  </div>
+  <small>Map data in Misty Steps © OpenStreetMap contributors.</small>
+</main>
+</body>
+</html>

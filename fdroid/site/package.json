@@ -1,0 +1,10 @@
+{
+  "name": "potloodgum-fdroid",
+  "private": true,
+  "type": "module",
+  "description": "Static hosting for the Potloodgum F-Droid repo at fdroid.potloodgum.com. Filled and deployed by tools/publish.sh.",
+  "devDependencies": {
+    "cf": "^1.0.0-beta.28",
+    "wrangler": "^4.158.0"
+  }
+}

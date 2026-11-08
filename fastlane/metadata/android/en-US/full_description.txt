@@ -1,0 +1,20 @@
+The whole world starts out covered in drifting mist. The only way to clear it is to go outside: wherever you walk, cycle, skate or roll, the fog lifts and the map underneath appears. Your own neighbourhood turns into a map to uncover, one step at a time.
+
+<b>What it does</b>
+<ul>
+<li><b>Clear the fog:</b> press "Start wandering" and every place you pass clears in a 50 m circle, even with the screen off and the phone in your pocket.</li>
+<li><b>Your trail:</b> each walk leaves a dotted line behind your character.</li>
+<li><b>A little companion:</b> pick a pixel-art cat, dog, sea otter, capybara, cow or horse. They all wear hiking boots.</li>
+<li><b>Your neighbourhood:</b> see how much of your neighbourhood, city, country and the world you've uncovered, and which streets you haven't walked yet.</li>
+<li><b>Walk postcards:</b> after every walk, a postcard of your route to save or share.</li>
+<li><b>Mist through the day:</b> the fog turns rosy at sunrise and sunset and blue-grey at night.</li>
+<li><b>Own steam only:</b> walking, running, cycling, a wheelchair or mobility scooter all count. In a car or train (above 32 km/h) the fog stays put.</li>
+</ul>
+
+<b>Private by design</b>
+No ads, no accounts, no tracking. Your trails are stored only on your phone and are never uploaded. Map tiles come from OpenStreetMap. To look up your city and country, only your rough location (about 1 km) is sent to OpenStreetMap's Nominatim service. Neighbourhoods and streets are fetched by their OpenStreetMap id, never by your position.
+
+<b>Made by Potloodgum</b>
+Misty Steps is made by Tjerk at Potloodgum, a one-person studio in Leeuwarden. If it gets you out the door, you can buy me a coffee at buymeacoffee.com/tjerk.
+
+Map data © OpenStreetMap contributors.
