@@ -10,6 +10,8 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.Mercator
 import com.mistysteps.app.debug.BatteryLog
 import com.mistysteps.app.fog.FogOverlay
+import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinOverlay
 import com.mistysteps.app.trail.TrailOverlay
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -49,6 +51,11 @@ class MapController(context: Context) {
 
     /** The steps you leave behind, on top of the fog. */
     private val trail = TrailOverlay(context.resources.displayMetrics.density).also {
+        mapView.overlays.add(it)
+    }
+
+    /** Your pins: above the fog and trail, below your character. */
+    private val pins = PinOverlay(context.resources.displayMetrics.density).also {
         mapView.overlays.add(it)
     }
 
@@ -257,6 +264,19 @@ class MapController(context: Context) {
     }
 
     fun refresh() = mapView.invalidate()
+
+    /** What happens when you tap a pin, or long-press on cleared ground or in the fog. */
+    fun setPinCallbacks(onTap: (Pin) -> Unit, onCleared: (Double, Double) -> Unit, onFog: () -> Unit) {
+        pins.onPinTap = onTap
+        pins.onClearedLongPress = onCleared
+        pins.onFogLongPress = onFog
+    }
+
+    /** Looks at a place on the map; stops following you. */
+    fun flyTo(lat: Double, lon: Double, zoom: Double = 17.0) {
+        following = false
+        fly(GeoPoint(lat, lon), zoom, 800L)
+    }
 
     private fun saveCamera() {
         val c = mapView.mapCenter
