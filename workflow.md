@@ -145,6 +145,8 @@ Ask Claude to "release a new version" (the `/fdroid-release` skill in `.claude/s
 
 **Tests:** 28 unit tests plus lint run on every push (GitHub Actions, `.github/workflows/test.yml`) and again in every release.
 
+**How it's doing:** `tools/stats.sh [days]` shows app downloads per version, phones checking the repo per day, and visits to the landing page. It reads Cloudflare's own request analytics for fdroid.potloodgum.com: path, user agent and status only, with no IP addresses. Nothing is added to the app or the site. Scripts and bots are left out. "At least N phones" counts different F-Droid/Droid-ify versions, so it's a lower bound.
+
 ### Releases
 
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).

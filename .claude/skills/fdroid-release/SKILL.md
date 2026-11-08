@@ -86,4 +86,6 @@ https://fdroid.potloodgum.com/repo/index-v2.json before re-running anything.
   `fdroid/metadata/com.potloodgum.mistysteps.yml`.
 - **Tools:** `fdroid` comes from `brew install fdroidserver`, `cf` is the Cloudflare CLI. If `cf deploy`
   says you're not signed in, the user runs `cf auth login`.
+- **After a release:** `tools/stats.sh` shows downloads per version and phones checking for updates
+  (from Cloudflare's request analytics; no IP addresses).
 - **Hosting:** the repo is a static Cloudflare Worker, `potloodgum-fdroid` (config in `fdroid/site/`).
