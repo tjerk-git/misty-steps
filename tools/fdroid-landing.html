@@ -21,6 +21,8 @@
   .button.quiet { background: none; color: var(--ember); border: 2px solid var(--ember); }
   code { font-size: .8rem; word-break: break-all; background: #eef0f7; padding: .15rem .35rem; border-radius: 6px; }
   small, .muted { color: var(--dusk); }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: .35rem 0; }
 </style>
 </head>
 <body>
@@ -38,8 +40,21 @@
   </div>
 
   <div class="card">
-    <h2 style="margin-top:0">Add the repo</h2>
-    <p>On your phone, with F-Droid or Droid-ify installed:</p>
+    <h2 style="margin-top:0">1. Get F-Droid</h2>
+    <p>Already have F-Droid or Droid-ify? Skip to step 2.</p>
+    <ol>
+      <li>On your Android phone, go to <a href="https://f-droid.org">f-droid.org</a> and tap <b>Download F-Droid</b>.</li>
+      <li>Open the downloaded file. Android asks if your browser may install apps: tap <b>Settings</b>, turn on <b>Allow from this source</b>, and go back.</li>
+      <li>Tap <b>Install</b>, then open F-Droid and give it a minute to load its list of apps.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">2. Add my repo and install</h2>
+    <ol>
+      <li>Open this page on your phone and tap the button below. F-Droid opens and asks to add the repo: tap <b>Add</b>.</li>
+      <li>Search for <b>Misty Steps</b> in F-Droid and tap <b>Install</b>. Android asks once more, now for F-Droid: allow it the same way.</li>
+    </ol>
     <a class="button" href="fdroidrepos://fdroid.potloodgum.com/repo?fingerprint=@FINGERPRINT@">Add to F-Droid</a>
     <p class="muted">Or add it by hand: <code>https://fdroid.potloodgum.com/repo</code><br>
     Fingerprint: <code>@FINGERPRINT@</code></p>
@@ -47,8 +62,20 @@
   </div>
 
   <div class="card">
+    <h2 style="margin-top:0">Is this safe?</h2>
+    <p>Hi, I'm Tjerk. This repo is really mine, and you're welcome here. Android shows a few warnings along the way because these apps don't come from Google Play. That's normal for any app from outside the Play Store, and it doesn't mean something is wrong.</p>
+    <ul>
+      <li><b>F-Droid</b> is a well-known app store for free and open-source apps, run by volunteers since 2010.</li>
+      <li><b>This repo</b> is where I publish my own apps. I build and sign every update myself. You can check it's me: <a href="https://www.potloodgum.com/posts/misty-steps/">my website</a> links here.</li>
+      <li><b>The code is open</b> on <a href="https://github.com/tjerk-git/misty-steps">GitHub</a>, so anyone can look at what the app does. No ads, no accounts, no tracking: your trails stay on your phone.</li>
+      <li>If Google Play Protect offers to scan the app, that's fine: let it.</li>
+    </ul>
+    <p class="muted">Questions or something odd? Mail me at <a href="mailto:debug@potloodgum.com">debug@potloodgum.com</a>.</p>
+  </div>
+
+  <div class="card">
     <p style="margin-top:0">Made by Tjerk at <a href="https://potloodgum.com">Potloodgum</a>, a one-person studio in Leeuwarden. If an app gets you out the door, you can buy me a coffee.</p>
-    <a class="button quiet" href="https://buymeacoffee.com/tjerk">☕ Buy me a coffee</a>
+    <a class="button quiet" href="https://buymeacoffee.com/tjerk">Buy me a coffee</a>
   </div>
   <small>Map data in Misty Steps © OpenStreetMap contributors.</small>
 </main>
