@@ -35,7 +35,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.ui.res.painterResource
+import com.mistysteps.app.R
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -278,7 +279,7 @@ fun MistyScreen() {
                 contentColor = Ink,
                 shape = CircleShape,
             ) {
-                Icon(Icons.Filled.LocationOn, contentDescription = "Show my location")
+                Icon(painterResource(R.drawable.ic_my_location), contentDescription = "Show my location")
             }
 
             // Drop a pin where you stand (only while wandering).

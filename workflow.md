@@ -116,16 +116,18 @@ Installed and running; the map and the stats page were checked on the phone. The
 
 Install over the current Dev build (don't uninstall first): the database upgrades from version 4 to 5.
 
-- [ ] Install over the current build: old fog still there.
+- [x] Install over the current build: old fog still there.
 - [ ] Walk, drop a pin with a label and a note: it appears where you stood, linked to the walk (shows in its walk log row).
 - [ ] Stand still for more than 30 s while wandering, then drop a pin: the sheet opens (no "Looking for you in the mist…").
-- [ ] Two pins on the same spot: tapping opens the newest (the one on top).
-- [ ] Long-press on cleared ground: sheet opens, pin lands there. Long-press in fog: "Walk here first to leave a pin".
-- [ ] Tap a pin: read, edit label and note, delete.
+- [x] Two pins on the same spot: tapping opens the newest (the one on top).
+- [x] Long-press on cleared ground: sheet opens, pin lands there. Long-press in fog: "Walk here first to leave a pin".
+- [x] Tap a pin: read, edit label and note, delete.
 - [ ] Zoom out past 14: pins turn into dots; past 10: gone.
 - [ ] Postcard of the walk shows its pins; the walk log row shows the icons.
-- [ ] "Your places": groups and counts right; tapping a row flies to the pin.
-- [ ] Export, wipe the app's data, import: pins come back. Import again: no doubles.
+- [x] "Your places": groups and counts right; tapping a row flies to the pin.
+- [x] Export, wipe the app's data, import: pins come back. Import again: no doubles.
+
+Checked on the phone 2026-11-09 (over USB, indoors). Fixed the same day: the "Show my location" button had the same icon as "Drop a pin" (now a crosshair), the pin sheets were see-through, the keyboard hid "Place pin", long notes in "Your places" were cut off without "…", and the backup messages didn't count pins. Indoors the GPS is only good to 40-47 m, over the 35 m limit, so dropping a pin there says "Looking for you in the mist…": test the walk items outside.
 
 ## Publishing (own F-Droid-style repo, by Potloodgum)
 

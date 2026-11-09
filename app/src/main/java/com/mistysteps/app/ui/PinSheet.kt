@@ -6,7 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +62,9 @@ sealed interface PinSheetState {
     data class Open(val pinId: Long) : PinSheetState
 }
 
+/** Solid, unlike the map cards: the map mustn't show through a sheet you read and type in. */
+private val SheetColor = Frost.copy(alpha = 1f)
+
 /** The pin icons, converted for Compose once. */
 @Composable
 fun rememberPinIcons(): Map<PinLabel, ImageBitmap> =
@@ -74,21 +79,22 @@ fun NewPinSheet(onPlace: (labelKey: String, note: String?) -> Unit, onDismiss: (
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Frost,
+        containerColor = SheetColor,
     ) {
-        SheetColumn {
+        val chosen = label
+        SheetBody(
+            buttons = {
+                Button(
+                    onClick = { if (chosen != null) onPlace(chosen.key, PinRules.cleanNote(note)) },
+                    enabled = chosen != null && PinRules.canPlace(chosen, PinRules.cleanNote(note)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Ink),
+                ) { Text("Place pin") }
+            },
+        ) {
             SheetTitle("Leave a pin")
             LabelPicker(selected = label, onSelect = { label = it })
             Spacer(Modifier.height(12.dp))
             NoteField(note, required = label == PinLabel.OTHER, onChange = { note = it })
-            Spacer(Modifier.height(12.dp))
-            val chosen = label
-            Button(
-                onClick = { if (chosen != null) onPlace(chosen.key, PinRules.cleanNote(note)) },
-                enabled = chosen != null && PinRules.canPlace(chosen, PinRules.cleanNote(note)),
-                modifier = Modifier.align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(containerColor = Ink),
-            ) { Text("Place pin") }
         }
     }
 }
@@ -112,10 +118,15 @@ fun PinDetailSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Frost,
+        containerColor = SheetColor,
     ) {
-        SheetColumn {
-            if (!editing) {
+        if (!editing) {
+            SheetBody(
+                buttons = {
+                    TextButton(onClick = { confirmDelete = true }) { Text("Delete", color = Ember) }
+                    TextButton(onClick = { editing = true }) { Text("Edit", color = Ink) }
+                },
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     PinIcon(icons.getValue(pin.label), 48)
                     Spacer(Modifier.width(14.dp))
@@ -132,19 +143,11 @@ fun PinDetailSheet(
                     Spacer(Modifier.height(12.dp))
                     Text(it, color = Ink, fontSize = 15.sp)
                 }
-                Spacer(Modifier.height(16.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { confirmDelete = true }) { Text("Delete", color = Ember) }
-                    TextButton(onClick = { editing = true }) { Text("Edit", color = Ink) }
-                }
-            } else {
-                SheetTitle("Edit pin")
-                val shown = picked ?: pin.label
-                LabelPicker(selected = shown, onSelect = { picked = it })
-                Spacer(Modifier.height(12.dp))
-                NoteField(note, required = shown == PinLabel.OTHER, onChange = { note = it })
-                Spacer(Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            }
+        } else {
+            val shown = picked ?: pin.label
+            SheetBody(
+                buttons = {
                     TextButton(onClick = { editing = false; picked = null; note = pin.note.orEmpty() }) {
                         Text("Cancel", color = Dusk)
                     }
@@ -154,7 +157,12 @@ fun PinDetailSheet(
                         enabled = PinRules.canPlace(shown, PinRules.cleanNote(note)),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
                     ) { Text("Save") }
-                }
+                },
+            ) {
+                SheetTitle("Edit pin")
+                LabelPicker(selected = shown, onSelect = { picked = it })
+                Spacer(Modifier.height(12.dp))
+                NoteField(note, required = shown == PinLabel.OTHER, onChange = { note = it })
             }
         }
     }
@@ -171,16 +179,30 @@ fun PinDetailSheet(
     }
 }
 
+/**
+ * A sheet's content scrolls; its buttons stay below it, so the keyboard never hides them.
+ */
 @Composable
-private fun SheetColumn(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+private fun ColumnScope.SheetBody(
+    buttons: @Composable RowScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(
         Modifier
+            .weight(1f, fill = false)
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 16.dp)
-            .navigationBarsPadding(),
+            .padding(horizontal = 20.dp),
         content = content,
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
+            .navigationBarsPadding(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+        content = buttons,
     )
 }
 

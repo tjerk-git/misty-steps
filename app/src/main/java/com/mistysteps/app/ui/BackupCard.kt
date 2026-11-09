@@ -61,12 +61,12 @@ fun BackupCard(onImported: () -> Unit) {
         busy = true
         scope.launch {
             val msg = try {
-                val count = withContext(Dispatchers.IO) {
+                val backup = withContext(Dispatchers.IO) {
                     val backup = FogStore.exportBackup(BuildConfig.VERSION_NAME, Characters.selected.value?.id)
                     context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(backup.toJson().toByteArray()) }
-                    backup.points.size
+                    backup
                 }
-                "Saved ${NumberFormat.getIntegerInstance().format(count)} spots"
+                "Saved ${formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size)}"
             } catch (e: Exception) {
                 "Couldn't save the file"
             }
@@ -127,15 +127,15 @@ fun BackupCard(onImported: () -> Unit) {
     }
 
     pendingImport?.let { backup ->
-        val n = NumberFormat.getIntegerInstance()
         val from = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(backup.exportedAt))
         AlertDialog(
             onDismissRequest = { pendingImport = null },
             title = { Text("Add these trails?") },
             text = {
                 Text(
-                    "This backup from $from has ${n.format(backup.points.size)} spots and " +
-                        "${n.format(backup.sessions.size)} walks. They'll be added to the trails on this phone. " +
+                    "This backup from $from has " +
+                        "${formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size)}. " +
+                        "They'll be added to the trails on this phone. " +
                         "Nothing here is deleted, and spots you already have are skipped."
                 )
             },
@@ -149,7 +149,7 @@ fun BackupCard(onImported: () -> Unit) {
                             // A fresh phone also takes the wanderer from the backup.
                             if (r.wasEmpty) backup.character?.let { id -> Characters.all.firstOrNull { it.id == id }?.let(Characters::select) }
                             onImported()
-                            "Added ${n.format(r.spots)} spots, ${n.format(r.walks)} walks and ${n.format(r.pins)} pins"
+                            "Added ${formatBackupCounts(r.spots, r.walks, r.pins)}"
                         } catch (e: Exception) {
                             "Couldn't import the trails"
                         }
@@ -161,4 +161,11 @@ fun BackupCard(onImported: () -> Unit) {
             dismissButton = { TextButton(onClick = { pendingImport = null }) { Text("Cancel") } },
         )
     }
+}
+
+/** "1.662 spots, 3 walks and 1 pin": what a backup holds, in the phone's number format. */
+internal fun formatBackupCounts(spots: Int, walks: Int, pins: Int): String {
+    val n = NumberFormat.getIntegerInstance()
+    fun count(k: Int, one: String, many: String) = "${n.format(k)} ${if (k == 1) one else many}"
+    return "${count(spots, "spot", "spots")}, ${count(walks, "walk", "walks")} and ${count(pins, "pin", "pins")}"
 }

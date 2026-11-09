@@ -22,4 +22,11 @@ class FormatTest {
         assertEquals("12 min", formatDuration(12 * 60_000L + 5_000))
         assertEquals("1 h 05 min", formatDuration(65 * 60_000L))
     }
+
+    @Test
+    fun backupCountsUseSingularForOne() {
+        Locale.setDefault(Locale.US)
+        assertEquals("1,662 spots, 3 walks and 1 pin", formatBackupCounts(1662, 3, 1))
+        assertEquals("1 spot, 1 walk and 0 pins", formatBackupCounts(1, 1, 0))
+    }
 }
