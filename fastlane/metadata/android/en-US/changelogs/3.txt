@@ -1,0 +1,6 @@
+- Leave pins on your map: a place to sit, a view, birdsong, a cat, a fine tree and more, each with its own pixel icon and a note
+- Drop a pin while you walk, or long-press anywhere you've already cleared
+- Walk postcards and the walk log show the pins from each walk
+- "Your places" on the stats page lists all your pins
+- Backups now include your pins
+- The "Show my location" button has its own icon
