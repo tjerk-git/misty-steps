@@ -112,7 +112,7 @@ Installed and running; the map and the stats page were checked on the phone. The
 - [ ] Car or train ride while recording: after ~15–30 s above 32 km/h the "Too fast for the mist" chip shows, the notification changes, and the fog stops clearing. Out and walking: clearing resumes, with no line drawn across the ride.
 - [ ] Mist colour: open the app around sunset and after dark. Rosy, then blue-grey; status bar icons still readable.
 
-## Test pins (built 2026-11-09, on branch `pins`)
+## Test pins (built 2026-11-09, released in 1.2.0)
 
 Install over the current Dev build (don't uninstall first): the database upgrades from version 4 to 5.
 
@@ -177,6 +177,7 @@ Looked at and not chosen:
 
 ### Releases
 
+- **1.2.0** (versionCode 3, 2026-11-09): pins: drop them on a walk or long-press cleared ground, with a label, pixel icon and note; shown in the walk log, on postcards and under "Your places"; included in backups.
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
 - **1.0.0** (versionCode 1, 2026-11-08): first release. (Published as "1.0" before the version system existed.)
 
