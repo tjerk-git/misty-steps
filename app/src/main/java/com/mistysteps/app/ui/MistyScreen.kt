@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.ui.res.painterResource
 import com.mistysteps.app.R
 import androidx.compose.material.icons.filled.Place
@@ -65,6 +64,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -79,8 +79,8 @@ import com.mistysteps.app.record.RecordingService
 
 private enum class PermissionDialog { RATIONALE, SETTINGS }
 
-/** Walks shorter than this don't pop up a postcard (still in the walk log). */
-private const val MIN_POSTCARD_M = 50.0
+/** Set once the long-press pin tip has been closed. */
+private const val PIN_TIP_SEEN = "pin_tip_seen"
 
 /** What to do once location has been granted. */
 private enum class AfterGrant { WANDER, LOCATE }
@@ -142,10 +142,19 @@ fun MistyScreen() {
         }
     }
 
+    // Long-press to leave a pin can't be seen, so after the first real walk say so, once.
+    val hints = remember { context.getSharedPreferences("misty", Context.MODE_PRIVATE) }
+    var showPinTip by remember { mutableStateOf(false) }
+    fun dismissPinTip() {
+        showPinTip = false
+        hints.edit().putBoolean(PIN_TIP_SEEN, true).apply()
+    }
+
     // A postcard when a walk ends (skip tiny ones, like a start-stop by mistake).
     LaunchedEffect(Unit) {
         FogStore.finishedWalks.collect { walk ->
-            if (walk.distanceM >= MIN_POSTCARD_M) {
+            if (walk.distanceM >= MIN_WALK_M && !hints.getBoolean(PIN_TIP_SEEN, false)) showPinTip = true
+            if (walk.distanceM >= MIN_WALK_M) {
                 showStats = false
                 showCharacters = false
                 postcardWalk = walk.id
@@ -260,7 +269,7 @@ fun MistyScreen() {
                 contentColor = Ink,
                 shape = CircleShape,
             ) {
-                Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Stats")
+                Icon(painterResource(R.drawable.ic_stats), contentDescription = "Stats")
             }
 
             // Fly back to me
@@ -297,21 +306,32 @@ fun MistyScreen() {
                 }
             }
 
-            // In a car, train or bus: clearing is paused until you're moving under your own power again.
-            if (recording && inVehicle) {
+            // One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
+            val banner: Pair<String, (() -> Unit)?>? = when {
+                // In a car, train or bus: clearing is paused until you're moving under your own power again.
+                recording && inVehicle -> "Too fast for the mist: it only clears under your own steam" to null
+                showPinTip && !recording -> "Tip: long-press ground you've cleared to leave a pin there. Tap to close." to ::dismissPinTip
+                !recording && distance == 0.0 -> "Tap Start wandering and go outside. The mist lifts wherever you walk." to null
+                else -> null
+            }
+            banner?.let { (text, onTap) ->
                 Surface(
+                    onClick = { onTap?.invoke() },
+                    enabled = onTap != null,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 100.dp),
-                    shape = RoundedCornerShape(50),
+                        .align(Alignment.TopCenter)
+                        .padding(top = 88.dp, start = 32.dp, end = 32.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 4.dp,
                 ) {
                     Text(
-                        "Too fast for the mist: it only clears under your own steam",
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        text,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                         fontSize = 13.sp,
+                        lineHeight = 18.sp,
                         color = Ink,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
@@ -383,6 +403,7 @@ fun MistyScreen() {
         is PinSheetState.New -> NewPinSheet(
             onPlace = { key, note ->
                 PinStore.add(sheet.lat, sheet.lon, key, note, sheet.sessionId)
+                if (sheet.sessionId == null && showPinTip) dismissPinTip() // found it
                 pinSheet = null
             },
             onDismiss = { pinSheet = null },

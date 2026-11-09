@@ -13,15 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -121,9 +118,7 @@ fun StatsScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                // Pad inside the scroll so content scrolls behind the system bars.
-                .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .scrollingPage()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -161,16 +156,19 @@ fun StatsScreen(
                 }
                 s.city?.let { AreaCard(it); Spacer(Modifier.height(12.dp)) }
                 s.country?.let { AreaCard(it); Spacer(Modifier.height(12.dp)) }
-                AreaCard(s.world)
+                AreaCard(s.world) {
+                    Text("Plenty left to explore.", color = Dusk, fontSize = 13.sp)
+                }
                 s.problem?.let {
                     Spacer(Modifier.height(16.dp))
                     Text(it, color = Ember, fontSize = 14.sp)
                 }
-                if (walks.isNotEmpty()) {
+                val shown = remember(walks, pinsByWalk) { walksToShow(walks, pinsByWalk.keys) }
+                if (shown.isNotEmpty()) {
                     Spacer(Modifier.height(24.dp))
                     Text("YOUR WALKS", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
                     Spacer(Modifier.height(8.dp))
-                    WalkLog(walks, pinsByWalk, onOpenWalk)
+                    WalkLog(shown, pinsByWalk, onOpenWalk)
                 }
                 Spacer(Modifier.height(24.dp))
                 Text("YOUR PLACES", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
@@ -186,7 +184,9 @@ fun StatsScreen(
                     lineHeight = 16.sp,
                 )
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(32.dp))
+            Text("MORE", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+            Spacer(Modifier.height(8.dp))
             BackupCard(onImported = { refresh++ })
             Spacer(Modifier.height(12.dp))
             MadeBy(onOpenAbout)
@@ -213,7 +213,7 @@ private fun FeedbackRow() {
                 Text("Send feedback", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Text("A bug, an idea, a street that's wrong: I read everything", color = Dusk, fontSize = 12.sp)
             }
-            Text("✉", fontSize = 22.sp, color = Ink)
+            Icon(Icons.Filled.Email, contentDescription = null, tint = Ink)
         }
     }
 }
@@ -234,7 +234,7 @@ private fun MadeBy(onClick: () -> Unit) {
                 Text("Who made this, and why · buy me a coffee", color = Dusk, fontSize = 12.sp)
                 Text("Misty Steps ${BuildConfig.VERSION_NAME}", color = Dusk, fontSize = 12.sp)
             }
-            Text("☕", fontSize = 22.sp)
+            Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = Ember)
         }
     }
 }
@@ -243,9 +243,11 @@ private fun MadeBy(onClick: () -> Unit) {
 private fun WalkLog(walks: List<Session>, pinsByWalk: Map<Long, List<Pin>>, onOpenWalk: (Long) -> Unit) {
     val when_ = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
     val icons = rememberPinIcons()
+    var showAll by remember { mutableStateOf(false) }
+    val visible = if (showAll) walks else walks.take(RECENT_WALKS)
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-            for ((i, w) in walks.withIndex()) {
+            for ((i, w) in visible.withIndex()) {
                 if (i > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE3E7F1)))
                 Row(
                     Modifier
@@ -280,9 +282,24 @@ private fun WalkLog(walks: List<Session>, pinsByWalk: Map<Long, List<Pin>>, onOp
                     Text(formatDistance(w.distanceM), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
+            if (walks.size > RECENT_WALKS) {
+                TextButton(onClick = { showAll = !showAll }, contentPadding = PaddingValues(0.dp)) {
+                    Text(if (showAll) "Show fewer" else "Show all ${walks.size} walks", color = Ember)
+                }
+            }
         }
     }
 }
+
+/** How many walks the log shows before "Show all". */
+private const val RECENT_WALKS = 5
+
+/** Walks shorter than this are left out of the log and get no postcard: a start-stop by mistake. */
+internal const val MIN_WALK_M = 50.0
+
+/** The walks worth listing: not the tiny ones, unless one is still going or has pins on it. */
+internal fun walksToShow(walks: List<Session>, walksWithPins: Set<Long>): List<Session> =
+    walks.filter { it.endTime == null || it.distanceM >= MIN_WALK_M || it.id in walksWithPins }
 
 /** Your pins, grouped by label. Tap a group to open it, tap a pin to see it on the map. */
 @Composable
@@ -295,7 +312,8 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
             if (groups.isEmpty()) {
                 Text(
-                    "Leave a pin when something catches your eye.",
+                    "Leave a pin when something catches your eye: tap the pin button while you wander, " +
+                        "or long-press ground you've already cleared.",
                     color = Dusk,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -451,7 +469,7 @@ private fun AreaCard(stat: AreaStat, extra: @Composable ColumnScope.() -> Unit =
             if (f == null) {
                 Text("OpenStreetMap has no border for this area, so there's nothing to measure against.", color = Dusk, fontSize = 14.sp)
             } else {
-                Text(formatPercent(f), fontSize = 34.sp, fontWeight = FontWeight.Light, color = Ink)
+                Text(formatPercent(f), fontFamily = FontFamily.Serif, fontSize = 34.sp, color = Ink)
                 Spacer(Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { max(f.toFloat(), if (f > 0) 0.01f else 0f) },

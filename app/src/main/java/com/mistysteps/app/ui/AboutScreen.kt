@@ -11,17 +11,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -68,8 +63,7 @@ fun AboutScreen(onClose: () -> Unit) {
         Column(
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .scrollingPage()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -120,7 +114,7 @@ fun AboutScreen(onClose: () -> Unit) {
                         onClick = { open(context, DONATE_URL) },
                         colors = ButtonDefaults.buttonColors(containerColor = Ember, contentColor = Color.White),
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("☕  " + stringResource(R.string.about_donate_button), fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.about_donate_button), fontSize = 16.sp) }
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -133,7 +127,7 @@ fun AboutScreen(onClose: () -> Unit) {
                         onClick = { sendFeedback(context) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
-                    ) { Text("✉  " + stringResource(R.string.about_feedback_button), fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.about_feedback_button), fontSize = 16.sp) }
                 }
             }
             Spacer(Modifier.height(24.dp))

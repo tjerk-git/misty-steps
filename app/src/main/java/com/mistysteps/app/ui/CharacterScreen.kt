@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +54,16 @@ import androidx.compose.ui.unit.sp
 import com.mistysteps.app.character.Character
 import com.mistysteps.app.character.Characters
 import kotlinx.coroutines.delay
+
+/**
+ * A full-screen page that scrolls. Content stops at the status bar (so it never runs under the clock)
+ * but may scroll behind the navigation bar at the bottom.
+ */
+@Composable
+fun Modifier.scrollingPage(): Modifier = this
+    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+    .verticalScroll(rememberScrollState())
+    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
 
 /** Full-screen pages sit on top of the map: stop taps falling through to the buttons underneath. */
 fun Modifier.blockTouchesBelow(): Modifier = pointerInput(Unit) {
@@ -109,8 +121,7 @@ fun CharacterScreen(onClose: () -> Unit) {
         Column(
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .scrollingPage()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {

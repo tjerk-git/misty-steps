@@ -129,6 +129,14 @@ Install over the current Dev build (don't uninstall first): the database upgrade
 
 Checked on the phone 2026-11-09 (over USB, indoors). Fixed the same day: the "Show my location" button had the same icon as "Drop a pin" (now a crosshair), the pin sheets were see-through, the keyboard hid "Place pin", long notes in "Your places" were cut off without "…", and the backup messages didn't count pins. Indoors the GPS is only good to 40-47 m, over the 35 m limit, so dropping a pin there says "Looking for you in the mist…": test the walk items outside. The walk items passed outside the same day.
 
+## Test the UI review fixes (built 2026-11-09, after 1.2.0)
+
+Seen on the phone already: stats, About and wanderer pages stop at the status bar; bar-chart stats button; walks under 50 m without pins left out of the log; 5 walks with "Show all"; a "More" section for backup, About and feedback; no emoji; serif percentages; "Plenty left to explore." under Earth.
+
+- [ ] After a walk of 50 m or more: a tip under the title says to long-press cleared ground for a pin. Tap closes it for good; so does placing a pin with a long-press.
+- [ ] In a bus or car: the "Too fast for the mist" message shows under the title, not over the round buttons.
+- [ ] Fresh install (no trail yet): "Tap Start wandering and go outside…" shows under the title, and goes away once you've walked.
+
 ## Publishing (own F-Droid-style repo, by Potloodgum)
 
 Decided 2026-11-08: publish in Tjerk's own F-Droid-style repo, not the Play Store. In the app, an About screen (stats page → "Made by Potloodgum") says who made it and why, links to potloodgum.com, and has a "Buy me a coffee" button (buymeacoffee.com/tjerk). The text is in `res/values/strings.xml` (`about_*`).
