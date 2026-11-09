@@ -129,7 +129,7 @@ Install over the current Dev build (don't uninstall first): the database upgrade
 
 Checked on the phone 2026-11-09 (over USB, indoors). Fixed the same day: the "Show my location" button had the same icon as "Drop a pin" (now a crosshair), the pin sheets were see-through, the keyboard hid "Place pin", long notes in "Your places" were cut off without "…", and the backup messages didn't count pins. Indoors the GPS is only good to 40-47 m, over the 35 m limit, so dropping a pin there says "Looking for you in the mist…": test the walk items outside. The walk items passed outside the same day.
 
-## Test the UI review fixes (built 2026-11-09, after 1.2.0)
+## Test the UI review fixes (built 2026-11-09, released in 1.3.0)
 
 Seen on the phone already: stats, About and wanderer pages stop at the status bar; bar-chart stats button; walks under 50 m without pins left out of the log; 5 walks with "Show all"; a "More" section for backup, About and feedback; no emoji; serif percentages; "Plenty left to explore." under Earth.
 
@@ -185,6 +185,7 @@ Looked at and not chosen:
 
 ### Releases
 
+- **1.3.0** (versionCode 4, 2026-11-09): UI review fixes: pages stop at the status bar, map messages under the title, pin tip and welcome message, shorter walk log without tiny walks, "More" section, chart icon, version on the stats page, no emoji.
 - **1.2.0** (versionCode 3, 2026-11-09): pins: drop them on a walk or long-press cleared ground, with a label, pixel icon and note; shown in the walk log, on postcards and under "Your places"; included in backups.
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
 - **1.0.0** (versionCode 1, 2026-11-08): first release. (Published as "1.0" before the version system existed.)
