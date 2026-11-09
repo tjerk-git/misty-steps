@@ -1,0 +1,8 @@
+- Pages no longer scroll under the status bar
+- Messages on the map sit under the title, clear of the buttons
+- A tip after your first walk: long-press cleared ground to leave a pin
+- A welcome message for a brand-new map
+- The walk log shows your last five walks, with "Show all" for the rest, and skips walks under 50 m
+- Backup, About and feedback are grouped under "More"
+- A chart icon for the stats button
+- The app version is shown on the stats page
