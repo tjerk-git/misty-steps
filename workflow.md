@@ -117,17 +117,17 @@ Installed and running; the map and the stats page were checked on the phone. The
 Install over the current Dev build (don't uninstall first): the database upgrades from version 4 to 5.
 
 - [x] Install over the current build: old fog still there.
-- [ ] Walk, drop a pin with a label and a note: it appears where you stood, linked to the walk (shows in its walk log row).
-- [ ] Stand still for more than 30 s while wandering, then drop a pin: the sheet opens (no "Looking for you in the mist…").
+- [x] Walk, drop a pin with a label and a note: it appears where you stood, linked to the walk (shows in its walk log row).
+- [x] Stand still for more than 30 s while wandering, then drop a pin: the sheet opens (no "Looking for you in the mist…").
 - [x] Two pins on the same spot: tapping opens the newest (the one on top).
 - [x] Long-press on cleared ground: sheet opens, pin lands there. Long-press in fog: "Walk here first to leave a pin".
 - [x] Tap a pin: read, edit label and note, delete.
-- [ ] Zoom out past 14: pins turn into dots; past 10: gone.
-- [ ] Postcard of the walk shows its pins; the walk log row shows the icons.
+- [x] Zoom out past 14: pins turn into dots; past 10: gone.
+- [x] Postcard of the walk shows its pins; the walk log row shows the icons.
 - [x] "Your places": groups and counts right; tapping a row flies to the pin.
 - [x] Export, wipe the app's data, import: pins come back. Import again: no doubles.
 
-Checked on the phone 2026-11-09 (over USB, indoors). Fixed the same day: the "Show my location" button had the same icon as "Drop a pin" (now a crosshair), the pin sheets were see-through, the keyboard hid "Place pin", long notes in "Your places" were cut off without "…", and the backup messages didn't count pins. Indoors the GPS is only good to 40-47 m, over the 35 m limit, so dropping a pin there says "Looking for you in the mist…": test the walk items outside.
+Checked on the phone 2026-11-09 (over USB, indoors). Fixed the same day: the "Show my location" button had the same icon as "Drop a pin" (now a crosshair), the pin sheets were see-through, the keyboard hid "Place pin", long notes in "Your places" were cut off without "…", and the backup messages didn't count pins. Indoors the GPS is only good to 40-47 m, over the 35 m limit, so dropping a pin there says "Looking for you in the mist…": test the walk items outside. The walk items passed outside the same day.
 
 ## Publishing (own F-Droid-style repo, by Potloodgum)
 
@@ -165,6 +165,16 @@ Ask Claude to "release a new version" (the `/fdroid-release` skill in `.claude/s
 
 **How it's doing:** `tools/stats.sh [days]` shows app downloads per version, phones checking the repo per day, and visits to the landing page. It reads Cloudflare's own request analytics for fdroid.potloodgum.com: path, user agent and status only, with no IP addresses. Nothing is added to the app or the site. Scripts and bots are left out. "At least N phones" counts different F-Droid/Droid-ify versions, so it's a lower bound.
 
+### Map tiles (decided 2026-11-09)
+
+The map uses OpenStreetMap's public tile servers (`TileSourceFactory.MAPNIK` in `ui/MapController.kt` and `postcard/PostcardRenderer.kt`). Their [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) has no fixed limit; OSM blocks apps that behave badly or put a big load on the servers, by User-Agent, so a block hits every install at once. The app follows the rules: its own User-Agent (`com.potloodgum.mistysteps/<version>`, `MistyApplication.kt`), osmdroid's tile cache on the phone, no bulk downloading, visible attribution. Up to a few hundred users is no problem. Nominatim and Overpass count per IP address, so they don't get busier as users are added.
+
+**Decision: switch to a paid tile provider when the app grows**: past ~1,000 downloads (`tools/stats.sh`), or before a big post (Hacker News, a large subreddit). MapTiler, Stadia or Thunderforest: free tiers cover thousands of users, then about $20–50 a month. The work is about an hour: a new tile source with the provider's URL and API key in both files above. The repo is public, so keep the key out of git (in `keystore.properties` or `local.properties`, passed in as a `BuildConfig` field). The key can still be read from the APK, so set a usage cap at the provider. Change the attribution to the provider's text. The long-term goal is offline region maps (see Roadmap, "Later"), which removes the need for any tile server.
+
+Looked at and not chosen:
+- **Own raster tile server** (PostGIS, OSM-Carto, renderd): the whole planet needs ~1 TB NVMe and 64 GB+ RAM, about €60–150 a month, plus daily updates and upkeep.
+- **Protomaps (PMTiles) on Cloudflare R2**: cheap to host (~$2/month), but vector tiles need MapLibre Native instead of osmdroid, which means rewriting the fog, trail, pin and postcard rendering. Only worth it as its own project, if a custom map style or offline maps are wanted.
+
 ### Releases
 
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
@@ -189,6 +199,7 @@ New ground per walk, no clearing at vehicle speed, walk postcard, neighbourhood 
 - **Home screen widget.** Your character, your last walk and your neighbourhood %.
 - **GPX export.** Export walks as GPX files through the Android share sheet or file picker: a backup without accounts.
 - **Tell buses from bikes (without Google Play services).** Speed alone lets a slow city bus clear fog. No Google: use the phone's own motion sensor. Pedalling, walking and pushing a wheelchair make a rhythmic 1–2 Hz movement; riding in a bus or car is smooth with bumps and engine hum. Plan: (1) log accelerometer features during test rides in the debug build (`debug/` runs: bike, bus, car, train), (2) tune a simple rule from that data, (3) pause clearing when it says "vehicle" at any speed. Sensor batching keeps the battery cost low. Cheap first step: also treat short bursts above ~40 km/h as a vehicle, which catches buses on through roads.
+- **Offline region maps (a 2.0 goal, idea 2026-11-09).** Like Organic Maps: users download their country's map once and the phone draws it, so there are no tile requests at all (not even OSM sees where people scroll), it works offline, and there are no tile limits or bills. This replaces the paid-provider plan in "Map tiles" for good. Plan: (1) cut region files (Netherlands, Germany, ...) from a Protomaps planet build with `pmtiles extract`; a country is a few hundred MB to a few GB, depending on size and top zoom. (2) Host them on Cloudflare R2, which charges nothing for downloads, so many users cost about the same as one. (3) A "Download a map" screen in the app. (4) Draw the map with MapLibre Native in our own style (check first that it reads PMTiles files directly). (5) Ship a small low-zoom world map in the app so the world view and fog specks work everywhere. The big job is moving off osmdroid: the fog, trail, pin and postcard rendering all have to be rewritten for MapLibre. Also needed: a job to rebuild the regions now and then.
 - **Unlocks.** New characters or hats at distance milestones, finished streets or neighbourhood percentages. Builds on the character select.
 - **iOS release in the EU (looked into 2026-11-09).** Ship on an EU alternative app marketplace such as AltStore PAL, which works much like the F-Droid repo: a self-hosted source plus a build Apple has notarized. Needs a paid Apple Developer account (€99/yr), Apple's EU alternative distribution terms, Xcode, and notarization of every build (lighter than App Store review, but location usage texts and a privacy manifest are checked). Since 2026-10-01 Apple charges 5% on digital sales only, so nothing for a free app. Only users with an EU account who are in the EU can install it. The real work is the port: nothing in the app runs on iOS. Plan: Kotlin Multiplatform, sharing the pure logic (recording filter, gap filling, cell stats, Overpass/Nominatim, storage), with per-platform map (MapLibre Native or MapKit with OSM tiles), fog renderer (Core Graphics or Metal) and background GPS (Core Location "Always"). Battery tuning has to be redone on an iPhone. Apple's EU terms change often: check them again before starting. First step: list which files are pure logic and which depend on Android.
 
