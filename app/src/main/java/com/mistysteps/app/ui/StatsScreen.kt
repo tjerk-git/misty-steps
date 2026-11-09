@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mistysteps.app.BuildConfig
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.PinStore
 import com.mistysteps.app.pin.Pin
@@ -231,6 +232,7 @@ private fun MadeBy(onClick: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text("Made by Potloodgum", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Text("Who made this, and why · buy me a coffee", color = Dusk, fontSize = 12.sp)
+                Text("Misty Steps ${BuildConfig.VERSION_NAME}", color = Dusk, fontSize = 12.sp)
             }
             Text("☕", fontSize = 22.sp)
         }
