@@ -1,0 +1,4 @@
+- City and country stats now work offline: the borders of every Dutch town come with the app, so nothing about where you are is sent anywhere
+- The app no longer asks OpenStreetMap's lookup services for borders and streets, to go easy on their volunteer-run servers
+- Neighbourhood and street stats you already had keep working
+- New screenshots
