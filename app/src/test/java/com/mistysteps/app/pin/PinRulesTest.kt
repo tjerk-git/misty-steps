@@ -11,8 +11,8 @@ class PinRulesTest {
 
     private fun pin(
         time: Long = 0,
-        lat: Double = 53.2,
-        lon: Double = 5.8,
+        lat: Double = 52.37,
+        lon: Double = 4.88,
         labelKey: String = "sit",
         note: String? = null,
     ) = Pin(id = 0, lat = lat, lon = lon, time = time, labelKey = labelKey, note = note, sessionId = null)
@@ -63,10 +63,10 @@ class PinRulesTest {
 
     @Test
     fun clearedMeansInsideAClearedCircle() {
-        val index = PointIndex().apply { add(53.2000, 5.8000, 50.0) }
-        assertTrue(PinRules.isCleared(index, 53.2000, 5.8003)) // ~20 m east
-        assertFalse(PinRules.isCleared(index, 53.2000, 5.8010)) // ~67 m east
-        assertFalse(PinRules.isCleared(PointIndex(), 53.2, 5.8))
+        val index = PointIndex().apply { add(52.3700, 4.8800, 50.0) }
+        assertTrue(PinRules.isCleared(index, 52.3700, 4.8803)) // ~20 m east
+        assertFalse(PinRules.isCleared(index, 52.3700, 4.8810)) // ~67 m east
+        assertFalse(PinRules.isCleared(PointIndex(), 52.37, 4.88))
     }
 
     @Test
@@ -93,8 +93,8 @@ class PinRulesTest {
 
     @Test
     fun importSkipsPinsWithSameTimeAndPlace() {
-        val have = listOf(pin(time = 1, lat = 53.2, lon = 5.8))
-        val incoming = listOf(pin(time = 1, lat = 53.2, lon = 5.8, note = "dup"), pin(time = 2, lat = 53.2, lon = 5.8))
+        val have = listOf(pin(time = 1, lat = 52.37, lon = 4.88))
+        val incoming = listOf(pin(time = 1, lat = 52.37, lon = 4.88, note = "dup"), pin(time = 2, lat = 52.37, lon = 4.88))
         assertEquals(listOf(2L), PinRules.newPins(have, incoming).map { it.time })
         assertEquals(2, PinRules.newPins(emptyList(), incoming + incoming).size) // duplicates inside one file collapse too
     }

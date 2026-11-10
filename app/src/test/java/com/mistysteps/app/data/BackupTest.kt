@@ -23,11 +23,11 @@ class BackupTest {
         points = listOf(
             TrailPoint(52.3794, 4.8631, 1_794_142_884_000, 100.0, 1_794_142_883_836),
             TrailPoint(52.3801, 4.8640, 1_794_142_886_000, 50.0, 1_794_142_883_836),
-            TrailPoint(53.2000, 5.8000, 1_700_000_000_000, 50.0, null), // from before walks were logged
+            TrailPoint(52.3700, 4.8800, 1_700_000_000_000, 50.0, null), // from before walks were logged
         ),
         pins = listOf(
             Pin(0, 52.3795, 4.8632, 1_794_142_900_000, "crow", "on the church", 1_794_142_883_836),
-            Pin(0, 53.2001, 5.8001, 1_794_150_000_000, "sit", null, null), // placed later by long-press
+            Pin(0, 52.3701, 4.8801, 1_794_150_000_000, "sit", null, null), // placed later by long-press
         ),
     )
 

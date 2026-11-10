@@ -40,7 +40,7 @@ class NeighbourhoodTest {
     @Test
     fun picksTheQuarterOverTheSmallerNeighbourhoodAndIgnoresTheTownItself() {
         fun square(name: String, kind: String, size: Double) = Boundary(
-            name, listOf(listOf(line(5.8 - size, 53.2 - size, 5.8 + size, 53.2 - size, 5.8 + size, 53.2 + size, 5.8 - size, 53.2 + size, 5.8 - size, 53.2 - size))),
+            name, listOf(listOf(line(4.88 - size, 52.37 - size, 4.88 + size, 52.37 - size, 4.88 + size, 52.37 + size, 4.88 - size, 52.37 + size, 4.88 - size, 52.37 - size))),
             "relation", 1, kind,
         )
         val city = square("Town", "city", 0.1)
@@ -49,9 +49,9 @@ class NeighbourhoodTest {
             square("Wijk", "quarter", 0.005),
             square("Woonplaats", "admin10", 0.1), // as big as the city: not a neighbourhood
         )
-        assertEquals("Wijk", Neighbourhoods.pick(all, city, 53.2, 5.8)?.name)
-        assertEquals("Buurt", Neighbourhoods.pick(all.filter { it.kind != "quarter" }, city, 53.2, 5.8)?.name)
-        assertNull(Neighbourhoods.pick(all.filter { it.kind == "admin10" }, city, 53.2, 5.8))
+        assertEquals("Wijk", Neighbourhoods.pick(all, city, 52.37, 4.88)?.name)
+        assertEquals("Buurt", Neighbourhoods.pick(all.filter { it.kind != "quarter" }, city, 52.37, 4.88)?.name)
+        assertNull(Neighbourhoods.pick(all.filter { it.kind == "admin10" }, city, 52.37, 4.88))
     }
 
     @Test
@@ -59,20 +59,20 @@ class NeighbourhoodTest {
         val hoods = Neighbourhoods.parseHoods(JSONObject("""
             {"elements":[{"type":"relation","id":42,"tags":{"name":"Jordaan","place":"quarter"},
               "members":[
-                {"type":"way","role":"outer","geometry":[{"lat":53.20,"lon":5.78},{"lat":53.20,"lon":5.79},{"lat":53.21,"lon":5.79}]},
-                {"type":"way","role":"outer","geometry":[{"lat":53.21,"lon":5.79},{"lat":53.21,"lon":5.78},{"lat":53.20,"lon":5.78}]}
+                {"type":"way","role":"outer","geometry":[{"lat":52.37,"lon":4.86},{"lat":52.37,"lon":4.87},{"lat":52.38,"lon":4.87}]},
+                {"type":"way","role":"outer","geometry":[{"lat":52.38,"lon":4.87},{"lat":52.38,"lon":4.86},{"lat":52.37,"lon":4.86}]}
               ]}]}
         """))
         assertEquals(1, hoods.size)
         assertEquals("quarter", hoods[0].kind)
         assertEquals(3_600_000_042L, hoods[0].overpassAreaId)
-        assertTrue(hoods[0].contains(53.205, 5.785))
+        assertTrue(hoods[0].contains(52.375, 4.865))
 
         val streets = Neighbourhoods.parseStreets(JSONObject("""
             {"elements":[
-              {"type":"way","tags":{"name":"Lindengracht","highway":"residential"},"geometry":[{"lat":53.2,"lon":5.78},{"lat":53.2,"lon":5.781}]},
-              {"type":"way","tags":{"name":"Lindengracht","highway":"residential"},"geometry":[{"lat":53.2,"lon":5.781},{"lat":53.2,"lon":5.782}]},
-              {"type":"way","tags":{"name":"Bloemgracht","highway":"residential"},"geometry":[{"lat":53.201,"lon":5.78},{"lat":53.202,"lon":5.78}]}
+              {"type":"way","tags":{"name":"Lindengracht","highway":"residential"},"geometry":[{"lat":52.37,"lon":4.86},{"lat":52.37,"lon":4.861}]},
+              {"type":"way","tags":{"name":"Lindengracht","highway":"residential"},"geometry":[{"lat":52.37,"lon":4.861},{"lat":52.37,"lon":4.862}]},
+              {"type":"way","tags":{"name":"Bloemgracht","highway":"residential"},"geometry":[{"lat":52.371,"lon":4.86},{"lat":52.372,"lon":4.86}]}
             ]}
         """))
         assertEquals(listOf("Lindengracht", "Bloemgracht"), streets.map { it.name })
@@ -81,14 +81,14 @@ class NeighbourhoodTest {
 
     @Test
     fun aStreetCountsOnceMostOfItIsWalked() {
-        val mPerDegLon = 111_320.0 * kotlin.math.cos(Math.toRadians(53.2))
+        val mPerDegLon = 111_320.0 * kotlin.math.cos(Math.toRadians(52.37))
         // Two 200 m east-west streets, 100 m apart.
-        val a = Street("A-straat", listOf(line(5.78, 53.2, 5.78 + 200 / mPerDegLon, 53.2)))
-        val b = Street("B-straat", listOf(line(5.78, 53.2009, 5.78 + 200 / mPerDegLon, 53.2009)))
+        val a = Street("A-straat", listOf(line(4.86, 52.37, 4.86 + 200 / mPerDegLon, 52.37)))
+        val b = Street("B-straat", listOf(line(4.86, 52.3709, 4.86 + 200 / mPerDegLon, 52.3709)))
         // Walked all of A, 8 m off the centre line (GPS), and the first 60 m of B.
         val trail = ArrayList<Double>()
-        for (m in 0..200 step 20) { trail += 53.2 + 8 / 111_320.0; trail += 5.78 + m / mPerDegLon }
-        for (m in 0..60 step 20) { trail += 53.2009; trail += 5.78 + m / mPerDegLon }
+        for (m in 0..200 step 20) { trail += 52.37 + 8 / 111_320.0; trail += 4.86 + m / mPerDegLon }
+        for (m in 0..60 step 20) { trail += 52.3709; trail += 4.86 + m / mPerDegLon }
         val st = StreetCoverage.compute(listOf(a, b), trail.toDoubleArray()) { _, _ -> true }
         assertEquals(1, st.walked)
         assertEquals(2, st.total)
@@ -98,12 +98,12 @@ class NeighbourhoodTest {
 
     @Test
     fun onlyThePartInsideTheAreaCounts() {
-        val mPerDegLon = 111_320.0 * kotlin.math.cos(Math.toRadians(53.2))
-        val s = Street("Long", listOf(line(5.78, 53.2, 5.78 + 400 / mPerDegLon, 53.2)))
+        val mPerDegLon = 111_320.0 * kotlin.math.cos(Math.toRadians(52.37))
+        val s = Street("Long", listOf(line(4.86, 52.37, 4.86 + 400 / mPerDegLon, 52.37)))
         val trail = ArrayList<Double>()
-        for (m in 0..200 step 20) { trail += 53.2; trail += 5.78 + m / mPerDegLon }
+        for (m in 0..200 step 20) { trail += 52.37; trail += 4.86 + m / mPerDegLon }
         // Area = the western half; walked all of that half.
-        val st = StreetCoverage.compute(listOf(s), trail.toDoubleArray()) { _, lon -> lon < 5.78 + 200 / mPerDegLon }
+        val st = StreetCoverage.compute(listOf(s), trail.toDoubleArray()) { _, lon -> lon < 4.86 + 200 / mPerDegLon }
         assertEquals(1, st.walked)
     }
 }
