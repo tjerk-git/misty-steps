@@ -6,67 +6,41 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Neighbourhoods (wijken) and their streets, from OpenStreetMap.
+ * Neighbourhoods (wijken) and their streets, as saved on this phone by earlier versions.
  *
- * All neighbourhood borders of your city are fetched at once, by the city's OSM id, and
- * kept on the phone; which one you're in is then worked out on the phone. Streets are
- * fetched per neighbourhood, by its OSM id. So no position is ever sent.
+ * Earlier versions fetched these from OpenStreetMap's Overpass service. That put a load on
+ * shared servers for every user, so the app no longer fetches anything: it only reads what an
+ * earlier version already saved. Downloadable town maps will bring them back for everyone
+ * (docs/superpowers/specs/2026-11-10-offline-maps-design.md).
  */
 class Neighbourhoods(context: Context) {
 
     private val root = File(context.filesDir, "boundaries")
-    private val hoodDir = File(root, "neighbourhoods").apply { mkdirs() }
-    private val streetDir = File(root, "streets").apply { mkdirs() }
-    private val hoods = HashMap<Long, List<Boundary>>() // by city area id
-    private val streets = HashMap<Long, List<Street>>() // by neighbourhood area id
+    private val hoodDir = File(root, "neighbourhoods")
+    private val streetDir = File(root, "streets")
+    private val hoods = HashMap<Long, List<Boundary>?>() // by city area id
+    private val streets = HashMap<Long, List<Street>?>() // by neighbourhood area id
 
-    /** The neighbourhood around (lat, lon) in [city], or null. Blocking; may hit the network. */
+    /** All saved neighbourhoods of [city], or null if none were ever saved. Blocking (disk). */
     @Synchronized
-    fun find(city: Boundary, lat: Double, lon: Double): Boundary? {
+    fun saved(city: Boundary): List<Boundary>? {
         val area = city.overpassAreaId ?: return null
-        val all = hoods.getOrPut(area) {
-            parseHoods(cached(File(hoodDir, "$area.json"), readTimeoutMs = 60_000) { hoodQuery(area) })
-        }
-        return pick(all, city, lat, lon)
+        return hoods.getOrPut(area) { saved(File(hoodDir, "$area.json"))?.let(::parseHoods) }
     }
 
-    /** Named streets in [hood]. Blocking; may hit the network. */
+    /** Saved named streets in [hood], or null if they were never saved. Blocking (disk). */
     @Synchronized
-    fun streets(hood: Boundary): List<Street> {
-        val area = hood.overpassAreaId ?: return emptyList()
-        return streets.getOrPut(area) {
-            parseStreets(cached(File(streetDir, "$area.json"), readTimeoutMs = 30_000) { streetQuery(area) })
-        }
+    fun streets(hood: Boundary): List<Street>? {
+        val area = hood.overpassAreaId ?: return null
+        return streets.getOrPut(area) { saved(File(streetDir, "$area.json"))?.let(::parseStreets) }
     }
 
-    private fun cached(file: File, readTimeoutMs: Int, ql: () -> String): JSONObject {
-        if (file.exists()) runCatching { return JSONObject(file.readText()) }
-        val json = Overpass.query(ql(), readTimeoutMs)
-        file.writeText(json.toString())
-        return json
-    }
+    private fun saved(file: File): JSONObject? =
+        if (file.exists()) runCatching { JSONObject(file.readText()) }.getOrNull() else null
 
     companion object {
         /** Preferred kinds, best first: a wijk-sized area is big enough to explore, small enough to finish. */
         private val ORDER = listOf("quarter", "suburb", "neighbourhood", "admin11", "admin10", "admin9")
-
-        fun hoodQuery(cityArea: Long) = """
-            [out:json][timeout:55];
-            area(id:$cityArea)->.c;
-            (
-              relation["place"~"^(suburb|quarter|neighbourhood)${'$'}"](area.c);
-              way["place"~"^(suburb|quarter|neighbourhood)${'$'}"](area.c);
-              relation["boundary"="administrative"]["admin_level"~"^(9|10|11)${'$'}"](area.c);
-            );
-            out geom;
-        """.trimIndent()
-
-        fun streetQuery(hoodArea: Long) = """
-            [out:json][timeout:25];
-            area(id:$hoodArea)->.n;
-            way["highway"~"^(residential|living_street|pedestrian|unclassified|tertiary|secondary|primary|footway|path|cycleway|service|track|steps)${'$'}"]["name"]["foot"!="no"](area.n);
-            out tags geom;
-        """.trimIndent()
 
         /** Picks the best-sized area containing the point; ignores anything as big as the city. */
         fun pick(all: List<Boundary>, city: Boundary, lat: Double, lon: Double): Boundary? =

@@ -15,7 +15,7 @@
     <string name="about_donate_button">Buy me a coffee</string>
     <string name="about_feedback_text">Found a bug, or have an idea? Tell me. I read everything.</string>
     <string name="about_feedback_button">Send feedback</string>
-    <string name="about_credits">Map data © OpenStreetMap contributors. Borders and streets from OpenStreetMap\'s Nominatim and Overpass services.</string>
+    <string name="about_credits">Map data © OpenStreetMap contributors (ODbL). City and country borders are made from an OpenStreetMap dump and come with the app.</string>
 
     <!-- Pin labels. The key in pin/PinLabel.kt is what's stored; these texts can change freely. -->
     <string name="pin_group_rest">Rest</string>

@@ -18,14 +18,13 @@ class Boundary(
     /** What sort of area: "quarter", "neighbourhood", "admin10"…; null for city/country lookups. */
     val kind: String? = null,
 ) {
-    /** Overpass "area" id for this border, or null if OSM can't use it as an area. */
+    /** Key under which earlier versions saved this area's neighbourhoods and streets (Overpass "area" id). */
     val overpassAreaId: Long?
         get() = when (osmType) {
             "relation" -> 3_600_000_000L + osmId
             "way" -> 2_400_000_000L + osmId
             else -> null
         }
-
 
     /** Surface area in square metres (spherical earth). */
     val areaM2: Double = polygons.sumOf { rings ->

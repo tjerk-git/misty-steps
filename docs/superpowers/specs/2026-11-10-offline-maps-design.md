@@ -13,6 +13,11 @@ Today the app talks to three kinds of OpenStreetMap servers while people use it:
 | City and country border | `stats/BoundaryProvider.kt` | nominatim.openstreetmap.org |
 | Neighbourhoods and streets | `stats/Neighbourhoods.kt`, `stats/Overpass.kt` | overpass-api.de, overpass.kumi.systems, overpass.private.coffee |
 
+Update 2026-11-10: version 1.3.1 already removed the Nominatim and Overpass requests. City and
+country come from an index shipped in the app; neighbourhoods and streets are only read from what
+earlier versions saved. This design removes the tile requests and brings neighbourhoods and streets
+back for everyone.
+
 Every one of these costs volunteer-run infrastructure something for every user. That cost grows with the
 number of people using Misty Steps. OSM's servers are under real pressure from apps that query them per
 user, and Misty Steps should not be one of them. Overpass is also often busy, which makes the stats page
@@ -120,24 +125,30 @@ All files are versioned under `v1/` so a later format change can live next to th
 }
 ```
 
-**`v1/nl/index.json.gz`**: the country border and every municipality. The app downloads it when it
-first finds itself inside the country's bbox, and again when `indexBuilt` in the catalog changes.
+**`v1/nl/index.json.gz`**: the country border and every town. Since 1.3.1 the same file already
+ships in the app as `assets/nl-index.json` (built by `tools/maps/index.py`); the app downloads it
+from the server only when `indexBuilt` in the catalog is newer than the copy it has.
 
 ```json
 {
   "format": 1,
-  "country": { "name": "Nederland", "osmId": 2323309, "rings": [[...]] },
+  "country": { "name": "Netherlands", "osmId": 2323309, "polygons": [[[...]]] },
   "cities": [
-    { "osmId": 47712, "name": "Leeuwarden", "bbox": [5.6, 53.1, 5.95, 53.3], "rings": [[...]] }
+    { "osmId": 162081, "name": "Leeuwarden", "polygons": [[[...]]] }
   ]
 }
 ```
 
-`rings` are polygons as lists of flat `[lon0, lat0, lon1, lat1, ...]` rings (outer first, then holes), so
-they load straight into the existing `Boundary`. The country border is simplified with a 0.003 degree
-tolerance and the city borders with 0.0003, the same as today's Nominatim lookups. So city and country
-percentages hardly change. The country border is the European Netherlands (relation 2323309), set in
-`countries.toml`.
+`polygons` is a list of polygons, each a list of flat `[lon0, lat0, lon1, lat1, ...]` rings (outer
+first, then holes), so they load straight into the existing `Boundary`. Towns are the woonplaatsen
+(`admin_level=10` with `ref:woonplaatscode`, about 2,500), the same areas the old Nominatim lookups
+returned as "city", simplified with a 0.0003 degree tolerance. The country border is the union of
+the municipalities (`admin_level=8` with `ref:gemeentecode`): land and inland water, no territorial
+sea, simplified with 0.003. (A country relation can't be assembled from a Geofabrik extract: its sea
+border is cut off.)
+
+City packs stay per municipality: the offer card names the municipality whose pack covers the town
+you're in.
 
 **`v1/nl/cities/<osmId>.zip`**: one city pack.
 
@@ -160,7 +171,10 @@ The repo is public, so Actions minutes are free.
 name = "Netherlands"
 geofabrik = "https://download.geofabrik.de/europe/netherlands-latest.osm.pbf"
 country_relation = 2323309
-city_admin_level = 8
+town_admin_level = 10
+town_tag = "ref:woonplaatscode"
+municipality_admin_level = 8
+municipality_tag = "ref:gemeentecode"
 ```
 
 **`refresh-maps.yml`** (cron `17 3 2 * *`, plus manual run):

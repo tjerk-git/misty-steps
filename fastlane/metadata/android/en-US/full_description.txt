@@ -12,7 +12,7 @@ The whole world starts out covered in drifting mist. The only way to clear it is
 </ul>
 
 <b>Private by design</b>
-No ads, no accounts, no tracking. Your trails are stored only on your phone and are never uploaded. Map tiles come from OpenStreetMap. To look up your city and country, only your rough location (about 1 km) is sent to OpenStreetMap's Nominatim service. Neighbourhoods and streets are fetched by their OpenStreetMap id, never by your position.
+No ads, no accounts, no tracking. Your trails are stored only on your phone and are never uploaded. Map tiles come from OpenStreetMap. City and country borders come with the app, so working out where you are happens on your phone: nothing about where you are is sent anywhere.
 
 <b>Made by Potloodgum</b>
 Misty Steps is made by Tjerk at Potloodgum, a one-person studio in Leeuwarden. If it gets you out the door, you can buy me a coffee at buymeacoffee.com/tjerk.

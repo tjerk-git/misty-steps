@@ -26,3 +26,5 @@ fdroid/potloodgum.png
 fdroid/site/node_modules/
 fdroid/site/.cloudflare/
 fdroid/site/public/
+# Map data downloaded from Geofabrik (large, rebuildable).
+tools/maps/data/

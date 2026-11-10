@@ -85,23 +85,16 @@ fun StatsScreen(
     var refresh by remember { mutableStateOf(0) }
     LaunchedEffect(here, refresh) {
         stats = repo.compute(here?.first, here?.second)
-        // Slower (borders and streets may need fetching), so it comes in after the rest.
         if (here != null) hood = repo.neighbourhood(here.first, here.second)
     }
-    // Streets come last: they can take a while when OpenStreetMap's servers are busy.
+    // Streets come last: counting them against your trail takes a moment.
     var streets by remember { mutableStateOf<StreetStats?>(null) }
-    var streetsFailed by remember { mutableStateOf(false) }
-    var streetsAttempt by remember { mutableStateOf(0) }
+    var streetsMissing by remember { mutableStateOf(false) }
     val hoodBoundary = hood?.stat?.boundary
-    LaunchedEffect(hoodBoundary, streetsAttempt, refresh) {
+    LaunchedEffect(hoodBoundary, refresh) {
         if (hoodBoundary == null) return@LaunchedEffect
-        streetsFailed = false
-        streets = try {
-            repo.streets(hoodBoundary)
-        } catch (e: Exception) {
-            streetsFailed = true
-            null
-        }
+        streets = repo.streets(hoodBoundary)
+        streetsMissing = streets == null
     }
     LaunchedEffect(refresh) { walks = withContext(Dispatchers.IO) { FogStore.loadSessions() } }
     val pins by PinStore.pins.collectAsState()
@@ -151,7 +144,7 @@ fun StatsScreen(
                 }
                 Spacer(Modifier.height(16.dp))
                 if (here != null) {
-                    NeighbourhoodCard(hood, streets, streetsFailed, onRetryStreets = { streetsAttempt++ })
+                    NeighbourhoodCard(hood, streets, streetsMissing)
                     Spacer(Modifier.height(12.dp))
                 }
                 s.city?.let { AreaCard(it); Spacer(Modifier.height(12.dp)) }
@@ -159,9 +152,9 @@ fun StatsScreen(
                 AreaCard(s.world) {
                     Text("Plenty left to explore.", color = Dusk, fontSize = 13.sp)
                 }
-                s.problem?.let {
+                s.note?.let {
                     Spacer(Modifier.height(16.dp))
-                    Text(it, color = Ember, fontSize = 14.sp)
+                    Text(it, color = Dusk, fontSize = 14.sp)
                 }
                 val shown = remember(walks, pinsByWalk) { walksToShow(walks, pinsByWalk.keys) }
                 if (shown.isNotEmpty()) {
@@ -176,9 +169,9 @@ fun StatsScreen(
                 YourPlaces(pins, onOpenPin)
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Borders and streets come from OpenStreetMap. Only your rough location (about 1 km) " +
-                        "is sent to look up your city and country, once per area. Neighbourhoods and streets are " +
-                        "fetched by city and neighbourhood, never by your position. Borders and your trails stay on this phone.",
+                    "City and country borders come with the app, made from OpenStreetMap data, so working " +
+                        "out where you are happens on this phone. Nothing about where you are is sent anywhere. " +
+                        "Your trails stay on this phone.",
                     color = Dusk,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -383,24 +376,14 @@ private fun SmallStat(label: String, value: String, modifier: Modifier = Modifie
 private fun NeighbourhoodCard(
     result: NeighbourhoodResult?,
     streets: StreetStats?,
-    streetsFailed: Boolean,
-    onRetryStreets: () -> Unit,
+    streetsMissing: Boolean,
 ) {
     val stat = result?.stat
     when {
         stat != null -> AreaCard(stat.area) {
             when {
                 streets != null -> Streets(streets)
-                streetsFailed -> {
-                    Spacer(Modifier.height(14.dp))
-                    Text(
-                        "Couldn't reach OpenStreetMap for the streets. Its servers are often busy.",
-                        color = Dusk, fontSize = 13.sp,
-                    )
-                    TextButton(onClick = onRetryStreets, contentPadding = PaddingValues(0.dp)) {
-                        Text("Try again", color = Ember)
-                    }
-                }
+                streetsMissing -> Unit // never saved on this phone: just the area
                 else -> {
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -418,7 +401,7 @@ private fun NeighbourhoodCard(
                 Text("Finding your neighbourhood…", color = Dusk, fontSize = 14.sp)
             }
         }
-        result.problem != null -> Text(result.problem, color = Ember, fontSize = 14.sp)
+        result.note != null -> Text(result.note, color = Dusk, fontSize = 14.sp)
         else -> Unit // no neighbourhoods mapped here
     }
 }
@@ -467,7 +450,7 @@ private fun AreaCard(stat: AreaStat, extra: @Composable ColumnScope.() -> Unit =
             Spacer(Modifier.height(10.dp))
             val f = stat.fraction
             if (f == null) {
-                Text("OpenStreetMap has no border for this area, so there's nothing to measure against.", color = Dusk, fontSize = 14.sp)
+                Text("There's no border for this area, so there's nothing to measure against.", color = Dusk, fontSize = 14.sp)
             } else {
                 Text(formatPercent(f), fontFamily = FontFamily.Serif, fontSize = 34.sp, color = Ink)
                 Spacer(Modifier.height(8.dp))

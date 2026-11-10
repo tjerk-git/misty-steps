@@ -17,6 +17,14 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
+      # Misty Steps doesn't use OpenStreetMap's shared query services (Nominatim, Overpass, Postpass):
+      # their usage policies count every user of an app together. Maps and borders come from dumps.
+      - name: No OSM query services in the app or map tools
+        run: |
+          if grep -rnE 'nominatim\.openstreetmap\.org|overpass-api\.de|overpass\.kumi\.systems|overpass\.private\.coffee|postpass\.geofabrik\.de|/api/interpreter' app/src/main tools/maps; then
+            echo "::error::Found a call to an OpenStreetMap query service. See README (Privacy) and docs/superpowers/specs/2026-11-10-offline-maps-design.md."
+            exit 1
+          fi
       - name: Unit tests and lint
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug
       - name: Keep the test reports

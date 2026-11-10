@@ -2,8 +2,10 @@ package com.mistysteps.app.stats
 
 import android.content.Context
 import com.mistysteps.app.data.FogStore
+import com.mistysteps.app.offline.CityIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 data class AreaStat(
     val label: String,
@@ -21,25 +23,40 @@ data class Stats(
     val city: AreaStat?,
     val country: AreaStat?,
     val world: AreaStat,
-    /** Set when city/country couldn't be looked up. */
-    val problem: String?,
+    /** Set when city/country aren't known: a calm note, not an error. */
+    val note: String?,
 )
 
 /** Your neighbourhood and how much of it is cleared. Streets are counted separately ([StatsRepository.streets]). */
 data class NeighbourhoodStat(val area: AreaStat, val boundary: Boundary)
 
-/** Result of looking up the neighbourhood: [stat] when found, otherwise maybe a [problem] to show. */
-data class NeighbourhoodResult(val stat: NeighbourhoodStat?, val problem: String?)
+/** Result of looking up the neighbourhood: [stat] when found, otherwise maybe a [note] to show. */
+data class NeighbourhoodResult(val stat: NeighbourhoodStat?, val note: String?)
 
-/** One per app, so borders parsed from disk stay in memory between visits to the stats page. */
+/**
+ * One per app, so borders parsed from disk stay in memory between visits to the stats page.
+ *
+ * Works without any network: town and country borders come from the index shipped with the app
+ * ([CityIndex]), neighbourhoods and streets only from what earlier versions saved ([Neighbourhoods]).
+ */
 class StatsRepository private constructor(context: Context) {
-    private val boundaries = BoundaryProvider(context.applicationContext)
-    private val hoods = Neighbourhoods(context.applicationContext)
+    private val appContext = context.applicationContext
+    private val hoods = Neighbourhoods(appContext)
+    private val index: CityIndex? by lazy {
+        runCatching { CityIndex.load(appContext) }.onFailure { android.util.Log.e("Stats", "index", it) }.getOrNull()
+    }
+
+    init {
+        // City and country borders that earlier versions fetched from Nominatim; the index replaces them.
+        for (dir in listOf("city", "country")) File(appContext.filesDir, "boundaries/$dir").deleteRecursively()
+    }
 
     /** Cells from the last [compute], reused by [neighbourhood]. */
     @Volatile private var lastCells: Pair<Int, ClearedCells>? = null
 
     companion object {
+        const val OUTSIDE = "City and country stats only cover the Netherlands for now."
+
         @Volatile private var instance: StatsRepository? = null
 
         fun get(context: Context): StatsRepository =
@@ -56,44 +73,31 @@ class StatsRepository private constructor(context: Context) {
 
         var city: AreaStat? = null
         var country: AreaStat? = null
-        var problem: String? = null
+        var note: String? = null
+        val idx = index
         if (lat == null || lon == null) {
-            problem = "Start wandering once so we know where you are."
-        } else {
-            try {
-                boundaries.find(lat, lon, BoundaryProvider.Level.CITY)?.let {
-                    city = stat("City", it, cells)
-                }
-                boundaries.find(lat, lon, BoundaryProvider.Level.COUNTRY)?.let {
-                    country = stat("Country", it, cells)
-                }
-            } catch (e: Exception) {
-                problem = "Couldn't look up city and country borders. Are you online?"
-            }
+            note = "Start wandering once so we know where you are."
+        } else if (idx != null) {
+            idx.cityAt(lat, lon)?.let { city = stat("City", it, cells) }
+            if (idx.country.contains(lat, lon)) country = stat("Country", idx.country, cells)
+            if (city == null && country == null) note = OUTSIDE
         }
-        Stats(cells.areaM2, FogStore.distanceMeters.value, city, country, world, problem)
+        Stats(cells.areaM2, FogStore.distanceMeters.value, city, country, world, note)
     }
 
-    /**
-     * Your neighbourhood. Slower than [compute] the first time (it fetches the city's
-     * neighbourhood borders), so the stats page shows it once it's ready.
-     */
+    /** Your neighbourhood, if an earlier version saved the neighbourhoods of your town. */
     suspend fun neighbourhood(lat: Double, lon: Double): NeighbourhoodResult = withContext(Dispatchers.IO) {
-        val hood = try {
-            val city = boundaries.find(lat, lon, BoundaryProvider.Level.CITY)
-                ?: return@withContext NeighbourhoodResult(null, null)
-            hoods.find(city, lat, lon) ?: return@withContext NeighbourhoodResult(null, null)
-        } catch (e: Exception) {
-            return@withContext NeighbourhoodResult(null, "Couldn't look up your neighbourhood. Are you online?")
-        }
+        val city = index?.cityAt(lat, lon) ?: return@withContext NeighbourhoodResult(null, null)
+        val all = hoods.saved(city) ?: return@withContext NeighbourhoodResult(null, null)
+        val hood = Neighbourhoods.pick(all, city, lat, lon) ?: return@withContext NeighbourhoodResult(null, null)
         val cells = lastCells?.takeIf { it.first == FogStore.version.value }?.second
             ?: ClearedCells.from(FogStore.loadAllPoints())
         NeighbourhoodResult(NeighbourhoodStat(stat("Neighbourhood", hood, cells), hood), null)
     }
 
-    /** Street progress in [hood]. Blocking network the first time; throws if OpenStreetMap can't be reached. */
-    suspend fun streets(hood: Boundary): StreetStats = withContext(Dispatchers.IO) {
-        val streets = hoods.streets(hood)
+    /** Street progress in [hood], or null if its streets were never saved on this phone. */
+    suspend fun streets(hood: Boundary): StreetStats? = withContext(Dispatchers.IO) {
+        val streets = hoods.streets(hood) ?: return@withContext null
         val pad = 0.001 // ~100 m, so streets on the edge see trails just outside
         val trail = FogStore.loadAllPoints().filter {
             it.lat in hood.minLat - pad..hood.maxLat + pad && it.lon in hood.minLon - pad..hood.maxLon + pad

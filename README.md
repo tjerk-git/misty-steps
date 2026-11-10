@@ -36,7 +36,7 @@ Requires JDK 17 and the Android SDK (compileSdk 36).
 | GPS recording (foreground service, screen-off OK) | `record/RecordingService.kt` |
 | Trail and walk storage (SQLite, local only) + spatial index | `data/FogStore.kt`, `data/TrailDatabase.kt`, `data/PointIndex.kt` |
 | Trail line left behind on each walk | `trail/TrailOverlay.kt`, `data/Trails.kt` |
-| Neighbourhood %, street completion (OSM Overpass, by area id) | `stats/Neighbourhoods.kt`, `stats/StreetCoverage.kt` |
+| Neighbourhood %, street completion (only from data earlier versions saved; paused until town maps) | `stats/Neighbourhoods.kt`, `stats/StreetCoverage.kt` |
 | Walk postcards (save / share) | `postcard/PostcardRenderer.kt`, `ui/PostcardScreen.kt` |
 | Mist colour through the day, pause at vehicle speed | `fog/MistPalette.kt`, `record/SpeedGate.kt` |
 | Battery logging for test runs (debug builds only) | `debug/BatteryLog.kt`, project folder `debug/` |
@@ -50,12 +50,13 @@ Requires JDK 17 and the Android SDK (compileSdk 36).
   layers that drift slowly. Each stored spot cuts out a soft 50 m circle. The cut-out mask is only rebuilt
   when the view or the trail changes. When zoomed out, spots never shrink below a visible speck, so you
   can still find your trails on the world map.
-- **Stats:** cleared area is counted on ~10 x 10 m cells. City and country borders come from
-  OpenStreetMap's Nominatim service, fetched once per area and kept on the phone.
+- **Stats:** cleared area is counted on ~10 x 10 m cells. City and country borders come from an index
+  shipped with the app (`assets/nl-index.json`, the Netherlands only for now), built from an
+  OpenStreetMap dump by `tools/maps/index.py`. The app doesn't query Nominatim or Overpass: their usage
+  policies count every user of an app together, and per-user lookups don't fit that.
 - **Privacy:** no account and no server. Backup and device transfer are switched off, so the trail
-  database never leaves the phone. Network traffic: map tiles from openstreetmap.org, and for the stats
-  page a border lookup at Nominatim that sends only your position rounded to ~1 km, and neighbourhood and
-  street lookups at Overpass that send only OpenStreetMap area ids (your city, your neighbourhood).
+  database never leaves the phone. Network traffic: only map tiles from openstreetmap.org, following
+  its tile usage policy (an app-specific User-Agent, cached tiles, no prefetching, visible attribution).
 
 Note: the public OSM tile servers are for light use only
 ([tile usage policy](https://operations.osmfoundation.org/policies/tiles/)). If many people will use
