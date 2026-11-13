@@ -1,0 +1,2 @@
+- Smoother scrolling and panning of the map, especially after many walks
+- The mist no longer makes the map stutter or feel stuck while you move around
