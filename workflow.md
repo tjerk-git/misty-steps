@@ -187,6 +187,7 @@ Looked at and not chosen:
 ### Releases
 
 - **1.3.1** (versionCode 5, 2026-11-10): hotfix: no more Nominatim or Overpass requests (users warned the app was out of step with their usage policies). City and country come from an index of Dutch towns shipped in the app; neighbourhood and street stats only from data earlier versions saved. New store screenshots made on an emulator with demo walks in Amsterdam, so they no longer show home.
+- **1.3.2** (versionCode 6, 2026-11-13): smoother map panning: the fog mask is built on a worker thread instead of the main thread (janky frames in a Pixel pan test 3.8-6.7% -> ~1%). Aimed at the "scrolling and buttons sometimes stop responding" reports; not confirmed to be their cause.
 - **1.3.0** (versionCode 4, 2026-11-09): UI review fixes: pages stop at the status bar, map messages under the title, pin tip and welcome message, shorter walk log without tiny walks, "More" section, chart icon, version on the stats page, no emoji.
 - **1.2.0** (versionCode 3, 2026-11-09): pins: drop them on a walk or long-press cleared ground, with a label, pixel icon and note; shown in the walk log, on postcards and under "Your places"; included in backups.
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
