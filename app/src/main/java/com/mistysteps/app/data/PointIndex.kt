@@ -59,6 +59,29 @@ class PointIndex {
         }
     }
 
+    /**
+     * Copies the spots whose centre lies in the rectangle into one flat array of (x, y, radius)
+     * triples, so another thread can draw them while this index keeps changing. Pad the
+     * rectangle by the largest radius. Call from the main thread; comparing and copying a spot
+     * is far cheaper than drawing it.
+     */
+    fun snapshotIn(minX: Double, minY: Double, maxX: Double, maxY: Double): DoubleArray {
+        var upperBound = 0
+        forEachBucketIn(minX, minY, maxX, maxY) { upperBound += 3 * it.size }
+        val out = DoubleArray(upperBound)
+        var at = 0
+        forEachBucketIn(minX, minY, maxX, maxY) { b ->
+            val d = b.data
+            for (i in 0 until b.size) {
+                val j = 3 * i
+                if (d[j] < minX || d[j] > maxX || d[j + 1] < minY || d[j + 1] > maxY) continue
+                out[at] = d[j]; out[at + 1] = d[j + 1]; out[at + 2] = d[j + 2]
+                at += 3
+            }
+        }
+        return if (at == out.size) out else out.copyOf(at)
+    }
+
     fun bucketCount() = buckets.size
     fun bucket(cx: Int, cy: Int): Bucket? = buckets[key(cx, cy)]
     inline fun forEachBucket(visit: (Int, Int, Bucket) -> Unit) {

@@ -19,6 +19,8 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
 import androidx.collection.MutableLongSet
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.Mercator
 import org.osmdroid.util.TileSystem
@@ -32,8 +34,9 @@ import kotlin.math.max
  * you've walked.
  *
  * Drawing is kept cheap, because it runs many times a second while the map is open:
- *  1. a half-resolution "cleared" alpha mask is rebuilt on the CPU only when the view or the
- *     trail changes (so the GPU only receives it again then);
+ *  1. a half-resolution "cleared" alpha mask is rebuilt on a worker thread (see [MaskPlan]) when
+ *     the view or the trail changes enough; until the new one is ready the last one is moved and
+ *     scaled to fit, so panning never waits for it;
  *  2. each frame, the veil and two drifting swirl layers are drawn straight onto the map's
  *     (GPU) canvas in an offscreen layer, and the mask is cut out of them, stretched to full size.
  * The mist drifts at [FRAME_MS] and stands still while battery saver is on.
@@ -42,14 +45,17 @@ class FogOverlay : Overlay() {
 
     private val resolution = 0.5f
 
-    private var mask: Bitmap? = null
-    private var maskCanvas: Canvas? = null
+    // Main thread only, except what a job carries to the worker.
+    private var front: Bitmap? = null          // last finished mask, never written again
+    private var frontSpec: MaskSpec? = null
+    private var requested: MaskSpec? = null    // what the newest build request was made for
+    private var jobs = MaskJobs<MaskJob>()
+    private var generation = 0                 // bumped on detach so late results are dropped
+    private var worker: ExecutorService? = null
+    private val main = Handler(Looper.getMainLooper())
+    private var lastView: MapView? = null
 
-    // Mask cache key
-    private var maskOffX = Double.NaN
-    private var maskOffY = Double.NaN
-    private var maskK = Double.NaN
-    private var maskVersion = -1
+    private class MaskJob(val spec: MaskSpec, val spots: DoubleArray, val generation: Int)
 
     private val basePaint = Paint().apply { color = Color.argb(236, 244, 245, 250) }
 
@@ -98,7 +104,6 @@ class FogOverlay : Overlay() {
     private val layerRect = RectF()
     private val clip = Rect()
     private val refPx = Point()
-    private val seen = MutableLongSet()
 
     override fun draw(canvas: Canvas, mapView: MapView, shadow: Boolean) {
         if (shadow || !isEnabled) return
@@ -111,8 +116,7 @@ class FogOverlay : Overlay() {
         val fw = ceil(clip.width() * resolution).toInt()
         val fh = ceil(clip.height() * resolution).toInt()
         if (fw <= 0 || fh <= 0) return
-        ensureBuffers(fw, fh)
-        val mask = mask!!
+        lastView = mapView
 
         val proj = mapView.projection
         val ref = proj.fromPixels(mapView.width / 2, mapView.height / 2)
@@ -122,11 +126,8 @@ class FogOverlay : Overlay() {
         val offX = (refPx.x - clip.left) * resolution.toDouble() - Mercator.x(ref.longitude) * k
         val offY = (refPx.y - clip.top) * resolution.toDouble() - Mercator.y(ref.latitude) * k
 
-        val version = FogStore.version.value
-        if (offX != maskOffX || offY != maskOffY || k != maskK || version != maskVersion) {
-            rebuildMask(offX, offY, k, fw, fh)
-            maskOffX = offX; maskOffY = offY; maskK = k; maskVersion = version
-        }
+        val view = MaskView(offX, offY, k, fw, fh, FogStore.version.value)
+        if (MaskPlan.needsRebuild(requested, view)) requestMask(view)
 
         updatePalette(mapView)
 
@@ -141,11 +142,19 @@ class FogOverlay : Overlay() {
             layer(canvas, it.shadow, shadowMatrix, shadowScale, offX + t * 5.0, offY + t * 1.6)
             layer(canvas, it.light, lightMatrix, lightScale, offX - t * 3.5, offY + t * 2.4)
         }
-        rect.set(
-            clip.left.toFloat(), clip.top.toFloat(),
-            clip.left + fw / resolution, clip.top + fh / resolution,
-        )
-        canvas.drawBitmap(mask, null, rect, cutPaint)
+        val mask = front
+        val spec = frontSpec
+        if (mask != null && spec != null) {
+            // The finished mask may be a little behind the view: move and scale it to fit.
+            val p = MaskPlan.place(spec, view)
+            rect.set(
+                clip.left + (p.tx / resolution).toFloat(),
+                clip.top + (p.ty / resolution).toFloat(),
+                clip.left + ((p.tx + spec.w * p.scale) / resolution).toFloat(),
+                clip.top + ((p.ty + spec.h * p.scale) / resolution).toFloat(),
+            )
+            canvas.drawBitmap(mask, null, rect, cutPaint)
+        }
         canvas.restoreToCount(save)
     }
 
@@ -194,49 +203,64 @@ class FogOverlay : Overlay() {
         c.drawPaint(paint)
     }
 
-    /** Paints every cleared spot into the mask. Fog pixel = mercator * k + off. */
-    private fun rebuildMask(offX: Double, offY: Double, k: Double, fw: Int, fh: Int) {
-        val maskCanvas = maskCanvas!!
-        maskCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-
+    /** Main thread: copies the spots the mask will need and hands the painting to the worker. */
+    private fun requestMask(view: MaskView) {
+        val spec = MaskPlan.specFor(view)
+        requested = spec
         // Pad the lookup so spots just off-screen still bleed in.
-        val pad = Mercator.metersToUnits(FogStore.START_CLEAR_RADIUS_M, 80.0) + 4 / k
-        val minX = -offX / k - pad
-        val maxX = (fw - offX) / k + pad
-        val minY = -offY / k - pad
-        val maxY = (fh - offY) / k + pad
+        val pad = Mercator.metersToUnits(FogStore.START_CLEAR_RADIUS_M, 80.0) + 4 / spec.k
+        val spots = FogStore.index.snapshotIn(
+            -spec.offX / spec.k - pad, -spec.offY / spec.k - pad,
+            (spec.w - spec.offX) / spec.k + pad, (spec.h - spec.offY) / spec.k + pad,
+        )
+        jobs.request(MaskJob(spec, spots, generation))?.let(::startJob)
+    }
+
+    private fun startJob(job: MaskJob) {
+        val pool = worker ?: Executors.newSingleThreadExecutor { Thread(it, "fog-mask") }.also { worker = it }
+        pool.execute {
+            val bitmap = try { paintMask(job.spec, job.spots) } catch (e: Throwable) { null }
+            main.post { jobDone(job, bitmap) }
+        }
+    }
+
+    private fun jobDone(job: MaskJob, bitmap: Bitmap?) {
+        if (job.generation != generation) return // detached meanwhile
+        if (bitmap != null) {
+            front = bitmap
+            frontSpec = job.spec
+            lastView?.invalidate()
+        }
+        jobs.finished()?.let(::startJob)
+    }
+
+    /** Worker thread. Paints every spot into a fresh mask. Fog pixel = mercator * k + off. */
+    private fun paintMask(spec: MaskSpec, spots: DoubleArray): Bitmap {
+        val bitmap = Bitmap.createBitmap(spec.w, spec.h, Bitmap.Config.ALPHA_8)
+        val canvas = Canvas(bitmap)
+        val rect = RectF()
+        val seen = MutableLongSet()
+        val k = spec.k
 
         // When zoomed out, spots shrink below a pixel; keep them visible as faint specks
         // and skip ones landing on an already-drawn pixel.
         val minRadiusPx = 1.2f
-        seen.clear()
-
-        FogStore.index.forEachBucketIn(minX, minY, maxX, maxY) { b ->
-            val d = b.data
-            for (i in 0 until b.size) {
-                val j = 3 * i
-                val px = (d[j] * k + offX).toFloat()
-                val py = (d[j + 1] * k + offY).toFloat()
-                val r = max((d[j + 2] * k).toFloat(), minRadiusPx)
-                if (px + r < 0 || py + r < 0 || px - r > fw || py - r > fh) continue
-                if (r < 3f) {
-                    val key = (px.toInt().toLong() shl 32) or (py.toInt().toLong() and 0xffffffffL)
-                    if (!seen.add(key)) continue
-                    maskCanvas.drawCircle(px, py, r, dotPaint)
-                } else {
-                    rect.set(px - r, py - r, px + r, py + r)
-                    maskCanvas.drawBitmap(brush, null, rect, brushPaint)
-                }
+        for (i in 0 until spots.size / 3) {
+            val j = 3 * i
+            val px = (spots[j] * k + spec.offX).toFloat()
+            val py = (spots[j + 1] * k + spec.offY).toFloat()
+            val r = max((spots[j + 2] * k).toFloat(), minRadiusPx)
+            if (px + r < 0 || py + r < 0 || px - r > spec.w || py - r > spec.h) continue
+            if (r < 3f) {
+                val key = (px.toInt().toLong() shl 32) or (py.toInt().toLong() and 0xffffffffL)
+                if (!seen.add(key)) continue
+                canvas.drawCircle(px, py, r, dotPaint)
+            } else {
+                rect.set(px - r, py - r, px + r, py + r)
+                canvas.drawBitmap(brush, null, rect, brushPaint)
             }
         }
-    }
-
-    private fun ensureBuffers(fw: Int, fh: Int) {
-        val current = mask
-        if (current != null && current.width == fw && current.height == fh) return
-        current?.recycle()
-        mask = Bitmap.createBitmap(fw, fh, Bitmap.Config.ALPHA_8).also { maskCanvas = Canvas(it) }
-        maskVersion = -1
+        return bitmap
     }
 
     // ---- gentle animation -------------------------------------------------------------
@@ -271,7 +295,10 @@ class FogOverlay : Overlay() {
 
     override fun onDetach(mapView: MapView?) {
         stopDrifting()
-        mask?.recycle(); mask = null
+        generation++
+        worker?.shutdown(); worker = null
+        jobs = MaskJobs()
+        requested = null; front = null; frontSpec = null; lastView = null
         super.onDetach(mapView)
     }
 
