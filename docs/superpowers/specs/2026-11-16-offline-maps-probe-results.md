@@ -137,3 +137,14 @@ after the network is back, and sometimes the retry does not start at all. Two ca
 - Not fixed: DNS in the background process after a lost connection. Opening connections on the active network did not help
   (tried and reverted). Opening the app again resumes the download from the `.part` file and it finishes with a matching
   sha256. So a cut download is not lost; it continues the next time the app is opened. Worth a closer look on a second phone.
+
+## Plan 2 checks so far (MapLibre migration)
+
+- `MistyMap` (MapLibre in TextureView mode, the installed packs as sources, style reloads when packs change) and the existing fog
+  drawn on a transparent view above it (`FogView`, through `MapLibreProjection`), shown by the debug screen `MistyMapActivity`.
+  With the Friesland pack installed the cleared corridors reveal streets, buildings and names from the local file, with no web
+  tiles involved.
+- Fog sync (variant A, the hybrid): in stills taken during flings the cleared corridors still contain the streets and the mist
+  edges follow the street shapes. No gap is visible to the eye; the soft mist edge hides small ones. Still to repeat on the full
+  map with the trail and character layers (Task 4 and 8), and with a pinch zoom.
+- Not yet done: trail, pins and character layers, the follow camera and location on the phone, the postcard, removing osmdroid.

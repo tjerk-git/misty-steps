@@ -6,5 +6,9 @@
             android:name="com.mistysteps.app.spike.MapSpikeActivity"
             android:exported="true"
             android:theme="@style/Theme.MistySteps" />
+        <activity
+            android:name="com.mistysteps.app.spike.MistyMapActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MistySteps" />
     </application>
 </manifest>

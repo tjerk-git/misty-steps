@@ -35,6 +35,14 @@ class ProvincePacks(private val root: File) {
 
     fun mapFile(id: String): File? = installedYear(id)?.let { mapPath(it, id) }
 
+    /** The installed map files, one per province (its newest year), sorted by province id. */
+    fun mapFiles(): List<File> {
+        val ids = root.listFiles().orEmpty().filter { it.name.toIntOrNull() != null }
+            .flatMap { year -> year.listFiles().orEmpty().filter { it.isDirectory }.map { it.name } }
+            .toSortedSet()
+        return ids.mapNotNull { mapFile(it) }
+    }
+
     fun state(entry: PackEntry): PackState {
         transient[entry.id]?.let { return it }
         val installed = installedYear(entry.id) ?: return PackState.NotDownloaded

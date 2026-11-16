@@ -100,4 +100,22 @@ class ProvincePacksTest {
         packs.remove("fr")
         assertEquals(2026, packs.installedYear("zh"))
     }
+
+    @Test
+    fun mapFilesListsTheNewestInstalledPackOfEachProvinceSortedById() {
+        install(2026, "zh")
+        install(2026, "fr")
+        install(2027, "fr")
+        File(tmp.root, "2027/gr").mkdirs() // no map file inside: does not count
+        assertEquals(
+            listOf("fr", "zh"),
+            packs.mapFiles().map { it.parentFile!!.name },
+        )
+        assertTrue(packs.mapFiles()[0].path.contains("2027/fr/"))
+    }
+
+    @Test
+    fun mapFilesIsEmptyWithNothingInstalled() {
+        assertTrue(packs.mapFiles().isEmpty())
+    }
 }
