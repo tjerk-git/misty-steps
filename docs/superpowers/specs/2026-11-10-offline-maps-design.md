@@ -1,6 +1,6 @@
 # Offline city maps: no more requests to OpenStreetMap's servers
 
-Date: 2026-11-10. Status: design written, waiting for review. Not built.
+Date: 2026-11-10. Status: superseded in part by `2026-11-16-offline-maps-provinces-design.md` (map format, packs, build trigger and server). Not built.
 
 ## Why
 
