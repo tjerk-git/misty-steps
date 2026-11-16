@@ -82,6 +82,7 @@ fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 28.sp,
+                lineHeight = 34.sp,
                 color = Ink,
                 textAlign = TextAlign.Center,
             )

@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.mistysteps.app.BuildConfig
 import com.mistysteps.app.R
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
@@ -170,10 +171,12 @@ fun MistyScreen() {
     // (with trail points) skip the onboarding and get the province they walked most ticked.
     LaunchedEffect(Unit) {
         if (firstRun != null) return@LaunchedEffect
+        // Debug builds: `am start ... --ez fresh true` shows the new-install flow without touching the trail data.
+        val fresh = BuildConfig.DEBUG && activity?.intent?.getBooleanExtra("fresh", false) == true
         val points = withContext(Dispatchers.IO) { FogStore.loadAllPoints() }
-        existingUser = points.isNotEmpty()
+        existingUser = !fresh && points.isNotEmpty()
         pickerPreselect = if (existingUser) listOfNotNull(MapsGraph.provinces.mostWalked(points)?.id) else emptyList()
-        firstRun = when (FirstRun.decide(hints.getBoolean(ONBOARDING_DONE, false), hints.getBoolean(PICKER_SEEN, false), existingUser)) {
+        firstRun = when (FirstRun.decide(!fresh && hints.getBoolean(ONBOARDING_DONE, false), !fresh && hints.getBoolean(PICKER_SEEN, false), existingUser)) {
             FirstRunScreen.ONBOARDING_THEN_PICKER -> "ONBOARDING"
             FirstRunScreen.PICKER -> "PICKER"
             FirstRunScreen.NONE -> "DONE"
@@ -418,7 +421,8 @@ fun MistyScreen() {
                     dismissed = dismissed + province.id
                     hints.edit().putStringSet(OFFER_DISMISSED, dismissed).apply()
                 },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 24.dp, end = 24.dp, bottom = 120.dp),
+                // Clear of the buttons at both sides and of the Start button.
+                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 84.dp, end = 84.dp, bottom = 112.dp),
             )
         }
 

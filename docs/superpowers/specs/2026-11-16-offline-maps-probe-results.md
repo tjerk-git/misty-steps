@@ -101,3 +101,26 @@ bytes) uploaded with rclone, then:
 - Zeeland's code is `ze`, not `zl`. Friesland's name in OSM is "Fryslân".
 - Planetiler downloads need a User-Agent flag, which the build script passes.
 - The build wrote all 12 province borders to `app/src/main/assets/nl-provinces.json` (32 KB) and regions of 45 to 380 KB each.
+
+## Plan 3 checks on the Pixel (onboarding, picker, downloads)
+
+Dev build, mobile data (5G, metered), real packs from `maps.potloodgum.com`.
+
+| Check | Result |
+|---|---|
+| Existing user's first run | Picker with Fryslân ticked (most-walked province from the 44 km of trail), the "online map is gone" line, real catalog sizes |
+| New-install flow (debug start option) | Three onboarding screens, then the picker with nothing ticked, in English and in Dutch |
+| Mobile-data warning | "58 MB. You're on mobile data. Download anyway?" with Wait for Wi-Fi and Download |
+| Download | Fryslân 58,428,398 bytes in about 10 s, sha256 equals the catalog's; a `.part` file while it runs, none after |
+| Resume after a cut connection | Airplane mode at 8.6 of 106 MB: `.part` stayed, UI "Downloading… 7%" (no error), after airplane off it resumed from 8.6 MB, finished in under 15 s, sha256 matches |
+| Resume after the app is killed | `am force-stop` at 1.7 MB: after relaunch the download finished about 30 s later (WorkManager backoff), sha256 matches |
+| Wait for Wi-Fi on mobile data | Nothing downloaded in 12 s; the card shows "Downloading… 0%" while it waits |
+| Remove | The folder is deleted and "Your maps" updates; removing a downloading province cancels its job |
+| Offer card | "No map of Fryslân yet. Download (58 MB)" with Not now and Download; Not now persists across restarts (`offer_dismissed`); Download opens the picker with that province ticked |
+| Duplicate taps | One job per province (unique work, KEEP) |
+
+Fixed after looking at the screenshots: the offer card covered the character and stats buttons (now clear of both sides and the
+Start button), and the two-line onboarding titles were cramped (line height added; not looked at again).
+
+Not tested: resume after a reboot, low storage, no network at first launch, a catalog with a newer format, the Update
+button (only the 2026 data exists), and the download starting by itself when Wi-Fi returns after "Wait for Wi-Fi".
