@@ -69,7 +69,7 @@ object PostcardRenderer {
     private val DUSK = Color.rgb(91, 107, 140)
     private val EMBER = Color.rgb(180, 83, 106)
 
-    /** Must be called on the main thread (tiles come from osmdroid's tile provider). */
+    /** Must be called on the main thread (the map is drawn by MapLibre's snapshotter). */
     suspend fun render(
         context: Context, walk: Session, points: List<TrailPoint>, character: Character?, pins: List<Pin> = emptyList(),
     ): Bitmap {

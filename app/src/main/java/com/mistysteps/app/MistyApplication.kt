@@ -6,17 +6,13 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.debug.BatteryLog
 import com.mistysteps.app.maps.MapsGraph
 import com.mistysteps.app.pin.PinSprites
-import org.osmdroid.config.Configuration
 
 class MistyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // OSM tile usage policy requires an identifying user agent.
-        Configuration.getInstance().apply {
-            userAgentValue = "${BuildConfig.APPLICATION_ID}/${BuildConfig.VERSION_NAME}"
-            osmdroidBasePath = filesDir.resolve("osmdroid")
-            osmdroidTileCache = cacheDir.resolve("osmdroid-tiles")
-        }
+        // The online map is gone: delete what it left on the phone.
+        cacheDir.resolve("osmdroid-tiles").deleteRecursively()
+        filesDir.resolve("osmdroid").deleteRecursively()
         FogStore.init(this)
         Characters.init(this)
         PinSprites.init(this)

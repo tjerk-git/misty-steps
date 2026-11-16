@@ -1,10 +1,6 @@
 package com.mistysteps.app.map
 
 import com.mistysteps.app.data.Mercator
-import org.osmdroid.api.IGeoPoint
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.util.TileSystem
-import org.osmdroid.views.MapView
 import kotlin.math.cos
 import kotlin.math.pow
 
@@ -14,7 +10,7 @@ data class ScreenPoint(val x: Float, val y: Float)
 
 /**
  * How a map turns coordinates into pixels of the view it sits in. The fog draws through this, so the
- * same drawing code works on top of osmdroid (today) and MapLibre (after the migration).
+ * same drawing code works on any map; the app's map is [MapLibreProjection].
  */
 interface MapProjection {
     val width: Int
@@ -58,26 +54,4 @@ class MercatorProjection(
     private companion object {
         const val EARTH_CIRCUMFERENCE = 40_075_016.686
     }
-}
-
-/** The osmdroid map the app has today. */
-class OsmdroidProjection(private val mapView: MapView) : MapProjection {
-    override val width get() = mapView.width
-    override val height get() = mapView.height
-    override val zoom get() = mapView.zoomLevelDouble
-    override val worldSizePx get() = TileSystem.MapSize(mapView.zoomLevelDouble)
-
-    override fun toScreen(lat: Double, lon: Double): ScreenPoint {
-        val p = android.graphics.Point()
-        mapView.projection.toPixels(GeoPoint(lat, lon), p)
-        return ScreenPoint(p.x.toFloat(), p.y.toFloat())
-    }
-
-    override fun fromScreen(x: Float, y: Float): LatLon {
-        val g: IGeoPoint = mapView.projection.fromPixels(x.toInt(), y.toInt())
-        return LatLon(g.latitude, g.longitude)
-    }
-
-    override fun metersToPixels(meters: Double, lat: Double): Float =
-        mapView.projection.metersToPixels(meters.toFloat(), lat, mapView.zoomLevelDouble)
 }

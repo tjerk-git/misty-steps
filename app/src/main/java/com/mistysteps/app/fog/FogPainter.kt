@@ -25,9 +25,6 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.Mercator
 import android.view.View
 import com.mistysteps.app.map.MapProjection
-import com.mistysteps.app.map.OsmdroidProjection
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Overlay
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -110,7 +107,7 @@ class FogPainter {
     fun draw(canvas: Canvas, proj: MapProjection, host: View) {
         if (proj.width == 0 || proj.height == 0) return
 
-        // osmdroid may have concatenated a matrix onto the canvas, so work in canvas
+        // The canvas may carry a matrix, so work in canvas
         // coordinates: cover whatever part of the canvas is visible, and anchor to the
         // map through the projection's own toPixels().
         if (!canvas.getClipBounds(clip)) return
@@ -306,23 +303,5 @@ class FogPainter {
         /** ~12 frames a second: the drift is slow enough that more frames only cost battery. */
         const val FRAME_MS = 80L
         const val SWIRL_TILE = 256
-    }
-}
-
-/** The fog as an osmdroid overlay, until the map moves to MapLibre. */
-class FogOverlay : Overlay() {
-    private val painter = FogPainter()
-
-    override fun draw(canvas: Canvas, mapView: MapView, shadow: Boolean) {
-        if (shadow || !isEnabled) return
-        painter.draw(canvas, OsmdroidProjection(mapView), mapView)
-    }
-
-    fun startDrifting(mapView: MapView) = painter.startDrifting(mapView)
-    fun stopDrifting() = painter.stopDrifting()
-
-    override fun onDetach(mapView: MapView?) {
-        painter.detach()
-        super.onDetach(mapView)
     }
 }

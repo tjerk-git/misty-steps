@@ -44,7 +44,7 @@
     <string name="stats_walks_header">Je wandelingen</string>
     <string name="stats_places_header">Je plekken</string>
     <string name="stats_more_header">Meer</string>
-    <string name="stats_privacy">De grenzen van steden en landen zitten in de app, dus waar je bent wordt op deze telefoon bepaald. Je routes verlaten de telefoon nooit. Alleen de kaartstukjes die je bekijkt worden bij OpenStreetMap opgehaald.</string>
+    <string name="stats_privacy">De grenzen van steden en landen zitten in de app, dus waar je bent wordt op deze telefoon bepaald. Je routes verlaten de telefoon nooit. Kaarten worden gedownload van maps.potloodgum.com, dat alleen te zien krijgt welke provincies je kiest.</string>
     <string name="stats_note_outside">Stads- en landstatistieken gelden voorlopig alleen voor Nederland.</string>
     <string name="stats_note_unknown">Start één keer een wandeling, dan verschijnen hier de cijfers van je stad en land.</string>
     <string name="feedback_row_title">Stuur feedback</string>
@@ -159,7 +159,7 @@
     <string name="about_donate_button">Trakteer me op koffie</string>
     <string name="about_feedback_text">Een bug gevonden, of een idee? Laat het me weten. Ik lees alles.</string>
     <string name="about_feedback_button">Stuur feedback</string>
-    <string name="about_credits">Kaartgegevens © OpenStreetMap-bijdragers (ODbL). De grenzen van steden en landen zijn gemaakt uit een OpenStreetMap-dump en zitten in de app.</string>
+    <string name="about_credits">Kaartgegevens © OpenStreetMap-bijdragers (ODbL), kaartontwerp © OpenMapTiles. De grenzen van steden en landen zijn gemaakt uit een OpenStreetMap-dump en zitten in de app.</string>
     <string name="no_mail_app">Geen mail-app gevonden. Schrijf naar %1$s</string>
 
     <!-- Pin-labels -->

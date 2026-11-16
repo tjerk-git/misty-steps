@@ -73,8 +73,7 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
-    // The map that is replacing osmdroid (see docs/superpowers/plans).
+    // The map: MapLibre Native, drawing the downloaded province packs.
     implementation("org.maplibre.gl:android-sdk:11.8.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
