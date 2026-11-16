@@ -10,7 +10,7 @@
 
 **Specs:** `docs/superpowers/specs/2026-11-16-offline-maps-provinces-design.md`, `2026-11-16-offline-maps-probe-results.md` (probe 2: overlay views drift from the map by up to about 35 px while panning; probe 4: the snapshotter works).
 
-**Status of this plan:** Task 1 is a gate and is written in full. Tasks 2 to 8 are written at the level of files, interfaces and checks; their step-by-step detail is added after Task 1, because its result changes Task 4.
+**Status of this plan:** Task 1 is decided (variant A). Tasks 2 to 8 are written at the level of files, interfaces and checks; each gets its step-by-step detail just before it is built.
 
 ## Global Constraints
 
@@ -44,24 +44,9 @@
 
 ---
 
-### Task 1: Decide how the fog is drawn (gate)
+### Task 1: Decide how the fog is drawn (gate): decided, variant A
 
-**Files:**
-- Modify: `app/src/debug/java/com/mistysteps/app/spike/MapSpikeActivity.kt`
-- Modify: `docs/superpowers/specs/2026-11-16-offline-maps-probe-results.md`
-
-**Question:** the fog edge is soft, and the 35 px gap probe 2 measured may not be visible on a soft edge. Compare the real mist on top of the map in two ways, on the Pixel, with the Friesland pack:
-
-- **A. Overlay view in TextureView mode (hybrid).** The existing fog drawing code runs on a transparent view above the map, through a `MapProjection` backed by MapLibre. Trail, pins and character are map layers. Cheapest to build; keeps the drifting mist, the time-of-day tint and the cut-out exactly as they are.
-- **B. Fog as an image layer.** The finished fog (mist plus cut-out) is drawn into a bitmap at the map's resolution a few times a second and given to a MapLibre image source with the view's four corner coordinates, so MapLibre moves it with the map. More work and a texture upload per update; exact sync.
-
-- [ ] **Step 1: Port the fog drawing to the spike.** Make the fog drawing code in `fog/FogOverlay.kt` usable without osmdroid by passing it a `MapProjection` (see Task 2 for the interface: `toScreen`, `fromScreen`, `zoom`, `width`, `height`); in the spike implement it over MapLibre's projection and draw it on the transparent view above a TextureView-mode map (variant A).
-- [ ] **Step 2: Build variant B in the spike** (`--ei fog 2`): a bitmap drawn with the same fog code at half resolution, set with `GeoJsonSource`-free `ImageSource.setImage` and four corner coordinates from the projection, refreshed at about 4 Hz and on every camera idle, with the previous image kept until the next is ready.
-- [ ] **Step 3: Record both** (`adb shell screenrecord`) during three flings, two double-tap zooms and a slow pan over a cleared patch with a visible trail, and look at stills around the fastest frames. Also run `dumpsys gfxinfo` while panning for each.
-- [ ] **Step 4: Decide.** Choose A unless the gap between the fog edge and the streets or trail is visible in the stills, or its frame times are clearly worse; choose B otherwise. Write the numbers, the stills' file names and the decision into the results doc, and update Task 4 below to match.
-- [ ] **Step 5: Commit** `git commit -m "Compare two ways of drawing the fog on a MapLibre map"`.
-
----
+The owner chose **A, the hybrid** on 2026-11-16 without the side-by-side comparison: the existing fog drawing runs on a transparent view above the map (MapLibre in TextureView mode), through a `MapProjection`; the trail, pins and character are map layers. Variant B (fog as an image layer) is not built. The risk that remains is a visible gap between the fog edge and the streets during fast pans, so Task 4 ends with a recording of flings and zooms looked at frame by frame (the method of probe 2), and Task 8 repeats it. If a gap shows, B is the fallback and Task 4 is redone.
 
 ### Task 2: `MapProjection` and the osmdroid adapter
 
