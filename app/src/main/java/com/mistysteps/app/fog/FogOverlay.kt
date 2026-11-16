@@ -23,7 +23,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.Mercator
-import org.osmdroid.util.TileSystem
+import android.view.View
+import com.mistysteps.app.map.MapProjection
+import com.mistysteps.app.map.OsmdroidProjection
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Overlay
 import kotlin.math.ceil
@@ -41,7 +43,7 @@ import kotlin.math.max
  *     (GPU) canvas in an offscreen layer, and the mask is cut out of them, stretched to full size.
  * The mist drifts at [FRAME_MS] and stands still while battery saver is on.
  */
-class FogOverlay : Overlay() {
+class FogPainter {
 
     private val resolution = 0.5f
 
@@ -53,7 +55,7 @@ class FogOverlay : Overlay() {
     private var generation = 0                 // bumped on detach so late results are dropped
     private var worker: ExecutorService? = null
     private val main = Handler(Looper.getMainLooper())
-    private var lastView: MapView? = null
+    private var lastHost: View? = null
 
     private class MaskJob(val spec: MaskSpec, val spots: DoubleArray, val generation: Int)
 
@@ -103,11 +105,10 @@ class FogOverlay : Overlay() {
     private val rect = RectF()
     private val layerRect = RectF()
     private val clip = Rect()
-    private val refPx = Point()
 
-    override fun draw(canvas: Canvas, mapView: MapView, shadow: Boolean) {
-        if (shadow || !isEnabled) return
-        if (mapView.width == 0 || mapView.height == 0) return
+    /** Draws the mist onto [canvas], which covers the view [host]; [proj] says where coordinates are on it. */
+    fun draw(canvas: Canvas, proj: MapProjection, host: View) {
+        if (proj.width == 0 || proj.height == 0) return
 
         // osmdroid may have concatenated a matrix onto the canvas, so work in canvas
         // coordinates: cover whatever part of the canvas is visible, and anchor to the
@@ -116,20 +117,19 @@ class FogOverlay : Overlay() {
         val fw = ceil(clip.width() * resolution).toInt()
         val fh = ceil(clip.height() * resolution).toInt()
         if (fw <= 0 || fh <= 0) return
-        lastView = mapView
+        lastHost = host
 
-        val proj = mapView.projection
-        val ref = proj.fromPixels(mapView.width / 2, mapView.height / 2)
-        proj.toPixels(ref, refPx)
+        val ref = proj.fromScreen(proj.width / 2f, proj.height / 2f)
+        val refPx = proj.toScreen(ref.lat, ref.lon)
         // Fog pixels per mercator unit, and the fog-pixel position of mercator (0, 0).
-        val k = TileSystem.MapSize(proj.zoomLevel) * resolution
-        val offX = (refPx.x - clip.left) * resolution.toDouble() - Mercator.x(ref.longitude) * k
-        val offY = (refPx.y - clip.top) * resolution.toDouble() - Mercator.y(ref.latitude) * k
+        val k = proj.worldSizePx * resolution
+        val offX = (refPx.x - clip.left) * resolution.toDouble() - Mercator.x(ref.lon) * k
+        val offY = (refPx.y - clip.top) * resolution.toDouble() - Mercator.y(ref.lat) * k
 
         val view = MaskView(offX, offY, k, fw, fh, FogStore.version.value)
         if (MaskPlan.needsRebuild(requested, view)) requestMask(view)
 
-        updatePalette(mapView)
+        updatePalette(proj)
 
         // Mist: an even veil plus two swirling layers that follow the map and drift slowly.
         // Everything below runs on the GPU; the layer keeps the cut-out from touching the map.
@@ -169,14 +169,14 @@ class FogOverlay : Overlay() {
     private var lightFilter: LightingColorFilter? = null
 
     /** Re-tints the mist once a minute, following the sun. */
-    private fun updatePalette(mapView: MapView) {
+    private fun updatePalette(proj: MapProjection) {
         val now = System.currentTimeMillis()
         if (now - paletteAt < 60_000) {
             applyFilters()
             return
         }
         paletteAt = now
-        val (lat, lon) = FogStore.lastKnown ?: mapView.mapCenter.let { it.latitude to it.longitude }
+        val (lat, lon) = FogStore.lastKnown ?: proj.fromScreen(proj.width / 2f, proj.height / 2f).let { it.lat to it.lon }
         val colors = MistPalette.at(now, lat, lon)
         basePaint.color = colors.base
         shadowFilter = LightingColorFilter(colors.shadowTint, 0)
@@ -229,7 +229,7 @@ class FogOverlay : Overlay() {
         if (bitmap != null) {
             front = bitmap
             frontSpec = job.spec
-            lastView?.invalidate()
+            lastHost?.invalidate()
         }
         jobs.finished()?.let(::startJob)
     }
@@ -265,7 +265,7 @@ class FogOverlay : Overlay() {
 
     // ---- gentle animation -------------------------------------------------------------
 
-    private var animatedView: MapView? = null
+    private var animatedView: View? = null
     private val tick = object : Runnable {
         override fun run() {
             val v = animatedView ?: return
@@ -281,11 +281,11 @@ class FogOverlay : Overlay() {
         }
     }
 
-    /** Keep the mist drifting while [mapView] is visible. */
-    fun startDrifting(mapView: MapView) {
+    /** Keep the mist drifting while [host] is visible. */
+    fun startDrifting(host: View) {
         stopDrifting()
-        animatedView = mapView
-        mapView.postDelayed(tick, FRAME_MS)
+        animatedView = host
+        host.postDelayed(tick, FRAME_MS)
     }
 
     fun stopDrifting() {
@@ -293,18 +293,36 @@ class FogOverlay : Overlay() {
         animatedView = null
     }
 
-    override fun onDetach(mapView: MapView?) {
+    /** Stops everything: the drift, the worker and the masks. */
+    fun detach() {
         stopDrifting()
         generation++
         worker?.shutdown(); worker = null
         jobs = MaskJobs()
-        requested = null; front = null; frontSpec = null; lastView = null
-        super.onDetach(mapView)
+        requested = null; front = null; frontSpec = null; lastHost = null
     }
 
     private companion object {
         /** ~12 frames a second: the drift is slow enough that more frames only cost battery. */
         const val FRAME_MS = 80L
         const val SWIRL_TILE = 256
+    }
+}
+
+/** The fog as an osmdroid overlay, until the map moves to MapLibre. */
+class FogOverlay : Overlay() {
+    private val painter = FogPainter()
+
+    override fun draw(canvas: Canvas, mapView: MapView, shadow: Boolean) {
+        if (shadow || !isEnabled) return
+        painter.draw(canvas, OsmdroidProjection(mapView), mapView)
+    }
+
+    fun startDrifting(mapView: MapView) = painter.startDrifting(mapView)
+    fun stopDrifting() = painter.stopDrifting()
+
+    override fun onDetach(mapView: MapView?) {
+        painter.detach()
+        super.onDetach(mapView)
     }
 }
