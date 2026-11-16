@@ -228,16 +228,15 @@ MapLibre Native (`org.maplibre.gl:android-sdk`, 11.8 or later for PMTiles) repla
 - **Packs on screen.** `MapStyle` takes the style template and, for each installed pack, adds a vector
   source `pmtiles://file://<abs path>` plus a copy of the layer list with suffixed ids. It is rebuilt when
   the set of installed packs changes. With no packs there is no basemap: solid mist.
-- **Overlays.** Fog, trail, pins and the character are osmdroid `Overlay` classes today (`fog/FogOverlay.kt`,
-  `trail/TrailOverlay.kt`, `pin/PinOverlay.kt`, `character/CharacterOverlay.kt`) that draw through
-  `mapView.projection`. They move to a transparent Android `View` stacked above the MapLibre view and
-  not clickable, drawing through a small `MapProjection` interface (screen position of a coordinate,
-  metres to pixels, zoom, visible bounds) implemented over MapLibre's projection. It redraws from the
-  camera-move listener and on the fog's own ticks. Taps, long-presses and drags go to MapLibre, whose
-  click listeners drive pins and "stop following". The existing drawing code stays; only its projection
-  calls change. Camera follow, the saved camera and the 5-minute reset move to MapLibre's camera
-  animation. The location dot (osmdroid's `MyLocationNewOverlay`) is replaced by a small location feed
-  that the character overlay reads.
+- **Overlays (changed after probe 2).** Fog, trail, pins and the character are osmdroid `Overlay` classes today
+  (`fog/FogOverlay.kt`, `trail/TrailOverlay.kt`, `pin/PinOverlay.kt`, `character/CharacterOverlay.kt`). A transparent view
+  above the MapLibre map does not stay glued to it (gaps up to about 35 px while panning, see
+  `2026-11-16-offline-maps-probe-results.md`), so they become layers inside MapLibre, drawn in the same frame as the
+  map: the fog mask as an image source with a raster layer, the trail as a GeoJSON line layer, pins and the character as
+  symbol layers. Taps and long-presses go through MapLibre's click listeners. Camera follow, the saved camera and the
+  5-minute reset move to MapLibre's camera animation. The location dot (osmdroid's `MyLocationNewOverlay`) is replaced by
+  a small location feed that the character layer reads. The first probe of plan 2 checks that the fog image source
+  can be updated a few times a second without flashing.
 - **Postcard.** `PostcardRenderer` draws the map from a MapLibre snapshotter on the same style and packs,
   instead of osmdroid tiles. A walk outside every installed province gets a mist-only card.
 - **Attribution.** "© OpenStreetMap contributors · © OpenMapTiles", where "© OpenStreetMap contributors"
