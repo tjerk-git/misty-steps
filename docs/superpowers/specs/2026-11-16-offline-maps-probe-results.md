@@ -138,13 +138,24 @@ after the network is back, and sometimes the retry does not start at all. Two ca
   (tried and reverted). Opening the app again resumes the download from the `.part` file and it finishes with a matching
   sha256. So a cut download is not lost; it continues the next time the app is opened. Worth a closer look on a second phone.
 
-## Plan 2 checks so far (MapLibre migration)
+## Plan 2 checks (MapLibre migration)
 
-- `MistyMap` (MapLibre in TextureView mode, the installed packs as sources, style reloads when packs change) and the existing fog
-  drawn on a transparent view above it (`FogView`, through `MapLibreProjection`), shown by the debug screen `MistyMapActivity`.
-  With the Friesland pack installed the cleared corridors reveal streets, buildings and names from the local file, with no web
-  tiles involved.
-- Fog sync (variant A, the hybrid): in stills taken during flings the cleared corridors still contain the streets and the mist
-  edges follow the street shapes. No gap is visible to the eye; the soft mist edge hides small ones. Still to repeat on the full
-  map with the trail and character layers (Task 4 and 8), and with a pinch zoom.
-- Not yet done: trail, pins and character layers, the follow camera and location on the phone, the postcard, removing osmdroid.
+The app's map screen now runs on MapLibre with the downloaded province packs; osmdroid and the online OpenStreetMap tile map are
+gone. Pixel 10 Pro, Dev build, Friesland and Zuid-Holland installed.
+
+| Check | Result |
+|---|---|
+| Map from the local pack | Streets, buildings and names of Friesland draw inside the cleared areas, with no web tiles |
+| Mist | The existing mist (drift, tint, cut-out) runs on a transparent view above the map (variant A); in mid-fling stills the cleared corridors still contain the streets and the mist edges follow them |
+| Scale bug found and fixed | MapLibre's world size is in density-independent pixels; the first version of the projection was 2.6 times too small, which made the 50 m ring and the mist's cleared patches too small. 111 m measured as 144 screen pixels; after the fix the ring is 50 m and the trail dots run down the middle of the cleared bands |
+| Trail | Dotted MapLibre line layers (Ember for the current walk, grey-blue for earlier ones) along the streets |
+| Pins | Tapping a pin opens it; a long-press on cleared ground opens "Leave a pin"; a long-press in the mist shows "Pins go on cleared ground. Walk here first." |
+| Postcard | MapLibre snapshot of the packs at the postcard's own scale: the walk's clearing reveals the offline map, with the trail, the character, the text and the credit "© OpenStreetMap contributors · © OpenMapTiles" |
+| Frame rate while panning (12 back-and-forth swipes) | 1,994 frames, 0 janky, p50 5 ms, p99 10 ms (the osmdroid build: about 1% janky, p99 17 ms) |
+| osmdroid | Dependency, setup, overlays and cache removed; `tile.openstreetmap.org` is on the CI forbidden list and the local check passes; the release build assembles |
+
+Not tested yet: following your character while walking and flying to you with the location button on the new camera (the zoom
+constants were set by eye), rotating the phone, a pack added or removed while the map is showing, a walk that crosses into a
+province without a pack, the battery run against `workflow.md`, and the replay or a real ride on the new map.
+
+Known difference from before: the trail now sits below the mist view, so the soft mist edge can veil the outermost trail dots.
