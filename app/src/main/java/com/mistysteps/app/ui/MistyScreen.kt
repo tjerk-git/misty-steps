@@ -62,7 +62,8 @@ import androidx.compose.ui.Alignment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.mistysteps.app.maps.FirstRun
-import com.mistysteps.app.maps.FirstRunScreen
+import com.mistysteps.app.maps.FirstRunStage
+import com.mistysteps.app.stats.Analytics
 import com.mistysteps.app.maps.MapsGraph
 import com.mistysteps.app.maps.OfferRules
 import androidx.compose.ui.Modifier
@@ -113,9 +114,12 @@ fun MistyScreen() {
     var showCharacters by rememberSaveable { mutableStateOf(false) }
     var postcardWalk by rememberSaveable { mutableStateOf<Long?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
-    // Maps: the first launch shows the onboarding and then the province picker ("ONBOARDING", "PICKER", "DONE").
+    // First launch: the stage shown on top of the map (a FirstRunStage name): onboarding, the consent question, the province picker.
     var firstRun by rememberSaveable { mutableStateOf<String?>(null) }
     var existingUser by rememberSaveable { mutableStateOf(false) }
+    // Steps finished in this run: they count as done at once, even for the debug `fresh` start that ignores the saved flags.
+    var doneSteps by rememberSaveable { mutableStateOf(listOf<String>()) }
+    val fresh = BuildConfig.DEBUG && activity?.intent?.getBooleanExtra("fresh", false) == true
     var showPicker by rememberSaveable { mutableStateOf(false) }
     var pickerPreselect by rememberSaveable { mutableStateOf(listOf<String>()) }
     val catalog by rememberCatalog()
@@ -167,20 +171,27 @@ fun MistyScreen() {
         hints.edit().putBoolean(PIN_TIP_SEEN, true).apply()
     }
 
+    fun stageNow(): String = FirstRun.stage(
+        onboardingDone = "ONBOARDING" in doneSteps || (!fresh && hints.getBoolean(ONBOARDING_DONE, false)),
+        consentAsked = "CONSENT" in doneSteps || (!fresh && Analytics.wasAsked(context)),
+        pickerSeen = "PICKER" in doneSteps || (!fresh && hints.getBoolean(PICKER_SEEN, false)),
+        hasTrailPoints = existingUser,
+    ).name
+
+    fun finishStep(step: FirstRunStage) {
+        doneSteps = doneSteps + step.name
+        firstRun = stageNow()
+    }
+
     // First launch: onboarding for a new install, the picker for everyone who hasn't seen it. Existing users
     // (with trail points) skip the onboarding and get the province they walked most ticked.
     LaunchedEffect(Unit) {
         if (firstRun != null) return@LaunchedEffect
         // Debug builds: `am start ... --ez fresh true` shows the new-install flow without touching the trail data.
-        val fresh = BuildConfig.DEBUG && activity?.intent?.getBooleanExtra("fresh", false) == true
         val points = withContext(Dispatchers.IO) { FogStore.loadAllPoints() }
         existingUser = !fresh && points.isNotEmpty()
         pickerPreselect = if (existingUser) listOfNotNull(MapsGraph.provinces.mostWalked(points)?.id) else emptyList()
-        firstRun = when (FirstRun.decide(!fresh && hints.getBoolean(ONBOARDING_DONE, false), !fresh && hints.getBoolean(PICKER_SEEN, false), existingUser)) {
-            FirstRunScreen.ONBOARDING_THEN_PICKER -> "ONBOARDING"
-            FirstRunScreen.PICKER -> "PICKER"
-            FirstRunScreen.NONE -> "DONE"
-        }
+        firstRun = stageNow()
     }
 
     // A postcard when a walk ends (skip tiny ones, like a start-stop by mistake).
@@ -249,7 +260,7 @@ fun MistyScreen() {
     }
 
     SideEffect {
-        map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == "ONBOARDING" || firstRun == "PICKER")
+        map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -411,7 +422,7 @@ fun MistyScreen() {
         val place = remember(firstRun, packVersion, catalog) { currentPlace() }
         val province = place?.let { MapsGraph.provinces.provinceAt(it.first, it.second) }
         val offered = province?.let { catalog?.entry(it.id) }
-        if (firstRun == "DONE" && !recording && province != null && offered != null &&
+        if (firstRun == FirstRunStage.DONE.name && !recording && province != null && offered != null &&
             OfferRules.shouldOffer(province, MapsGraph.packs.state(offered), dismissed)
         ) {
             OfferCard(
@@ -454,21 +465,25 @@ fun MistyScreen() {
         if (showPicker) {
             ProvincePickerScreen(catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })
         }
-        if (firstRun == "ONBOARDING") {
-            val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); firstRun = "PICKER" }
+        if (firstRun == FirstRunStage.ONBOARDING.name) {
+            val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); finishStep(FirstRunStage.ONBOARDING) }
             OnboardingScreen(onDone = next, onSkip = next)
         }
-        if (firstRun == "PICKER") {
+        if (firstRun == FirstRunStage.CONSENT.name) {
+            ConsentScreen(onAnswer = { allowed ->
+                Analytics.setOptedIn(context, allowed)
+                Analytics.markAsked(context)
+                finishStep(FirstRunStage.CONSENT)
+            })
+        }
+        if (firstRun == FirstRunStage.PICKER.name) {
             ProvincePickerScreen(
                 catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser,
                 onDone = {
                     hints.edit().putBoolean(ONBOARDING_DONE, true).putBoolean(PICKER_SEEN, true).apply()
-                    firstRun = "DONE"
+                    finishStep(FirstRunStage.PICKER)
                 },
             )
-        }
-        postcardWalk?.let { id ->
-            PostcardScreen(walkId = id, onClose = { postcardWalk = null })
         }
     }
 

@@ -1,16 +1,18 @@
 package com.mistysteps.app.maps
 
-/** What to show on top of the map when the app opens. */
-enum class FirstRunScreen { ONBOARDING_THEN_PICKER, PICKER, NONE }
+/** The steps shown on top of the map when the app opens, in this order. */
+enum class FirstRunStage { ONBOARDING, CONSENT, PICKER, DONE }
 
 object FirstRun {
     /**
-     * A new install sees the onboarding and then the picker. Someone who already has trail points knows the
-     * app: they only see the picker, once. Everything seen shows nothing.
+     * The first step that is still due. A new install sees the onboarding, then the question about counting opens, then the
+     * province picker. Someone who already has trail points knows the app: no onboarding, only what they haven't seen. An
+     * answered consent step is never asked again.
      */
-    fun decide(onboardingDone: Boolean, pickerSeen: Boolean, hasTrailPoints: Boolean): FirstRunScreen = when {
-        pickerSeen -> FirstRunScreen.NONE
-        onboardingDone || hasTrailPoints -> FirstRunScreen.PICKER
-        else -> FirstRunScreen.ONBOARDING_THEN_PICKER
+    fun stage(onboardingDone: Boolean, consentAsked: Boolean, pickerSeen: Boolean, hasTrailPoints: Boolean): FirstRunStage = when {
+        !onboardingDone && !pickerSeen && !hasTrailPoints -> FirstRunStage.ONBOARDING
+        !consentAsked -> FirstRunStage.CONSENT
+        !pickerSeen -> FirstRunStage.PICKER
+        else -> FirstRunStage.DONE
     }
 }
