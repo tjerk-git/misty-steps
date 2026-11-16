@@ -43,3 +43,9 @@ def test_fonts_exist_as_glyph_dirs(style):
         assert len(stack) == 1
         assert (GLYPHS / stack[0]).is_dir(), stack[0]
         assert (GLYPHS / stack[0] / "0-255.pbf").is_file()
+
+
+def test_glyph_license_carries_the_full_ofl_text():
+    text = (GLYPHS / "LICENSE.txt").read_text()
+    assert "SIL OPEN FONT LICENSE Version 1.1" in text
+    assert "Copyright" in text

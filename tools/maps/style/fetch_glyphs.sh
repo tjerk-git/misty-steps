@@ -13,4 +13,5 @@ for font in "Noto Sans Regular" "Noto Sans Bold"; do
     cp "$tmp/fonts/$font/$range.pbf" "$dest/$font/$range.pbf"
   done
 done
-cp "$tmp/fonts/OFL.txt" "$dest/LICENSE.txt" 2>/dev/null || echo "Noto Sans, SIL Open Font License 1.1, via github.com/openmaptiles/fonts" > "$dest/LICENSE.txt"
+# The zip has no licence file: take the OFL text with the copyright line from the font source folder.
+gh api repos/openmaptiles/fonts/contents/noto-sans/LICENSE -H "Accept: application/vnd.github.raw" > "$dest/LICENSE.txt"
