@@ -184,4 +184,38 @@
     <!-- Map downloads -->
     <string name="maps_downloads_channel">Kaartdownloads</string>
     <string name="maps_downloading_notif">%1$s wordt gedownload</string>
+
+    <!-- Onboarding, province picker and map downloads -->
+    <string name="onboarding_skip">Overslaan</string>
+    <string name="onboarding_next">Volgende</string>
+    <string name="onboarding_choose">Kies provincies</string>
+    <string name="onboarding_1_title">De mist bedekt de kaart</string>
+    <string name="onboarding_1_body">Misty Steps verbergt Nederland in de mist.</string>
+    <string name="onboarding_2_title">Jouw stappen ruimen hem op</string>
+    <string name="onboarding_2_body">Tik op Start wandeling en loop, ren of fiets. De mist trekt op om je heen.</string>
+    <string name="onboarding_3_title">Alleen van jou</string>
+    <string name="onboarding_3_body">Geen account, geen tracking. Je routes verlaten je telefoon nooit.</string>
+    <string name="picker_title">Welke provincies wil je verkennen?</string>
+    <string name="picker_total">Totaal: %1$s</string>
+    <string name="picker_skip">Nu overslaan</string>
+    <string name="picker_later">Je kunt altijd meer toevoegen onder Je kaarten.</string>
+    <string name="picker_existing">De online kaart is in deze versie verdwenen. Kies de provincies waar je loopt om je straten terug te krijgen.</string>
+    <string name="picker_offline">Ga één keer online om de kaarten te zien.</string>
+    <string name="data_warning">%1$s. Je gebruikt mobiele data. Toch downloaden?</string>
+    <string name="data_download">Download</string>
+    <string name="data_wait_wifi">Wacht op wifi</string>
+    <string name="offer_card">Nog geen kaart van %1$s. Download (%2$s)</string>
+    <string name="maps_title">Je kaarten</string>
+    <string name="maps_add">Voeg een provincie toe</string>
+    <string name="maps_update">Werk bij</string>
+    <string name="maps_remove">Verwijder</string>
+    <string name="maps_data_year">Gegevens uit %1$d</string>
+    <string name="maps_downloading">Downloaden… %1$d%%</string>
+    <string name="maps_failed">Download mislukt. Probeer het opnieuw.</string>
+    <string name="maps_no_space">Niet genoeg ruimte op deze telefoon.</string>
+    <string name="maps_update_app">Werk de app bij om nieuwe kaarten te gebruiken.</string>
+    <plurals name="picker_download">
+        <item quantity="one">Download %1$d provincie</item>
+        <item quantity="other">Download %1$d provincies</item>
+    </plurals>
 </resources>

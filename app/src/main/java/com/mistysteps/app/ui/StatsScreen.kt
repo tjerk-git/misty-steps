@@ -76,8 +76,10 @@ fun StatsScreen(
     onOpenWalk: (Long) -> Unit,
     onOpenAbout: () -> Unit,
     onOpenPin: (Long) -> Unit,
+    onOpenPicker: () -> Unit,
 ) {
     BackHandler(onBack = onClose)
+    val catalog by rememberCatalog()
     val context = LocalContext.current
     val repo = remember { StatsRepository.get(context) }
     var stats by remember { mutableStateOf<Stats?>(null) }
@@ -169,6 +171,10 @@ fun StatsScreen(
                 Text(stringResource(R.string.stats_places_header).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
                 Spacer(Modifier.height(8.dp))
                 YourPlaces(pins, onOpenPin)
+                Spacer(Modifier.height(24.dp))
+                Text(stringResource(R.string.maps_title).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+                Spacer(Modifier.height(8.dp))
+                YourMapsCard(catalog, onOpenPicker)
                 Spacer(Modifier.height(24.dp))
                 Text(
                     stringResource(R.string.stats_privacy),

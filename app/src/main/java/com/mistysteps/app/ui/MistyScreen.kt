@@ -58,6 +58,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.mistysteps.app.maps.FirstRun
+import com.mistysteps.app.maps.FirstRunScreen
+import com.mistysteps.app.maps.MapsGraph
+import com.mistysteps.app.maps.OfferRules
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -82,6 +88,9 @@ private enum class PermissionDialog { RATIONALE, SETTINGS }
 
 /** Set once the long-press pin tip has been closed. */
 private const val PIN_TIP_SEEN = "pin_tip_seen"
+private const val ONBOARDING_DONE = "onboarding_done"
+private const val PICKER_SEEN = "picker_seen"
+private const val OFFER_DISMISSED = "offer_dismissed"
 
 /** What to do once location has been granted. */
 private enum class AfterGrant { WANDER, LOCATE }
@@ -103,6 +112,12 @@ fun MistyScreen() {
     var showCharacters by rememberSaveable { mutableStateOf(false) }
     var postcardWalk by rememberSaveable { mutableStateOf<Long?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    // Maps: the first launch shows the onboarding and then the province picker ("ONBOARDING", "PICKER", "DONE").
+    var firstRun by rememberSaveable { mutableStateOf<String?>(null) }
+    var existingUser by rememberSaveable { mutableStateOf(false) }
+    var showPicker by rememberSaveable { mutableStateOf(false) }
+    var pickerPreselect by rememberSaveable { mutableStateOf(listOf<String>()) }
+    val catalog by rememberCatalog()
     val inVehicle by FogStore.inVehicle.collectAsState()
     var dialog by remember { mutableStateOf<PermissionDialog?>(null) }
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
@@ -149,6 +164,20 @@ fun MistyScreen() {
     fun dismissPinTip() {
         showPinTip = false
         hints.edit().putBoolean(PIN_TIP_SEEN, true).apply()
+    }
+
+    // First launch: onboarding for a new install, the picker for everyone who hasn't seen it. Existing users
+    // (with trail points) skip the onboarding and get the province they walked most ticked.
+    LaunchedEffect(Unit) {
+        if (firstRun != null) return@LaunchedEffect
+        val points = withContext(Dispatchers.IO) { FogStore.loadAllPoints() }
+        existingUser = points.isNotEmpty()
+        pickerPreselect = if (existingUser) listOfNotNull(MapsGraph.provinces.mostWalked(points)?.id) else emptyList()
+        firstRun = when (FirstRun.decide(hints.getBoolean(ONBOARDING_DONE, false), hints.getBoolean(PICKER_SEEN, false), existingUser)) {
+            FirstRunScreen.ONBOARDING_THEN_PICKER -> "ONBOARDING"
+            FirstRunScreen.PICKER -> "PICKER"
+            FirstRunScreen.NONE -> "DONE"
+        }
     }
 
     // A postcard when a walk ends (skip tiny ones, like a start-stop by mistake).
@@ -216,7 +245,9 @@ fun MistyScreen() {
         }
     }
 
-    SideEffect { map.setCovered(showStats || showCharacters || showAbout || postcardWalk != null) }
+    SideEffect {
+        map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == "ONBOARDING" || firstRun == "PICKER")
+    }
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { map.mapView }, modifier = Modifier.fillMaxSize())
@@ -371,6 +402,26 @@ fun MistyScreen() {
             )
         }
 
+        // "No map of <province> yet": offered once per province while the app is open inside it.
+        val packVersion = MapsGraph.packs.version.collectAsState().value
+        var dismissed by remember { mutableStateOf(hints.getStringSet(OFFER_DISMISSED, emptySet()).orEmpty().toSet()) }
+        val place = remember(firstRun, packVersion, catalog) { currentPlace() }
+        val province = place?.let { MapsGraph.provinces.provinceAt(it.first, it.second) }
+        val offered = province?.let { catalog?.entry(it.id) }
+        if (firstRun == "DONE" && !recording && province != null && offered != null &&
+            OfferRules.shouldOffer(province, MapsGraph.packs.state(offered), dismissed)
+        ) {
+            OfferCard(
+                province, offered,
+                onDownload = { pickerPreselect = listOf(province.id); showPicker = true },
+                onNotNow = {
+                    dismissed = dismissed + province.id
+                    hints.edit().putStringSet(OFFER_DISMISSED, dismissed).apply()
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 24.dp, end = 24.dp, bottom = 120.dp),
+            )
+        }
+
         if (showStats) {
             StatsScreen(
                 here = remember { currentPlace() },
@@ -380,6 +431,7 @@ fun MistyScreen() {
                     postcardWalk = id
                 },
                 onOpenAbout = { showAbout = true },
+                onOpenPicker = { pickerPreselect = emptyList(); showPicker = true },
                 onOpenPin = { id ->
                     PinStore.byId(id)?.let {
                         showStats = false
@@ -394,6 +446,22 @@ fun MistyScreen() {
         }
         if (showAbout) {
             AboutScreen(onClose = { showAbout = false })
+        }
+        if (showPicker) {
+            ProvincePickerScreen(catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })
+        }
+        if (firstRun == "ONBOARDING") {
+            val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); firstRun = "PICKER" }
+            OnboardingScreen(onDone = next, onSkip = next)
+        }
+        if (firstRun == "PICKER") {
+            ProvincePickerScreen(
+                catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser,
+                onDone = {
+                    hints.edit().putBoolean(ONBOARDING_DONE, true).putBoolean(PICKER_SEEN, true).apply()
+                    firstRun = "DONE"
+                },
+            )
         }
         postcardWalk?.let { id ->
             PostcardScreen(walkId = id, onClose = { postcardWalk = null })

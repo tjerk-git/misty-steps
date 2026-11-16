@@ -185,4 +185,38 @@
     <!-- Map downloads -->
     <string name="maps_downloads_channel">Map downloads</string>
     <string name="maps_downloading_notif">Downloading %1$s</string>
+
+    <!-- Onboarding, province picker and map downloads -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_choose">Choose provinces</string>
+    <string name="onboarding_1_title">Mist covers the map</string>
+    <string name="onboarding_1_body">Misty Steps hides the Netherlands in mist.</string>
+    <string name="onboarding_2_title">Your steps clear it</string>
+    <string name="onboarding_2_body">Tap Start wandering and walk, run or cycle. The mist lifts around you.</string>
+    <string name="onboarding_3_title">Yours alone</string>
+    <string name="onboarding_3_body">No account, no tracking. Your trails never leave your phone.</string>
+    <string name="picker_title">Which provinces do you want to explore?</string>
+    <string name="picker_total">Total: %1$s</string>
+    <string name="picker_skip">Skip for now</string>
+    <string name="picker_later">You can add more any time under Your maps.</string>
+    <string name="picker_existing">The online map is gone in this version. Pick the provinces you walk in to get your streets back.</string>
+    <string name="picker_offline">Go online once to see the maps.</string>
+    <string name="data_warning">%1$s. You\'re on mobile data. Download anyway?</string>
+    <string name="data_download">Download</string>
+    <string name="data_wait_wifi">Wait for Wi-Fi</string>
+    <string name="offer_card">No map of %1$s yet. Download (%2$s)</string>
+    <string name="maps_title">Your maps</string>
+    <string name="maps_add">Add a province</string>
+    <string name="maps_update">Update</string>
+    <string name="maps_remove">Remove</string>
+    <string name="maps_data_year">Data from %1$d</string>
+    <string name="maps_downloading">Downloading… %1$d%%</string>
+    <string name="maps_failed">Download failed. Try again.</string>
+    <string name="maps_no_space">Not enough space on this phone.</string>
+    <string name="maps_update_app">Update the app to use new maps.</string>
+    <plurals name="picker_download">
+        <item quantity="one">Download %1$d province</item>
+        <item quantity="other">Download %1$d provinces</item>
+    </plurals>
 </resources>
