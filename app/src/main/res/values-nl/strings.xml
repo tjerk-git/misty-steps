@@ -218,4 +218,10 @@
         <item quantity="one">Download %1$d provincie</item>
         <item quantity="other">Download %1$d provincies</item>
     </plurals>
+
+    <!-- Anonymous open count -->
+    <string name="consent_title">Anoniem tellen hoe vaak de app opent?</string>
+    <string name="consent_body">Een klein bericht elke keer dat je de app opent: alleen dat hij is geopend en welke versie. Geen naam, geen ID, geen locatie, niets over je wandelingen. Je kunt dit altijd aanpassen onder Meer op de statistiekenpagina.</string>
+    <string name="consent_yes">Ja, tel mijn keren openen</string>
+    <string name="consent_no">Nee, bedankt</string>
 </resources>
