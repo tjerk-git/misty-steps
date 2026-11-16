@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.StatFs
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -51,6 +52,23 @@ object PackDownloads {
 class PackDownloadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val id = inputData.getString(KEY_ID) ?: return Result.failure()
+        // Anything unexpected must end in a state the user can see, never a download that is "downloading" forever.
+        return try {
+            download(id)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "download of $id failed", e)
+            if (runAttemptCount < MAX_ATTEMPTS) {
+                Result.retry()
+            } else {
+                MapsGraph.packs.markFailed(id, Reason.NETWORK)
+                Result.failure()
+            }
+        }
+    }
+
+    private suspend fun download(id: String): Result {
         val entry = MapsGraph.catalogStore.cached()?.entry(id) ?: return Result.failure()
         val packs = MapsGraph.packs
         val dest = File(packs.packDir(entry.year, id), "map.pmtiles")
@@ -63,7 +81,13 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
             return Result.failure()
         }
 
-        setForeground(foregroundInfo(entry, have))
+        // The progress notification is a courtesy. From the background (a retry after a lost connection) Android 12+
+        // refuses to start a foreground service: carry on as a plain background job then.
+        try {
+            setForeground(foregroundInfo(entry, have))
+        } catch (e: Exception) {
+            Log.w(TAG, "download continues without a notification", e)
+        }
         packs.markDownloading(id, have, entry.map.bytes)
         val installer = PackInstaller(HttpDownloader("${applicationContext.packageName}/${BuildConfig.VERSION_NAME}"))
         var lastTick = 0L
@@ -137,6 +161,7 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
 
     companion object {
         const val KEY_ID = "id"
+        private const val TAG = "PackDownloadWorker"
         private const val CHANNEL_ID = "map-downloads"
         private const val NOTIFICATION_ID = 42
         private const val PROGRESS_EVERY_MS = 250L
