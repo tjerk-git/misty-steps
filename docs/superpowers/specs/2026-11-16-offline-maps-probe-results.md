@@ -11,7 +11,7 @@ Spec: `2026-11-16-offline-maps-provinces-design.md`. Phone: Pixel 10 Pro, MapLib
 | 2. Overlay view stays glued to the map | **Fail.** Fog, trail, pins and character cannot live on a view above the map |
 | 3. Pack sizes and build time | Pass: 58 MB and 106 MB, 9 minutes for the country |
 | 4. Snapshotter for the postcard | Pass: 157 ms warm |
-| 5. R2 range requests | Not run yet: needs the bucket and hostname (waiting for the owner's go-ahead) |
+| 5. R2 range requests | Pass: `206` and a resumed download matches the sha256 |
 
 **Decision: drop the overlay-view approach.** Draw the fog, trail, pins and character as layers inside MapLibre,
 so they are rendered in the same frame as the map. The spec's Overlays paragraph is changed to say so. The
@@ -82,11 +82,19 @@ owner, recorded in the spec), Natural Earth and lake centre lines. Its attributi
 attribution drawn into the image. A box with no pack gives the plain background in 36 ms and does not crash. Not tested
 in airplane mode: the style contains no web addresses and the packs are local files.
 
-## 5. R2 range requests: not run yet
+## 5. R2 range requests: pass
 
-Needs a new R2 bucket (`misty-maps`) with the public hostname `maps.potloodgum.com`. Waiting for the owner's go-ahead,
-since this creates a public hostname on their account. The plan's test is a 1 KB range request (expect `206`) and a
-resumed download compared by sha256. Mobile data and reboot resume are covered by plan 3.
+Bucket `misty-maps` (WEUR) with the custom domain `maps.potloodgum.com`, public reads. A test object (Friesland, 58,428,398
+bytes) uploaded with rclone, then:
+
+- `curl -r 0-1023` returns `HTTP 206` with 1024 bytes.
+- `tools/maps/probe_range.py` cuts the download at 23 MB, resumes with a `Range` request and gets `206` again; the joined
+  file's sha256 matches.
+- Headers: `Accept-Ranges: bytes`, an `ETag`, `Content-Type: application/octet-stream`. There is no `Cache-Control` on the
+  object and `cf-cache-status` is `DYNAMIC`, so for the real files set `Cache-Control: public, max-age=31536000, immutable`
+  at upload (each year's files have their own path) and add a cache rule if Cloudflare should cache them.
+- Not tested here: mobile data and resume after a reboot. Plan 3's download job covers them.
+- The probe object is deleted; the bucket and hostname stay.
 
 ## Other findings
 
