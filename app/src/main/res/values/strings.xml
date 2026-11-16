@@ -1,10 +1,155 @@
 <resources>
     <!-- app_name comes from the build type: "Misty Steps" (release) or "Misty Steps Dev" (debug). -->
+    <!-- Words: "mist" is the word for the fog you clear, everywhere. "Wander" is what you do while recording. -->
+
+    <!-- Notification -->
     <string name="channel_name">Wandering</string>
     <string name="notif_title">Wandering through the mist</string>
-    <string name="notif_text">Your steps are clearing the fog</string>
-    <string name="notif_text_vehicle">Too fast for the mist: it only clears under your own steam</string>
+    <string name="notif_text">Your steps are clearing the mist</string>
+    <string name="notif_text_vehicle">Moving too fast. Mist only clears when you walk, run or cycle.</string>
     <string name="notif_stop">Stop</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="back_to_map">Back to map</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="share">Share</string>
+    <string name="not_now">Not now</string>
+
+    <!-- Map screen -->
+    <string name="start_wandering">Start wandering</string>
+    <string name="stop_wandering">Stop wandering</string>
+    <string name="show_my_location">Show my location</string>
+    <string name="drop_a_pin">Drop a pin</string>
+    <string name="mist_cleared">%1$s of mist cleared</string>
+    <string name="banner_pin_tip">Tip: long-press ground you\'ve cleared to leave a pin there. Tap to close.</string>
+    <string name="banner_start">Tap Start wandering and go outside. The mist lifts wherever you walk.</string>
+    <string name="toast_pin_fog">Pins go on cleared ground. Walk here first.</string>
+    <string name="toast_looking">Looking for you in the mist…</string>
+    <string name="toast_precise">Precise location is needed to clear the mist</string>
+    <string name="toast_location_off">Turn on location to clear the mist</string>
+    <string name="dialog_rationale_title">Your steps clear the mist</string>
+    <string name="dialog_rationale_text">Misty Steps needs your precise location while you wander, so it can clear the mist within 50 m of you. Your trail is only stored on this phone.</string>
+    <string name="dialog_continue">Continue</string>
+    <string name="dialog_settings_title">Location permission is off</string>
+    <string name="dialog_settings_text">To clear the mist, allow Misty Steps to use your precise location in Settings (Permissions → Location → Allow only while using the app, with \"Use precise location\" on).</string>
+    <string name="open_settings">Open settings</string>
+
+    <!-- Stats screen -->
+    <string name="stats_title">Your mist map</string>
+    <string name="stats_measuring">Measuring the mist…</string>
+    <string name="stat_wandered">Wandered</string>
+    <string name="stat_cleared">Cleared</string>
+    <string name="stats_plenty_left">Plenty left to explore.</string>
+    <string name="stats_walks_header">Your walks</string>
+    <string name="stats_places_header">Your places</string>
+    <string name="stats_more_header">More</string>
+    <string name="stats_privacy">City and country borders come with the app, so working out where you are happens on this phone. Your trails never leave it. Only the map tiles you look at are downloaded from OpenStreetMap.</string>
+    <string name="stats_note_outside">City and country stats only cover the Netherlands for now.</string>
+    <string name="stats_note_unknown">Start wandering once and your city and country stats will appear.</string>
+    <string name="feedback_row_title">Send feedback</string>
+    <string name="feedback_row_sub">A bug, an idea, a street that\'s wrong: I read everything</string>
+    <string name="made_by_title">Made by Potloodgum</string>
+    <string name="made_by_sub">Who made this, and why · buy me a coffee</string>
+    <string name="version_app">Misty Steps %1$s</string>
+    <string name="version_plain">Version %1$s</string>
+    <string name="walk_now">wandering now</string>
+    <string name="walk_new_mist">%1$s new mist</string>
+    <string name="walks_show_fewer">Show fewer</string>
+    <string name="walks_show_all">Show all %1$d walks</string>
+    <string name="pins_empty">Leave a pin when something catches your eye: tap the pin button while you wander, or long-press ground you\'ve already cleared.</string>
+    <string name="streets_counting">Counting streets…</string>
+    <string name="hood_finding">Finding your neighbourhood…</string>
+    <string name="streets_header">Streets</string>
+    <string name="streets_walked">%1$d of %2$d streets walked</string>
+    <string name="streets_still">Still in the mist</string>
+    <string name="streets_pct_walked">%1$d%% walked</string>
+    <string name="streets_more">and %1$d more</string>
+    <string name="area_world">World</string>
+    <string name="area_country">Country</string>
+    <string name="area_city">City</string>
+    <string name="area_neighbourhood">Neighbourhood</string>
+    <string name="area_earth">Earth</string>
+    <string name="area_cleared_of">%1$s of %2$s cleared</string>
+    <string name="area_one_in">1 in %1$s</string>
+    <string name="duration_under_minute">under a minute</string>
+    <string name="duration_min">%1$d min</string>
+    <string name="duration_h_min">%1$d h %2$02d min</string>
+
+    <!-- Backup -->
+    <string name="backup_title">Your trails</string>
+    <string name="backup_intro">Save all your trails and walks to a file, or add them from one: for a backup or a new phone. The file is plain text, so it\'s yours to keep.</string>
+    <string name="backup_export">Export</string>
+    <string name="backup_import">Import</string>
+    <string name="backup_stop_to_import">Stop wandering to import.</string>
+    <string name="backup_saved">Saved %1$s</string>
+    <string name="backup_save_failed">Couldn\'t save the file</string>
+    <string name="backup_read_failed">Couldn\'t read the file</string>
+    <string name="backup_not_a_backup">This file isn\'t a Misty Steps backup.</string>
+    <string name="backup_newer">This backup comes from a newer Misty Steps. Update the app first.</string>
+    <string name="backup_broken_pin">This backup has a broken pin in it.</string>
+    <string name="backup_broken_point">This backup has a broken point in it.</string>
+    <string name="backup_add_title">Add these trails?</string>
+    <string name="backup_add_body">This backup from %1$s has %2$s. They\'ll be added to the trails on this phone. Nothing here is deleted, and points you already have are skipped.</string>
+    <string name="backup_add_button">Add trails</string>
+    <string name="backup_added">Added %1$s</string>
+    <string name="backup_add_failed">Couldn\'t import the trails</string>
+    <string name="backup_counts">%1$s, %2$s and %3$s</string>
+    <plurals name="backup_points">
+        <item quantity="one">%1$s point</item>
+        <item quantity="other">%1$s points</item>
+    </plurals>
+    <plurals name="backup_walks">
+        <item quantity="one">%1$s walk</item>
+        <item quantity="other">%1$s walks</item>
+    </plurals>
+    <plurals name="backup_pins">
+        <item quantity="one">%1$s pin</item>
+        <item quantity="other">%1$s pins</item>
+    </plurals>
+
+    <!-- Pins -->
+    <string name="pin_leave">Leave a pin</string>
+    <string name="pin_edit_title">Edit pin</string>
+    <string name="pin_place">Place pin</string>
+    <string name="pin_delete">Delete</string>
+    <string name="pin_edit">Edit</string>
+    <string name="pin_remove_title">Remove this pin?</string>
+    <string name="pin_remove">Remove</string>
+    <string name="pin_keep">Keep</string>
+    <string name="pin_on_walk">on your walk of %1$s</string>
+    <string name="pin_note">Note</string>
+    <string name="pin_note_optional">Note (optional)</string>
+    <string name="pin_note_hint">the bench by the red door</string>
+
+    <!-- Postcard -->
+    <string name="postcard_title">Your walk</string>
+    <string name="postcard_description">Postcard of your walk</string>
+    <string name="postcard_failed">Couldn\'t draw this walk.</string>
+    <string name="postcard_painting">Painting your postcard…</string>
+    <string name="postcard_saved">Saved to Pictures › Misty Steps</string>
+    <string name="postcard_use_share">Use Share to save it on this phone</string>
+    <string name="postcard_save_failed">Couldn\'t save the postcard</string>
+    <string name="postcard_back">Back to the mist</string>
+    <string name="postcard_share_chooser">Share your walk</string>
+    <string name="osm_credit">© OpenStreetMap contributors</string>
+
+    <!-- Characters. The name and blurb in assets/characters.txt are the fallback. -->
+    <string name="characters_title">Who walks the mist?</string>
+    <string name="characters_sub">Pick your wanderer. They\'ll walk with you on the map.</string>
+    <string name="character_cat_name">Trail Cat</string>
+    <string name="character_cat_blurb">Nine lives, one pair of very good boots.</string>
+    <string name="character_dog_name">Scout Dog</string>
+    <string name="character_dog_blurb">Has sniffed every lamppost. Wants to sniff more.</string>
+    <string name="character_otter_name">Sea Otter</string>
+    <string name="character_otter_blurb">Left the sea for a stroll. Brought the raincoat anyway.</string>
+    <string name="character_capybara_name">Capybara</string>
+    <string name="character_capybara_blurb">Unbothered. Moisturised. Wearing a mandarin.</string>
+    <string name="character_cow_name">Wander Cow</string>
+    <string name="character_cow_blurb">Mooved out to see the world.</string>
+    <string name="character_horse_name">Trek Horse</string>
+    <string name="character_horse_blurb">Carries its own saddlebags. Refuses to carry you.</string>
 
     <!-- About screen. Plain text; edit freely. -->
     <string name="about_title">About Misty Steps</string>
@@ -16,6 +161,7 @@
     <string name="about_feedback_text">Found a bug, or have an idea? Tell me. I read everything.</string>
     <string name="about_feedback_button">Send feedback</string>
     <string name="about_credits">Map data © OpenStreetMap contributors (ODbL). City and country borders are made from an OpenStreetMap dump and come with the app.</string>
+    <string name="no_mail_app">No mail app found. Write to %1$s</string>
 
     <!-- Pin labels. The key in pin/PinLabel.kt is what's stored; these texts can change freely. -->
     <string name="pin_group_rest">Rest</string>
@@ -35,4 +181,8 @@
     <string name="pin_building">Beautiful building</string>
     <string name="pin_path">Hidden path</string>
     <string name="pin_other">Something else</string>
+
+    <!-- Map downloads -->
+    <string name="maps_downloads_channel">Map downloads</string>
+    <string name="maps_downloading_notif">Downloading %1$s</string>
 </resources>

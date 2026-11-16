@@ -68,7 +68,7 @@ fun AboutScreen(onClose: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onClose) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Ink)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Ink)
                 }
                 Text(
                     stringResource(R.string.about_title),
@@ -133,7 +133,7 @@ fun AboutScreen(onClose: () -> Unit) {
             Spacer(Modifier.height(24.dp))
             Text(stringResource(R.string.about_credits), color = Dusk, fontSize = 12.sp, lineHeight = 16.sp)
             Spacer(Modifier.height(6.dp))
-            Text("Version ${BuildConfig.VERSION_NAME}", color = Dusk, fontSize = 12.sp)
+            Text(stringResource(R.string.version_plain, BuildConfig.VERSION_NAME), color = Dusk, fontSize = 12.sp)
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -152,7 +152,7 @@ fun sendFeedback(context: Context) {
     try {
         context.startActivity(Intent(Intent.ACTION_SENDTO, uri))
     } catch (e: ActivityNotFoundException) {
-        Toast.makeText(context, "No mail app found. Write to $FEEDBACK_EMAIL", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.no_mail_app, FEEDBACK_EMAIL), Toast.LENGTH_LONG).show()
     }
 }
 

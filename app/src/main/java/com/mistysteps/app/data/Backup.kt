@@ -1,5 +1,7 @@
 package com.mistysteps.app.data
 
+import androidx.annotation.StringRes
+import com.mistysteps.app.R
 import com.mistysteps.app.pin.Pin
 import org.json.JSONArray
 import org.json.JSONObject
@@ -66,14 +68,14 @@ data class Backup(
     }
 
     companion object {
-        private const val BROKEN_PIN = "This backup has a broken pin in it."
+        private fun brokenPin() = BackupException(BackupProblem.BROKEN_PIN, "This backup has a broken pin in it.")
 
         private fun readPin(o: JSONObject?): Pin {
-            require(o != null) { BROKEN_PIN }
+            if (o == null) throw brokenPin()
             val lat = o.optDouble("lat", Double.NaN)
             val lon = o.optDouble("lon", Double.NaN)
             val label = if (o.isNull("label")) "" else o.optString("label")
-            require(lat in -90.0..90.0 && lon in -180.0..180.0 && label.isNotBlank() && o.has("time")) { BROKEN_PIN }
+            if (!(lat in -90.0..90.0 && lon in -180.0..180.0 && label.isNotBlank() && o.has("time"))) throw brokenPin()
             return Pin(
                 id = 0,
                 lat = lat,
@@ -88,15 +90,19 @@ data class Backup(
         const val FORMAT = "misty-steps-backup"
         const val VERSION = 1
 
-        /** Throws [IllegalArgumentException] with a readable message if this isn't a Misty Steps backup. */
+        /** Throws [BackupException] (an [IllegalArgumentException]) if this isn't a usable Misty Steps backup. */
         fun fromJson(text: String): Backup {
             val root = try {
                 JSONObject(text)
             } catch (e: Exception) {
-                throw IllegalArgumentException("This file isn't a Misty Steps backup.")
+                throw BackupException(BackupProblem.NOT_A_BACKUP, "This file isn't a Misty Steps backup.")
             }
-            require(root.optString("format") == FORMAT) { "This file isn't a Misty Steps backup." }
-            require(root.optInt("version") <= VERSION) { "This backup comes from a newer Misty Steps. Update the app first." }
+            if (root.optString("format") != FORMAT) {
+                throw BackupException(BackupProblem.NOT_A_BACKUP, "This file isn't a Misty Steps backup.")
+            }
+            if (root.optInt("version") > VERSION) {
+                throw BackupException(BackupProblem.NEWER, "This backup comes from a newer Misty Steps. Update the app first.")
+            }
             val sessions = root.optJSONArray("sessions") ?: JSONArray()
             val points = root.optJSONArray("points") ?: JSONArray()
             val pins = root.optJSONArray("pins") ?: JSONArray()
@@ -125,7 +131,9 @@ data class Backup(
                     val p = points.getJSONArray(i)
                     val lat = p.getDouble(0)
                     val lon = p.getDouble(1)
-                    require(lat in -90.0..90.0 && lon in -180.0..180.0) { "This backup has a broken spot in it." }
+                    if (!(lat in -90.0..90.0 && lon in -180.0..180.0)) {
+                        throw BackupException(BackupProblem.BROKEN_POINT, "This backup has a broken spot in it.")
+                    }
                     TrailPoint(lat, lon, p.getLong(2), p.getDouble(3), if (p.isNull(4)) null else p.getLong(4))
                 },
                 pins = (0 until pins.length()).map { i -> readPin(pins.optJSONObject(i)) },
@@ -133,3 +141,13 @@ data class Backup(
         }
     }
 }
+
+/** Why a file can't be imported. The text shown to the user comes from [res]. */
+enum class BackupProblem(@StringRes val res: Int) {
+    NOT_A_BACKUP(R.string.backup_not_a_backup),
+    NEWER(R.string.backup_newer),
+    BROKEN_PIN(R.string.backup_broken_pin),
+    BROKEN_POINT(R.string.backup_broken_point),
+}
+
+class BackupException(val problem: BackupProblem, message: String) : IllegalArgumentException(message)

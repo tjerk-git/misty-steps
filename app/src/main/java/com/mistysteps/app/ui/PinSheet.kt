@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import com.mistysteps.app.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -88,10 +89,10 @@ fun NewPinSheet(onPlace: (labelKey: String, note: String?) -> Unit, onDismiss: (
                     onClick = { if (chosen != null) onPlace(chosen.key, PinRules.cleanNote(note)) },
                     enabled = chosen != null && PinRules.canPlace(chosen, PinRules.cleanNote(note)),
                     colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                ) { Text("Place pin") }
+                ) { Text(stringResource(R.string.pin_place)) }
             },
         ) {
-            SheetTitle("Leave a pin")
+            SheetTitle(stringResource(R.string.pin_leave))
             LabelPicker(selected = label, onSelect = { label = it })
             Spacer(Modifier.height(12.dp))
             NoteField(note, required = label == PinLabel.OTHER, onChange = { note = it })
@@ -123,8 +124,8 @@ fun PinDetailSheet(
         if (!editing) {
             SheetBody(
                 buttons = {
-                    TextButton(onClick = { confirmDelete = true }) { Text("Delete", color = Ember) }
-                    TextButton(onClick = { editing = true }) { Text("Edit", color = Ink) }
+                    TextButton(onClick = { confirmDelete = true }) { Text(stringResource(R.string.pin_delete), color = Ember) }
+                    TextButton(onClick = { editing = true }) { Text(stringResource(R.string.pin_edit), color = Ink) }
                 },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -134,7 +135,7 @@ fun PinDetailSheet(
                         Text(stringResource(pin.label.text), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                         val placed = buildList {
                             add(day.format(Date(pin.time)))
-                            pin.sessionId?.let { add("on your walk of ${day.format(Date(it))}") }
+                            pin.sessionId?.let { add(stringResource(R.string.pin_on_walk, day.format(Date(it)))) }
                         }
                         Text(placed.joinToString(" · "), color = Dusk, fontSize = 12.sp)
                     }
@@ -149,17 +150,17 @@ fun PinDetailSheet(
             SheetBody(
                 buttons = {
                     TextButton(onClick = { editing = false; picked = null; note = pin.note.orEmpty() }) {
-                        Text("Cancel", color = Dusk)
+                        Text(stringResource(R.string.cancel), color = Dusk)
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = { onSave(PinRules.keyAfterEdit(pin.labelKey, picked), PinRules.cleanNote(note)) },
                         enabled = PinRules.canPlace(shown, PinRules.cleanNote(note)),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                    ) { Text("Save") }
+                    ) { Text(stringResource(R.string.save)) }
                 },
             ) {
-                SheetTitle("Edit pin")
+                SheetTitle(stringResource(R.string.pin_edit_title))
                 LabelPicker(selected = shown, onSelect = { picked = it })
                 Spacer(Modifier.height(12.dp))
                 NoteField(note, required = shown == PinLabel.OTHER, onChange = { note = it })
@@ -170,11 +171,11 @@ fun PinDetailSheet(
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Remove this pin?") },
+            title = { Text(stringResource(R.string.pin_remove_title)) },
             confirmButton = {
-                TextButton(onClick = { confirmDelete = false; onDelete() }) { Text("Remove", color = Ember) }
+                TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(R.string.pin_remove), color = Ember) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Keep") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.pin_keep)) } },
         )
     }
 }
@@ -266,8 +267,8 @@ private fun NoteField(note: String, required: Boolean, onChange: (String) -> Uni
         onValueChange = { onChange(it.take(PinRules.NOTE_MAX)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        label = { Text(if (required) "Note" else "Note (optional)") },
-        placeholder = { Text("the bench by the red door") },
+        label = { Text(stringResource(if (required) R.string.pin_note else R.string.pin_note_optional)) },
+        placeholder = { Text(stringResource(R.string.pin_note_hint)) },
         supportingText = { Text("${note.length}/${PinRules.NOTE_MAX}") },
     )
 }

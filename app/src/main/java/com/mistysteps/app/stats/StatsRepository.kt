@@ -1,15 +1,32 @@
 package com.mistysteps.app.stats
 
 import android.content.Context
+import androidx.annotation.StringRes
+import com.mistysteps.app.R
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.offline.CityIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
+/** What an [AreaStat] covers. Its label is shown above the name. */
+enum class AreaKind(@StringRes val label: Int) {
+    WORLD(R.string.area_world),
+    COUNTRY(R.string.area_country),
+    CITY(R.string.area_city),
+    NEIGHBOURHOOD(R.string.area_neighbourhood),
+}
+
+/** A calm note shown instead of city and country stats. */
+enum class StatsNote(@StringRes val text: Int) {
+    OUTSIDE(R.string.stats_note_outside),
+    UNKNOWN_PLACE(R.string.stats_note_unknown),
+}
+
 data class AreaStat(
-    val label: String,
-    val name: String,
+    val kind: AreaKind,
+    /** Null for the world: it's shown as "Earth". */
+    val name: String?,
     val clearedM2: Double,
     /** Null when the border isn't known. */
     val totalM2: Double?,
@@ -24,14 +41,14 @@ data class Stats(
     val country: AreaStat?,
     val world: AreaStat,
     /** Set when city/country aren't known: a calm note, not an error. */
-    val note: String?,
+    val note: StatsNote?,
 )
 
 /** Your neighbourhood and how much of it is cleared. Streets are counted separately ([StatsRepository.streets]). */
 data class NeighbourhoodStat(val area: AreaStat, val boundary: Boundary)
 
 /** Result of looking up the neighbourhood: [stat] when found, otherwise maybe a [note] to show. */
-data class NeighbourhoodResult(val stat: NeighbourhoodStat?, val note: String?)
+data class NeighbourhoodResult(val stat: NeighbourhoodStat?, val note: StatsNote?)
 
 /**
  * One per app, so borders parsed from disk stay in memory between visits to the stats page.
@@ -55,8 +72,6 @@ class StatsRepository private constructor(context: Context) {
     @Volatile private var lastCells: Pair<Int, ClearedCells>? = null
 
     companion object {
-        const val OUTSIDE = "City and country stats only cover the Netherlands for now."
-
         @Volatile private var instance: StatsRepository? = null
 
         fun get(context: Context): StatsRepository =
@@ -69,18 +84,18 @@ class StatsRepository private constructor(context: Context) {
     suspend fun compute(lat: Double?, lon: Double?): Stats = withContext(Dispatchers.IO) {
         val cells = ClearedCells.from(FogStore.loadAllPoints())
         lastCells = FogStore.version.value to cells
-        val world = AreaStat("World", "Earth", cells.areaM2, WORLD_AREA_M2)
+        val world = AreaStat(AreaKind.WORLD, null, cells.areaM2, WORLD_AREA_M2)
 
         var city: AreaStat? = null
         var country: AreaStat? = null
-        var note: String? = null
+        var note: StatsNote? = null
         val idx = index
         if (lat == null || lon == null) {
-            note = "Start wandering once so we know where you are."
+            note = StatsNote.UNKNOWN_PLACE
         } else if (idx != null) {
-            idx.cityAt(lat, lon)?.let { city = stat("City", it, cells) }
-            if (idx.country.contains(lat, lon)) country = stat("Country", idx.country, cells)
-            if (city == null && country == null) note = OUTSIDE
+            idx.cityAt(lat, lon)?.let { city = stat(AreaKind.CITY, it, cells) }
+            if (idx.country.contains(lat, lon)) country = stat(AreaKind.COUNTRY, idx.country, cells)
+            if (city == null && country == null) note = StatsNote.OUTSIDE
         }
         Stats(cells.areaM2, FogStore.distanceMeters.value, city, country, world, note)
     }
@@ -92,7 +107,7 @@ class StatsRepository private constructor(context: Context) {
         val hood = Neighbourhoods.pick(all, city, lat, lon) ?: return@withContext NeighbourhoodResult(null, null)
         val cells = lastCells?.takeIf { it.first == FogStore.version.value }?.second
             ?: ClearedCells.from(FogStore.loadAllPoints())
-        NeighbourhoodResult(NeighbourhoodStat(stat("Neighbourhood", hood, cells), hood), null)
+        NeighbourhoodResult(NeighbourhoodStat(stat(AreaKind.NEIGHBOURHOOD, hood, cells), hood), null)
     }
 
     /** Street progress in [hood], or null if its streets were never saved on this phone. */
@@ -108,8 +123,8 @@ class StatsRepository private constructor(context: Context) {
         StreetCoverage.compute(streets, flat) { la, lo -> hood.contains(la, lo) }
     }
 
-    private fun stat(label: String, b: Boundary, cells: ClearedCells) = AreaStat(
-        label = label,
+    private fun stat(kind: AreaKind, b: Boundary, cells: ClearedCells) = AreaStat(
+        kind = kind,
         name = b.name,
         clearedM2 = if (b.hasArea) cells.areaInside(b) else 0.0,
         totalM2 = if (b.hasArea) b.areaM2 else null,

@@ -1,0 +1,187 @@
+<resources>
+    <!-- Woorden: "mist" is overal de nevel die je wegloopt. "Wandelen" is wat je doet terwijl je opneemt. -->
+
+    <!-- Melding -->
+    <string name="channel_name">Op pad</string>
+    <string name="notif_title">Op pad door de mist</string>
+    <string name="notif_text">Je stappen laten de mist optrekken</string>
+    <string name="notif_text_vehicle">Je gaat te snel. De mist trekt alleen op als je loopt, rent of fietst.</string>
+    <string name="notif_stop">Stop</string>
+
+    <!-- Algemeen -->
+    <string name="back">Terug</string>
+    <string name="back_to_map">Terug naar de kaart</string>
+    <string name="cancel">Annuleren</string>
+    <string name="save">Bewaar</string>
+    <string name="share">Deel</string>
+    <string name="not_now">Niet nu</string>
+
+    <!-- Kaartscherm -->
+    <string name="start_wandering">Start wandeling</string>
+    <string name="stop_wandering">Stop wandeling</string>
+    <string name="show_my_location">Toon mijn locatie</string>
+    <string name="drop_a_pin">Zet een pin</string>
+    <string name="mist_cleared">%1$s mist opgeklaard</string>
+    <string name="banner_pin_tip">Tip: druk lang op grond die je hebt opgeklaard om daar een pin te zetten. Tik om te sluiten.</string>
+    <string name="banner_start">Tik op Start wandeling en ga naar buiten. De mist trekt op waar je loopt.</string>
+    <string name="toast_pin_fog">Pins kun je alleen op opgeklaarde grond zetten. Loop hier eerst heen.</string>
+    <string name="toast_looking">Op zoek naar jou in de mist…</string>
+    <string name="toast_precise">Nauwkeurige locatie is nodig om de mist weg te halen</string>
+    <string name="toast_location_off">Zet locatie aan om de mist weg te halen</string>
+    <string name="dialog_rationale_title">Je stappen laten de mist optrekken</string>
+    <string name="dialog_rationale_text">Misty Steps heeft je nauwkeurige locatie nodig terwijl je wandelt, zodat de mist binnen 50 m om je heen kan optrekken. Je route wordt alleen op deze telefoon bewaard.</string>
+    <string name="dialog_continue">Ga door</string>
+    <string name="dialog_settings_title">Toestemming voor locatie staat uit</string>
+    <string name="dialog_settings_text">Geef Misty Steps in Instellingen toestemming om je nauwkeurige locatie te gebruiken, zodat de mist kan optrekken (Toestemmingen → Locatie → Alleen tijdens gebruik van de app toestaan, met \"Nauwkeurige locatie gebruiken\" aan).</string>
+    <string name="open_settings">Open instellingen</string>
+
+    <!-- Statistieken -->
+    <string name="stats_title">Jouw mistkaart</string>
+    <string name="stats_measuring">De mist wordt opgemeten…</string>
+    <string name="stat_wandered">Gewandeld</string>
+    <string name="stat_cleared">Opgeklaard</string>
+    <string name="stats_plenty_left">Er valt nog genoeg te ontdekken.</string>
+    <string name="stats_walks_header">Je wandelingen</string>
+    <string name="stats_places_header">Je plekken</string>
+    <string name="stats_more_header">Meer</string>
+    <string name="stats_privacy">De grenzen van steden en landen zitten in de app, dus waar je bent wordt op deze telefoon bepaald. Je routes verlaten de telefoon nooit. Alleen de kaartstukjes die je bekijkt worden bij OpenStreetMap opgehaald.</string>
+    <string name="stats_note_outside">Stads- en landstatistieken gelden voorlopig alleen voor Nederland.</string>
+    <string name="stats_note_unknown">Start één keer een wandeling, dan verschijnen hier de cijfers van je stad en land.</string>
+    <string name="feedback_row_title">Stuur feedback</string>
+    <string name="feedback_row_sub">Een bug, een idee, een straat die niet klopt: ik lees alles</string>
+    <string name="made_by_title">Gemaakt door Potloodgum</string>
+    <string name="made_by_sub">Wie dit maakte, en waarom · trakteer me op koffie</string>
+    <string name="version_app">Misty Steps %1$s</string>
+    <string name="version_plain">Versie %1$s</string>
+    <string name="walk_now">nu onderweg</string>
+    <string name="walk_new_mist">%1$s nieuwe mist</string>
+    <string name="walks_show_fewer">Toon minder</string>
+    <string name="walks_show_all">Toon alle %1$d wandelingen</string>
+    <string name="pins_empty">Zet een pin als iets je opvalt: tik op de pinknop tijdens je wandeling, of druk lang op grond die je al hebt opgeklaard.</string>
+    <string name="streets_counting">Straten tellen…</string>
+    <string name="hood_finding">Je buurt zoeken…</string>
+    <string name="streets_header">Straten</string>
+    <string name="streets_walked">%1$d van %2$d straten gelopen</string>
+    <string name="streets_still">Nog in de mist</string>
+    <string name="streets_pct_walked">%1$d%% gelopen</string>
+    <string name="streets_more">en nog %1$d</string>
+    <string name="area_world">Wereld</string>
+    <string name="area_country">Land</string>
+    <string name="area_city">Stad</string>
+    <string name="area_neighbourhood">Buurt</string>
+    <string name="area_earth">Aarde</string>
+    <string name="area_cleared_of">%1$s van %2$s opgeklaard</string>
+    <string name="area_one_in">1 op %1$s</string>
+    <string name="duration_under_minute">minder dan een minuut</string>
+    <string name="duration_min">%1$d min</string>
+    <string name="duration_h_min">%1$d u %2$02d min</string>
+
+    <!-- Back-up -->
+    <string name="backup_title">Je routes</string>
+    <string name="backup_intro">Bewaar al je routes en wandelingen in een bestand, of voeg ze toe vanuit een bestand: voor een back-up of een nieuwe telefoon. Het bestand is gewone tekst, dus het blijft van jou.</string>
+    <string name="backup_export">Exporteer</string>
+    <string name="backup_import">Importeer</string>
+    <string name="backup_stop_to_import">Stop je wandeling om te importeren.</string>
+    <string name="backup_saved">Bewaard: %1$s</string>
+    <string name="backup_save_failed">Kon het bestand niet bewaren</string>
+    <string name="backup_read_failed">Kon het bestand niet lezen</string>
+    <string name="backup_not_a_backup">Dit bestand is geen Misty Steps-back-up.</string>
+    <string name="backup_newer">Deze back-up komt van een nieuwere Misty Steps. Werk eerst de app bij.</string>
+    <string name="backup_broken_pin">In deze back-up zit een kapotte pin.</string>
+    <string name="backup_broken_point">In deze back-up zit een kapot punt.</string>
+    <string name="backup_add_title">Deze routes toevoegen?</string>
+    <string name="backup_add_body">Deze back-up van %1$s bevat %2$s. Ze worden toegevoegd aan de routes op deze telefoon. Er wordt niets verwijderd, en punten die je al hebt worden overgeslagen.</string>
+    <string name="backup_add_button">Voeg toe</string>
+    <string name="backup_added">Toegevoegd: %1$s</string>
+    <string name="backup_add_failed">Kon de routes niet importeren</string>
+    <string name="backup_counts">%1$s, %2$s en %3$s</string>
+    <plurals name="backup_points">
+        <item quantity="one">%1$s punt</item>
+        <item quantity="other">%1$s punten</item>
+    </plurals>
+    <plurals name="backup_walks">
+        <item quantity="one">%1$s wandeling</item>
+        <item quantity="other">%1$s wandelingen</item>
+    </plurals>
+    <plurals name="backup_pins">
+        <item quantity="one">%1$s pin</item>
+        <item quantity="other">%1$s pins</item>
+    </plurals>
+
+    <!-- Pins -->
+    <string name="pin_leave">Zet een pin</string>
+    <string name="pin_edit_title">Pin aanpassen</string>
+    <string name="pin_place">Plaats pin</string>
+    <string name="pin_delete">Verwijder</string>
+    <string name="pin_edit">Pas aan</string>
+    <string name="pin_remove_title">Deze pin verwijderen?</string>
+    <string name="pin_remove">Verwijder</string>
+    <string name="pin_keep">Bewaar</string>
+    <string name="pin_on_walk">tijdens je wandeling van %1$s</string>
+    <string name="pin_note">Notitie</string>
+    <string name="pin_note_optional">Notitie (optioneel)</string>
+    <string name="pin_note_hint">het bankje bij de rode deur</string>
+
+    <!-- Ansichtkaart -->
+    <string name="postcard_title">Je wandeling</string>
+    <string name="postcard_description">Ansichtkaart van je wandeling</string>
+    <string name="postcard_failed">Kon deze wandeling niet tekenen.</string>
+    <string name="postcard_painting">Je ansichtkaart wordt geschilderd…</string>
+    <string name="postcard_saved">Bewaard in Afbeeldingen › Misty Steps</string>
+    <string name="postcard_use_share">Gebruik Deel om hem op deze telefoon te bewaren</string>
+    <string name="postcard_save_failed">Kon de ansichtkaart niet bewaren</string>
+    <string name="postcard_back">Terug naar de mist</string>
+    <string name="postcard_share_chooser">Deel je wandeling</string>
+    <string name="osm_credit">© OpenStreetMap-bijdragers</string>
+
+    <!-- Personages -->
+    <string name="characters_title">Wie loopt door de mist?</string>
+    <string name="characters_sub">Kies je wandelmaatje. Het loopt met je mee op de kaart.</string>
+    <string name="character_cat_name">Wandelkat</string>
+    <string name="character_cat_blurb">Negen levens, één paar heel goede wandelschoenen.</string>
+    <string name="character_dog_name">Padvinderhond</string>
+    <string name="character_dog_blurb">Heeft elke lantaarnpaal besnuffeld. Wil er nog meer.</string>
+    <string name="character_otter_name">Zeeotter</string>
+    <string name="character_otter_blurb">Verliet de zee voor een wandelingetje. Nam de regenjas toch mee.</string>
+    <string name="character_capybara_name">Capibara</string>
+    <string name="character_capybara_blurb">Onverstoorbaar. Gehydrateerd. Draagt een mandarijn.</string>
+    <string name="character_cow_name">Zwerfkoe</string>
+    <string name="character_cow_blurb">De wijde wereld in. Moooi!</string>
+    <string name="character_horse_name">Trekpaard</string>
+    <string name="character_horse_blurb">Draagt zijn eigen zadeltassen. Weigert jou te dragen.</string>
+
+    <!-- Over -->
+    <string name="about_title">Over Misty Steps</string>
+    <string name="about_maker">Gemaakt door Tjerk bij Potloodgum, een eenmansstudio in Leeuwarden. De wereld repareren in kleine stapjes.</string>
+    <string name="about_why">Ik wilde een reden om door straten te lopen waar ik nog nooit was. Misty Steps verandert je eigen buurt in een kaart om te ontdekken, stap voor stap (of trap voor trap).</string>
+    <string name="about_promise">Geen advertenties, geen accounts, geen tracking. Je routes verlaten je telefoon nooit.</string>
+    <string name="about_donate_text">Als het je de deur uit krijgt, mag je een kop koffie voor me kopen. Dan blijft de mist drijven.</string>
+    <string name="about_donate_button">Trakteer me op koffie</string>
+    <string name="about_feedback_text">Een bug gevonden, of een idee? Laat het me weten. Ik lees alles.</string>
+    <string name="about_feedback_button">Stuur feedback</string>
+    <string name="about_credits">Kaartgegevens © OpenStreetMap-bijdragers (ODbL). De grenzen van steden en landen zijn gemaakt uit een OpenStreetMap-dump en zitten in de app.</string>
+    <string name="no_mail_app">Geen mail-app gevonden. Schrijf naar %1$s</string>
+
+    <!-- Pin-labels -->
+    <string name="pin_group_rest">Rust</string>
+    <string name="pin_group_senses">Zintuigen</string>
+    <string name="pin_group_animals">Dieren</string>
+    <string name="pin_group_finds">Vondsten</string>
+    <string name="pin_sit">Fijne plek om te zitten</string>
+    <string name="pin_view">Mooi uitzicht</string>
+    <string name="pin_shelter">Beschutting tegen regen</string>
+    <string name="pin_quiet">Heerlijk stil</string>
+    <string name="pin_smell">Ruikt heerlijk</string>
+    <string name="pin_birdsong">Hier zingen vogels</string>
+    <string name="pin_crow">Hier woont een kraai</string>
+    <string name="pin_cat">Vriendelijke kat</string>
+    <string name="pin_ducks">Eenden en ganzen</string>
+    <string name="pin_tree">Bijzondere boom</string>
+    <string name="pin_building">Mooi gebouw</string>
+    <string name="pin_path">Verborgen pad</string>
+    <string name="pin_other">Iets anders</string>
+
+    <!-- Map downloads -->
+    <string name="maps_downloads_channel">Kaartdownloads</string>
+    <string name="maps_downloading_notif">%1$s wordt gedownload</string>
+</resources>

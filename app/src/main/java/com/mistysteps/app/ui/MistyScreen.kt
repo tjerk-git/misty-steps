@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.mistysteps.app.R
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
@@ -121,7 +122,7 @@ fun MistyScreen() {
         map.setPinCallbacks(
             onTap = { pinSheet = PinSheetState.Open(it.id) },
             onCleared = { lat, lon -> pinSheet = PinSheetState.New(lat, lon, null) },
-            onFog = { Toast.makeText(context, "Walk here first to leave a pin", Toast.LENGTH_SHORT).show() },
+            onFog = { Toast.makeText(context, context.getString(R.string.toast_pin_fog), Toast.LENGTH_SHORT).show() },
         )
     }
     LaunchedEffect(map) { PinStore.pins.collect { map.refresh() } }
@@ -136,7 +137,7 @@ fun MistyScreen() {
             accuracyM = { if (it.hasAccuracy()) it.accuracy else null },
         )
         if (fix == null) {
-            Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
         } else {
             pinSheet = PinSheetState.New(fix.latitude, fix.longitude, FogStore.session?.id)
         }
@@ -190,14 +191,14 @@ fun MistyScreen() {
                 when (afterGrant) {
                     AfterGrant.WANDER -> startWandering(context)
                     AfterGrant.LOCATE -> if (!map.flyToMe()) {
-                        Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             // Denied for good (or only approximate allowed with "don't ask again"):
             // the system won't show its prompt any more, so offer the settings page.
             !canAskAgain() -> dialog = PermissionDialog.SETTINGS
-            else -> Toast.makeText(context, "Precise location is needed to clear the fog", Toast.LENGTH_LONG).show()
+            else -> Toast.makeText(context, context.getString(R.string.toast_precise), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -244,7 +245,7 @@ fun MistyScreen() {
                         letterSpacing = 1.5.sp,
                     )
                     Text(
-                        "${formatDistance(distance)} of mist cleared",
+                        stringResource(R.string.mist_cleared, formatDistance(distance)),
                         fontSize = 12.sp,
                         color = Dusk,
                     )
@@ -278,7 +279,7 @@ fun MistyScreen() {
                     if (!RecordingService.hasLocationPermission(context)) {
                         askForLocation(AfterGrant.LOCATE)
                     } else if (!map.flyToMe()) {
-                        Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -288,7 +289,7 @@ fun MistyScreen() {
                 contentColor = Ink,
                 shape = CircleShape,
             ) {
-                Icon(painterResource(R.drawable.ic_my_location), contentDescription = "Show my location")
+                Icon(painterResource(R.drawable.ic_my_location), contentDescription = stringResource(R.string.show_my_location))
             }
 
             // Drop a pin where you stand (only while wandering).
@@ -302,16 +303,16 @@ fun MistyScreen() {
                     contentColor = Ink,
                     shape = CircleShape,
                 ) {
-                    Icon(Icons.Filled.Place, contentDescription = "Drop a pin")
+                    Icon(Icons.Filled.Place, contentDescription = stringResource(R.string.drop_a_pin))
                 }
             }
 
             // One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
             val banner: Pair<String, (() -> Unit)?>? = when {
                 // In a car, train or bus: clearing is paused until you're moving under your own power again.
-                recording && inVehicle -> "Too fast for the mist: it only clears under your own steam" to null
-                showPinTip && !recording -> "Tip: long-press ground you've cleared to leave a pin there. Tap to close." to ::dismissPinTip
-                !recording && distance == 0.0 -> "Tap Start wandering and go outside. The mist lifts wherever you walk." to null
+                recording && inVehicle -> stringResource(R.string.notif_text_vehicle) to null
+                showPinTip && !recording -> stringResource(R.string.banner_pin_tip) to ::dismissPinTip
+                !recording && distance == 0.0 -> stringResource(R.string.banner_start) to null
                 else -> null
             }
             banner?.let { (text, onTap) ->
@@ -350,11 +351,11 @@ fun MistyScreen() {
                     if (recording) {
                         PulsingDot()
                         Spacer(Modifier.width(12.dp))
-                        Text("Stop wandering", fontSize = 16.sp)
+                        Text(stringResource(R.string.stop_wandering), fontSize = 16.sp)
                     } else {
                         Icon(Icons.Filled.PlayArrow, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Start wandering", fontSize = 16.sp)
+                        Text(stringResource(R.string.start_wandering), fontSize = 16.sp)
                     }
                 }
             }
@@ -433,37 +434,31 @@ fun MistyScreen() {
     when (dialog) {
         PermissionDialog.RATIONALE -> AlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text("Your steps clear the fog") },
+            title = { Text(stringResource(R.string.dialog_rationale_title)) },
             text = {
-                Text(
-                    "Misty Steps needs your precise location while you wander, so it can lift the fog " +
-                        "50 m around you. Your trail is only stored on this phone."
-                )
+                Text(stringResource(R.string.dialog_rationale_text))
             },
             confirmButton = {
                 TextButton(onClick = {
                     dialog = null
                     permissionLauncher.launch(locationPermissions)
-                }) { Text("Continue") }
+                }) { Text(stringResource(R.string.dialog_continue)) }
             },
-            dismissButton = { TextButton(onClick = { dialog = null }) { Text("Not now") } },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.not_now)) } },
         )
         PermissionDialog.SETTINGS -> AlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text("Location is switched off") },
+            title = { Text(stringResource(R.string.dialog_settings_title)) },
             text = {
-                Text(
-                    "To clear the fog, allow Misty Steps to use your precise location in Settings " +
-                        "(Permissions → Location → Allow only while using the app, with \"Use precise location\" on)."
-                )
+                Text(stringResource(R.string.dialog_settings_text))
             },
             confirmButton = {
                 TextButton(onClick = {
                     dialog = null
                     openAppSettings(context)
-                }) { Text("Open settings") }
+                }) { Text(stringResource(R.string.open_settings)) }
             },
-            dismissButton = { TextButton(onClick = { dialog = null }) { Text("Not now") } },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.not_now)) } },
         )
         null -> Unit
     }
@@ -510,7 +505,7 @@ private fun PulsingDot() {
 private fun startWandering(context: Context) {
     val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-        Toast.makeText(context, "Turn on location to clear the fog", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.toast_location_off), Toast.LENGTH_LONG).show()
         context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
     }
     RecordingService.start(context)

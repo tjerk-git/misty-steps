@@ -33,6 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mistysteps.app.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -126,10 +129,10 @@ fun CharacterScreen(onClose: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onClose) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to map", tint = Ink)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_map), tint = Ink)
                 }
                 Text(
-                    "Who walks the mist?",
+                    stringResource(R.string.characters_title),
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 24.sp,
@@ -137,7 +140,7 @@ fun CharacterScreen(onClose: () -> Unit) {
                 )
             }
             Text(
-                "Pick your wanderer. They'll walk with you on the map.",
+                stringResource(R.string.characters_sub),
                 color = Dusk,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(start = 12.dp, bottom = 16.dp),
@@ -192,9 +195,9 @@ private fun CharacterCard(
                     .drawBehind { drawSprite(frames.at(walking = isSelected, timeMs = time())) }
             )
             Spacer(Modifier.height(10.dp))
-            Text(character.name, fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Ink)
+            Text(characterText(character, "name", character.name), fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Ink)
             Text(
-                character.blurb,
+                characterText(character, "blurb", character.blurb),
                 fontSize = 12.sp,
                 lineHeight = 15.sp,
                 color = Dusk,
@@ -202,4 +205,14 @@ private fun CharacterCard(
             )
         }
     }
+}
+
+/** The translated name or blurb of a character, falling back to the English text in the sprite file. */
+@Composable
+private fun characterText(character: Character, part: String, fallback: String): String {
+    val context = LocalContext.current
+    val id = remember(character.id, part) {
+        context.resources.getIdentifier("character_${character.id}_$part", "string", context.packageName)
+    }
+    return if (id != 0) stringResource(id) else fallback
 }

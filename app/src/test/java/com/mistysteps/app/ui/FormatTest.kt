@@ -18,15 +18,15 @@ class FormatTest {
     @Test
     fun durationReadsNaturally() {
         Locale.setDefault(Locale.US)
-        assertEquals("under a minute", formatDuration(30_000))
-        assertEquals("12 min", formatDuration(12 * 60_000L + 5_000))
-        assertEquals("1 h 05 min", formatDuration(65 * 60_000L))
+        assertEquals("under a minute", formatDuration(30_000, DurationText.EN))
+        assertEquals("12 min", formatDuration(12 * 60_000L + 5_000, DurationText.EN))
+        assertEquals("1 h 05 min", formatDuration(65 * 60_000L, DurationText.EN))
     }
 
     @Test
-    fun backupCountsUseSingularForOne() {
+    fun oneInRoundsToTwoSignificantDigits() {
         Locale.setDefault(Locale.US)
-        assertEquals("1,662 spots, 3 walks and 1 pin", formatBackupCounts(1662, 3, 1))
-        assertEquals("1 spot, 1 walk and 0 pins", formatBackupCounts(1, 1, 0))
+        assertEquals("54,000,000", formatOneIn(1.85e-8))
+        assertEquals("1,200", formatOneIn(8.3e-4))
     }
 }

@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.mistysteps.app.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -95,7 +97,7 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                "Your walk",
+                stringResource(R.string.postcard_title),
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 22.sp,
@@ -107,17 +109,17 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
                 when {
                     bmp != null -> Image(
                         bmp.asImageBitmap(),
-                        contentDescription = "Postcard of your walk",
+                        contentDescription = stringResource(R.string.postcard_description),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .shadow(12.dp, RoundedCornerShape(6.dp))
                             .clip(RoundedCornerShape(6.dp)),
                     )
-                    failed -> Text("Couldn't draw this walk.", color = Color.White)
+                    failed -> Text(stringResource(R.string.postcard_failed), color = Color.White)
                     else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = Color.White)
                         Spacer(Modifier.height(12.dp))
-                        Text("Painting your postcard…", color = Color.White)
+                        Text(stringResource(R.string.postcard_painting), color = Color.White)
                     }
                 }
             }
@@ -130,9 +132,9 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
                         scope.launch {
                             val ok = PostcardShare.saveToGallery(context, bmp, name)
                             val msg = when {
-                                ok -> "Saved to Pictures › Misty Steps"
-                                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> "Use Share to save it on this phone"
-                                else -> "Couldn't save the postcard"
+                                ok -> context.getString(R.string.postcard_saved)
+                                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> context.getString(R.string.postcard_use_share)
+                                else -> context.getString(R.string.postcard_save_failed)
                             }
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         }
@@ -140,15 +142,15 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
                     enabled = bmp != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                ) { Text("Save") }
+                ) { Text(stringResource(R.string.save)) }
                 Button(
                     onClick = { if (bmp != null) scope.launch { PostcardShare.share(context, bmp, name) } },
                     enabled = bmp != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Ember, contentColor = Color.White),
-                ) { Text("Share") }
+                ) { Text(stringResource(R.string.share)) }
             }
-            TextButton(onClick = onClose) { Text("Back to the mist", color = Color.White) }
+            TextButton(onClick = onClose) { Text(stringResource(R.string.postcard_back), color = Color.White) }
         }
     }
 }

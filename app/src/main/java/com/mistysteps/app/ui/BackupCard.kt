@@ -1,5 +1,6 @@
 package com.mistysteps.app.ui
 
+import android.content.res.Resources
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,11 +28,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.BuildConfig
+import com.mistysteps.app.R
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.Backup
+import com.mistysteps.app.data.BackupException
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.record.RecordingService
 import kotlinx.coroutines.Dispatchers
@@ -66,9 +70,9 @@ fun BackupCard(onImported: () -> Unit) {
                     context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(backup.toJson().toByteArray()) }
                     backup
                 }
-                "Saved ${formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size)}"
+                context.getString(R.string.backup_saved, formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size, context.resources))
             } catch (e: Exception) {
-                "Couldn't save the file"
+                context.getString(R.string.backup_save_failed)
             }
             busy = false
             toast(msg)
@@ -84,10 +88,10 @@ fun BackupCard(onImported: () -> Unit) {
                     val text = context.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() }
                     Backup.fromJson(text)
                 }
-            } catch (e: IllegalArgumentException) {
-                toast(e.message ?: "This file isn't a Misty Steps backup.")
+            } catch (e: BackupException) {
+                toast(context.getString(e.problem.res))
             } catch (e: Exception) {
-                toast("Couldn't read the file")
+                toast(context.getString(R.string.backup_read_failed))
             }
             busy = false
         }
@@ -95,11 +99,10 @@ fun BackupCard(onImported: () -> Unit) {
 
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
         Column(Modifier.padding(20.dp)) {
-            Text("YOUR TRAILS", fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+            Text(stringResource(R.string.backup_title).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
             Spacer(Modifier.height(4.dp))
             Text(
-                "Save all your trails and walks to a file, or add them from one: for a backup or a new phone. " +
-                    "They're yours: the file is plain, readable JSON.",
+                stringResource(R.string.backup_intro),
                 color = Ink, fontSize = 14.sp, lineHeight = 20.sp,
             )
             Spacer(Modifier.height(12.dp))
@@ -112,16 +115,16 @@ fun BackupCard(onImported: () -> Unit) {
                     enabled = !busy,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
-                ) { Text("Export") }
+                ) { Text(stringResource(R.string.backup_export)) }
                 OutlinedButton(
                     onClick = { importLauncher.launch(arrayOf("application/json", "application/octet-stream", "text/plain")) },
                     enabled = !busy && !recording,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
-                ) { Text("Import") }
+                ) { Text(stringResource(R.string.backup_import)) }
             }
             if (recording) {
-                Text("Stop wandering to import.", color = Dusk, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+                Text(stringResource(R.string.backup_stop_to_import), color = Dusk, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
             }
         }
     }
@@ -130,13 +133,14 @@ fun BackupCard(onImported: () -> Unit) {
         val from = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(backup.exportedAt))
         AlertDialog(
             onDismissRequest = { pendingImport = null },
-            title = { Text("Add these trails?") },
+            title = { Text(stringResource(R.string.backup_add_title)) },
             text = {
                 Text(
-                    "This backup from $from has " +
-                        "${formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size)}. " +
-                        "They'll be added to the trails on this phone. " +
-                        "Nothing here is deleted, and spots you already have are skipped."
+                    stringResource(
+                        R.string.backup_add_body,
+                        from,
+                        formatBackupCounts(backup.points.size, backup.sessions.size, backup.pins.size, context.resources),
+                    )
                 )
             },
             confirmButton = {
@@ -149,23 +153,27 @@ fun BackupCard(onImported: () -> Unit) {
                             // A fresh phone also takes the wanderer from the backup.
                             if (r.wasEmpty) backup.character?.let { id -> Characters.all.firstOrNull { it.id == id }?.let(Characters::select) }
                             onImported()
-                            "Added ${formatBackupCounts(r.spots, r.walks, r.pins)}"
+                            context.getString(R.string.backup_added, formatBackupCounts(r.spots, r.walks, r.pins, context.resources))
                         } catch (e: Exception) {
-                            "Couldn't import the trails"
+                            context.getString(R.string.backup_add_failed)
                         }
                         busy = false
                         toast(msg)
                     }
-                }) { Text("Add trails") }
+                }) { Text(stringResource(R.string.backup_add_button)) }
             },
-            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
 
-/** "1.662 spots, 3 walks and 1 pin": what a backup holds, in the phone's number format. */
-internal fun formatBackupCounts(spots: Int, walks: Int, pins: Int): String {
+/** "1.662 points, 3 walks and 1 pin": what a backup holds, in the phone's language and number format. */
+internal fun formatBackupCounts(points: Int, walks: Int, pins: Int, res: Resources): String {
     val n = NumberFormat.getIntegerInstance()
-    fun count(k: Int, one: String, many: String) = "${n.format(k)} ${if (k == 1) one else many}"
-    return "${count(spots, "spot", "spots")}, ${count(walks, "walk", "walks")} and ${count(pins, "pin", "pins")}"
+    return res.getString(
+        R.string.backup_counts,
+        res.getQuantityString(R.plurals.backup_points, points, n.format(points)),
+        res.getQuantityString(R.plurals.backup_walks, walks, n.format(walks)),
+        res.getQuantityString(R.plurals.backup_pins, pins, n.format(pins)),
+    )
 }

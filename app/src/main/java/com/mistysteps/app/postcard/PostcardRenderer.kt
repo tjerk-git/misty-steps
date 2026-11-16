@@ -18,6 +18,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.mistysteps.app.character.Character
+import com.mistysteps.app.R
 import com.mistysteps.app.data.Mercator
 import com.mistysteps.app.data.Session
 import com.mistysteps.app.data.TrailPoint
@@ -27,6 +28,7 @@ import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinSprites
 import com.mistysteps.app.ui.formatArea
 import com.mistysteps.app.ui.formatDistance
+import com.mistysteps.app.ui.durationText
 import com.mistysteps.app.ui.formatDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -68,7 +70,14 @@ object PostcardRenderer {
         val view = View.fit(points, mapRect.width(), mapRect.height())
         val map = Bitmap.createBitmap(mapRect.width(), mapRect.height(), Bitmap.Config.ARGB_8888)
         drawTiles(context, Canvas(map), view)
-        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins) }
+        val words = durationText(context.resources)
+        val parts = buildList {
+            add(formatDistance(walk.distanceM))
+            walk.endTime?.let { add(formatDuration(it - walk.startTime, words)) }
+            walk.newAreaM2?.let { add(context.getString(R.string.walk_new_mist, formatArea(it))) }
+        }
+        val credit = context.getString(R.string.osm_credit)
+        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit) }
     }
 
     /** Which part of the world the map shows: mercator centre and pixels per mercator unit. */
@@ -139,7 +148,7 @@ object PostcardRenderer {
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,
-        pins: List<Pin>,
+        pins: List<Pin>, parts: List<String>, credit: String,
     ): Bitmap {
         val last = points.lastOrNull()
         val palette = MistPalette.at(walk.endTime ?: walk.startTime, last?.lat ?: 52.0, last?.lon ?: 5.0)
@@ -226,11 +235,6 @@ object PostcardRenderer {
         val date = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(Date(walk.startTime))
         c.drawText(date, MARGIN.toFloat(), y0 + 56, text)
 
-        val parts = buildList {
-            add(formatDistance(walk.distanceM))
-            walk.endTime?.let { add(formatDuration(it - walk.startTime)) }
-            walk.newAreaM2?.let { add("${formatArea(it)} new mist") }
-        }
         text.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         text.textSize = 44f
         text.color = EMBER
@@ -240,7 +244,7 @@ object PostcardRenderer {
         text.textSize = 22f
         text.color = DUSK
         text.textAlign = Paint.Align.RIGHT
-        c.drawText("© OpenStreetMap contributors", (W - MARGIN).toFloat(), H - 30f, text)
+        c.drawText(credit, (W - MARGIN).toFloat(), H - 30f, text)
         return out
     }
 
