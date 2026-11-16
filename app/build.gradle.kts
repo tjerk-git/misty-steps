@@ -74,6 +74,8 @@ kotlin {
 
 dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.20")
+    // Probe only (debug builds): the MapLibre map that may replace osmdroid. See docs/superpowers/plans.
+    debugImplementation("org.maplibre.gl:android-sdk:11.8.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.collection:collection:1.5.0")
