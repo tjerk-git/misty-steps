@@ -19,6 +19,16 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.mistysteps.app.character.Character
 import com.mistysteps.app.R
+import com.mistysteps.app.maps.MapStyle
+import com.mistysteps.app.maps.MapsGraph
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.Style
+import org.maplibre.android.snapshotter.MapSnapshotter
+import kotlin.coroutines.resume
+import kotlin.math.ln
 import com.mistysteps.app.data.Mercator
 import com.mistysteps.app.data.Session
 import com.mistysteps.app.data.TrailPoint
@@ -33,9 +43,6 @@ import com.mistysteps.app.ui.formatDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.osmdroid.tileprovider.MapTileProviderBasic
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.MapTileIndex
 import java.text.DateFormat
 import java.util.Date
 import kotlin.math.floor
@@ -111,40 +118,37 @@ object PostcardRenderer {
         }
     }
 
+    /**
+     * The map under the postcard: a MapLibre snapshot of the installed packs at exactly the scale [view] uses, so the trail,
+     * the clearing and the pins land on the right streets. With no pack installed, or none covering the walk, it stays the
+     * plain paper colour.
+     */
     private suspend fun drawTiles(context: Context, canvas: Canvas, view: View) {
         canvas.drawColor(Color.rgb(242, 239, 233))
-        val z = floor(view.zoom).toInt().coerceIn(0, 19)
-        val n = 1 shl z
-        val tilePx = view.scale / n // on-screen size of one tile
-        val left = view.cx - view.w / 2.0 / view.scale
-        val top = view.cy - view.h / 2.0 / view.scale
-        val tx0 = floor(left * n).toInt().coerceAtLeast(0)
-        val tx1 = floor((left + view.w / view.scale) * n).toInt().coerceAtMost(n - 1)
-        val ty0 = floor(top * n).toInt().coerceAtLeast(0)
-        val ty1 = floor((top + view.h / view.scale) * n).toInt().coerceAtMost(n - 1)
-        val wanted = ArrayList<Long>()
-        for (tx in tx0..tx1) for (ty in ty0..ty1) wanted += MapTileIndex.getTileIndex(z, tx, ty)
-
-        val provider = MapTileProviderBasic(context.applicationContext, TileSourceFactory.MAPNIK)
-        try {
-            provider.ensureCapacity(wanted.size + 4)
-            val got = HashMap<Long, Drawable>()
-            // Tiles come from the phone's cache or are downloaded; wait a little for the rest.
-            for (attempt in 0 until 40) {
-                for (t in wanted) if (t !in got) provider.getMapTile(t)?.let { got[t] = it }
-                if (got.size == wanted.size) break
-                delay(250)
-            }
-            for ((t, d) in got) {
-                val x = ((MapTileIndex.getX(t).toDouble() / n - left) * view.scale)
-                val y = ((MapTileIndex.getY(t).toDouble() / n - top) * view.scale)
-                d.setBounds(floor(x).toInt(), floor(y).toInt(), floor(x + tilePx).toInt() + 1, floor(y + tilePx).toInt() + 1)
-                d.draw(canvas)
-            }
-        } finally {
-            provider.detach()
-        }
+        val files = MapsGraph.packs.mapFiles()
+        if (files.isEmpty()) return
+        val template = context.assets.open("maps/misty-style.json").bufferedReader().use { it.readText() }
+        // MapLibre counts 512-pixel tiles: the world is 512 * 2^zoom pixels wide at pixel ratio 1.
+        val zoom = ln(view.scale / 512.0) / ln(2.0)
+        val center = LatLng(Mercator.lat(view.cy), Mercator.lon(view.cx))
+        val bitmap = snapshot(context, MapStyle.build(template, files), center, zoom, view.w, view.h) ?: return
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
     }
+
+    private suspend fun snapshot(context: Context, style: String, center: LatLng, zoom: Double, w: Int, h: Int): Bitmap? =
+        withContext(Dispatchers.Main) {
+            MapLibre.getInstance(context.applicationContext)
+            suspendCancellableCoroutine { cont ->
+                val options = MapSnapshotter.Options(w, h)
+                    .withStyleBuilder(Style.Builder().fromJson(style))
+                    .withCameraPosition(CameraPosition.Builder().target(center).zoom(zoom).build())
+                    .withPixelRatio(1f)
+                    .withLogo(false)
+                val snapshotter = MapSnapshotter(context.applicationContext, options)
+                snapshotter.start({ snap -> if (cont.isActive) cont.resume(snap.bitmap) }, { if (cont.isActive) cont.resume(null) })
+                cont.invokeOnCancellation { snapshotter.cancel() }
+            }
+        }
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,

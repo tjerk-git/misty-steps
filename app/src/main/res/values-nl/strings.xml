@@ -132,7 +132,7 @@
     <string name="postcard_save_failed">Kon de ansichtkaart niet bewaren</string>
     <string name="postcard_back">Terug naar de mist</string>
     <string name="postcard_share_chooser">Deel je wandeling</string>
-    <string name="osm_credit">© OpenStreetMap-bijdragers</string>
+    <string name="osm_credit">© OpenStreetMap-bijdragers · © OpenMapTiles</string>
 
     <!-- Personages -->
     <string name="characters_title">Wie loopt door de mist?</string>

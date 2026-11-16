@@ -133,7 +133,7 @@
     <string name="postcard_save_failed">Couldn\'t save the postcard</string>
     <string name="postcard_back">Back to the mist</string>
     <string name="postcard_share_chooser">Share your walk</string>
-    <string name="osm_credit">© OpenStreetMap contributors</string>
+    <string name="osm_credit">© OpenStreetMap contributors · © OpenMapTiles</string>
 
     <!-- Characters. The name and blurb in assets/characters.txt are the fallback. -->
     <string name="characters_title">Who walks the mist?</string>
