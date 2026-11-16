@@ -15,8 +15,16 @@ import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.PropertyFactory.circleColor
+import org.maplibre.android.style.layers.PropertyFactory.circleRadius
+import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.Point
 
 /**
  * Throwaway probe for the offline map plan (debug builds only). Shows every `*.pmtiles` in
@@ -41,7 +49,8 @@ class MapSpikeActivity : ComponentActivity() {
         styleJson = MapStyle.build(template, packs)
 
         val root = FrameLayout(this)
-        mapView = MapView(this)
+        // --ei texture 1: draw the map into a TextureView, so it is composited together with the overlay.
+        mapView = if (intent.getIntExtra("texture", 0) == 1) MapView(this, MapLibreMapOptions.createFromAttributes(this).textureMode(true)) else MapView(this)
         overlay = SyncOverlay(this)
         root.addView(mapView)
         root.addView(overlay)
@@ -49,10 +58,26 @@ class MapSpikeActivity : ComponentActivity() {
 
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync { map ->
-            map.setStyle(Style.Builder().fromJson(styleJson)) { Log.i(TAG, "style loaded") }
-            map.cameraPosition = CameraPosition.Builder().target(OLDEHOVE).zoom(15.0).build()
+            map.setStyle(Style.Builder().fromJson(styleJson)) { style ->
+                // Blue dots drawn by MapLibre itself at the same coordinates as the overlay's red crosses,
+                // so the gap between the two can be measured from a screen recording.
+                val points = SyncOverlay.GRID.map { Feature.fromGeometry(Point.fromLngLat(it.longitude, it.latitude)) }
+                style.addSource(GeoJsonSource("sync", FeatureCollection.fromFeatures(points)))
+                style.addLayer(CircleLayer("sync-dots", "sync").withProperties(circleColor("#0000FF"), circleRadius(7f)))
+                Log.i(TAG, "style loaded")
+            }
+            // Optional start position: am start ... --ed lat 53.2 --ed lon 5.8 --ed zoom 15
+            val start = LatLng(intent.getDoubleExtra("lat", OLDEHOVE.latitude), intent.getDoubleExtra("lon", OLDEHOVE.longitude))
+            map.cameraPosition = CameraPosition.Builder().target(start).zoom(intent.getDoubleExtra("zoom", 15.0)).build()
             overlay.map = map
-            map.addOnCameraMoveListener { overlay.invalidate() }
+            // mode 0: redraw from camera moves and every Choreographer frame. mode 1: redraw only when MapLibre
+            // has finished drawing a frame. --ei mode 1
+            if (intent.getIntExtra("mode", 0) == 0) {
+                map.addOnCameraMoveListener { overlay.invalidate() }
+            } else {
+                overlay.useChoreographer = false; overlay.stop()
+                mapView.addOnDidFinishRenderingFrameListener { _, _, _ -> overlay.invalidate() }
+            }
         }
     }
 
@@ -77,6 +102,7 @@ class MapSpikeActivity : ComponentActivity() {
  */
 class SyncOverlay(context: Context) : View(context) {
     var map: MapLibreMap? = null
+    var useChoreographer = true
     private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x66B4536A; style = Paint.Style.FILL }
     private val cross = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED; strokeWidth = 3f; style = Paint.Style.STROKE }
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = 36f }
@@ -85,6 +111,13 @@ class SyncOverlay(context: Context) : View(context) {
     private var frameMs = 0L
 
     init { isClickable = false; isFocusable = false }
+
+    companion object {
+        /** 3 x 3 fixed coordinates around the Oldehove, shared with the map's own dot layer. */
+        val GRID: List<LatLng> = (-1..1).flatMap { dy ->
+            (-1..1).map { dx -> LatLng(MapSpikeActivity.OLDEHOVE.latitude + dy * 0.002, MapSpikeActivity.OLDEHOVE.longitude + dx * 0.003) }
+        }
+    }
 
     private val tick = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
@@ -96,7 +129,7 @@ class SyncOverlay(context: Context) : View(context) {
         }
     }
 
-    fun start() { running = true; Choreographer.getInstance().postFrameCallback(tick) }
+    fun start() { running = true; if (useChoreographer) Choreographer.getInstance().postFrameCallback(tick) }
     fun stop() { running = false }
 
     override fun onDraw(canvas: Canvas) {
@@ -105,8 +138,8 @@ class SyncOverlay(context: Context) : View(context) {
         val center = projection.toScreenLocation(MapSpikeActivity.OLDEHOVE)
         val metersPerPixel = projection.getMetersPerPixelAtLatitude(MapSpikeActivity.OLDEHOVE.latitude)
         canvas.drawCircle(center.x, center.y, (50 / metersPerPixel).toFloat(), ring)
-        for (dy in -1..1) for (dx in -1..1) {
-            val p = projection.toScreenLocation(LatLng(MapSpikeActivity.OLDEHOVE.latitude + dy * 0.002, MapSpikeActivity.OLDEHOVE.longitude + dx * 0.003))
+        for (at in GRID) {
+            val p = projection.toScreenLocation(at)
             canvas.drawLine(p.x - 20, p.y, p.x + 20, p.y, cross)
             canvas.drawLine(p.x, p.y - 20, p.x, p.y + 20, cross)
         }
