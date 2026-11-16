@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import com.mistysteps.app.data.FogStore
 import android.graphics.Point
 import android.graphics.RectF
 import android.location.Location
@@ -21,6 +22,10 @@ class CharacterOverlay(private val me: MyLocationNewOverlay, private val density
 
     private val pixelPaint = Paint().apply { isFilterBitmap = false; isAntiAlias = false }
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x40000000 }
+    private val ringFill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x33B4536A; style = Paint.Style.FILL }
+    private val ringEdge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xB3B4536A.toInt(); style = Paint.Style.STROKE; strokeWidth = 2f * density
+    }
     private val point = Point()
     private val dst = RectF()
     private val flip = Matrix()
@@ -43,6 +48,11 @@ class CharacterOverlay(private val me: MyLocationNewOverlay, private val density
         val walking = updateMotion(me.lastFix, now)
 
         mapView.projection.toPixels(where, point)
+        // The clearing radius, so you can see how much mist a step takes away.
+        val ring = mapView.projection.metersToPixels(FogStore.CLEAR_RADIUS_M.toFloat(), where.latitude, mapView.zoomLevelDouble)
+        canvas.drawCircle(point.x.toFloat(), point.y.toFloat(), ring, ringFill)
+        canvas.drawCircle(point.x.toFloat(), point.y.toFloat(), ring, ringEdge)
+
         val size = Characters.SIZE * PIXEL_DP * density
         // Feet on the spot, so the sprite stands slightly above the point.
         val left = point.x - size / 2

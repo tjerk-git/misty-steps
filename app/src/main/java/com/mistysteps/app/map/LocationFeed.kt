@@ -45,6 +45,10 @@ class LocationFeed(context: Context) {
 
     private var listening = false
 
+    /** The newest platform fix, for code that needs its timestamps ([com.mistysteps.app.pin.PinRules.freshestFix]). */
+    @Volatile var lastLocation: Location? = null
+        private set
+
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) = offer(location)
         override fun onProviderEnabled(provider: String) = Unit
@@ -53,6 +57,7 @@ class LocationFeed(context: Context) {
     }
 
     fun offer(location: Location) {
+        if (lastLocation == null || location.time >= lastLocation!!.time) lastLocation = location
         val candidate = Fix(
             location.latitude, location.longitude,
             if (location.hasBearing()) location.bearing else null,

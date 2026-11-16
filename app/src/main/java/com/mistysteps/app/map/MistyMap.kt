@@ -65,6 +65,10 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
     /** Called on every camera move, for things drawn above the map. */
     var onCameraMove: (() -> Unit)? = null
 
+    /** A tap or a long-press on the map at screen position (x, y); return true when it was used. */
+    var onTap: ((Float, Float) -> Boolean)? = null
+    var onLongPress: ((Float, Float) -> Boolean)? = null
+
     private var following = false
     private var flyInPending = false
     private var resumed = false
@@ -90,6 +94,8 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
             m.setMinZoomPreference(MIN_ZOOM)
             m.setMaxZoomPreference(MAX_ZOOM)
             m.addOnCameraMoveListener { onCameraMove?.invoke() }
+            m.addOnMapClickListener { at -> m.projection.toScreenLocation(at).let { onTap?.invoke(it.x, it.y) } ?: false }
+            m.addOnMapLongClickListener { at -> m.projection.toScreenLocation(at).let { onLongPress?.invoke(it.x, it.y) } ?: false }
             restoreCamera(m)
             applyStyle()
             packWatcher = scope.launch { packs.version.collect { applyStyle() } }
@@ -263,8 +269,11 @@ class MapLibreProjection(private val map: MapLibreMap, private val view: android
     override val height get() = view.height
     override val zoom get() = map.cameraPosition.zoom
 
-    /** The world's width in pixels: the earth's circumference over the metres one pixel covers at the equator. */
-    override val worldSizePx get() = EARTH_CIRCUMFERENCE / map.projection.getMetersPerPixelAtLatitude(0.0)
+    /**
+     * The world's width in screen pixels: the earth's circumference over the metres one MapLibre pixel covers at the equator,
+     * times the screen density (MapLibre counts in density-independent pixels).
+     */
+    override val worldSizePx get() = EARTH_CIRCUMFERENCE / map.projection.getMetersPerPixelAtLatitude(0.0) * view.resources.displayMetrics.density
 
     override fun toScreen(lat: Double, lon: Double): ScreenPoint {
         val p = map.projection.toScreenLocation(LatLng(lat, lon))
@@ -276,8 +285,9 @@ class MapLibreProjection(private val map: MapLibreMap, private val view: android
         return LatLon(at.latitude, at.longitude)
     }
 
+    /** Worked out from the world size, like [MercatorProjection], so it agrees with the fog's scale. */
     override fun metersToPixels(meters: Double, lat: Double): Float =
-        (meters / map.projection.getMetersPerPixelAtLatitude(lat)).toFloat()
+        (meters * worldSizePx / (EARTH_CIRCUMFERENCE * kotlin.math.cos(Math.toRadians(lat)))).toFloat()
 
     private companion object {
         const val EARTH_CIRCUMFERENCE = 40_075_016.686

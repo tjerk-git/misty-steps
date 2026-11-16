@@ -126,7 +126,7 @@ fun MistyScreen() {
     var pinSheet by remember { mutableStateOf<PinSheetState?>(null) }
 
     fun currentPlace(): Pair<Double, Double>? =
-        map.me.myLocation?.let { it.latitude to it.longitude } ?: FogStore.lastKnown
+        map.myLocation()?.let { it.lat to it.lon } ?: FogStore.lastKnown
 
     // Redraw the fog whenever new ground is uncovered.
     LaunchedEffect(map) {
@@ -148,7 +148,7 @@ fun MistyScreen() {
         // Recording only hears from GPS every 5 m, so when you stand still use the map's fix too.
         val now = SystemClock.elapsedRealtimeNanos()
         val fix = PinRules.freshestFix(
-            listOfNotNull(FogStore.lastGoodFix, map.me.lastFix),
+            listOfNotNull(FogStore.lastGoodFix, map.lastFix()),
             ageMs = { (now - it.elapsedRealtimeNanos) / 1_000_000 },
             accuracyM = { if (it.hasAccuracy()) it.accuracy else null },
         )
