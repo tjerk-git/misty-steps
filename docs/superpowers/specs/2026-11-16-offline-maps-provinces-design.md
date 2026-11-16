@@ -59,6 +59,7 @@ Things that would make this a failure even if it technically works:
   pipeline downloads once a year from Geofabrik (a dump, never a query API such as Overpass, Nominatim
   or Postpass), with the User-Agent `misty-steps-maps/1 (+https://github.com/tjerk-git/misty-steps)`, and
   at an odd time (03:17 UTC), not on the hour.
+- One exception, approved by the owner: Planetiler downloads the ocean polygons as a static file from `osmdata.openstreetmap.de` once per yearly build (plus Natural Earth and lake centre lines from other hosts), so the sea can be drawn. It is a file download, not a query, it is the same size whatever the number of users, and it identifies itself with the same User-Agent.
 - CI fails if a forbidden hostname shows up in `app/src/main/**` or `tools/maps/**`. The list in
   `.github/workflows/test.yml` gains `tile.openstreetmap.org`.
 - The repo is public, so GitHub Actions minutes are free.
