@@ -5,6 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
+import android.os.SystemClock
+import android.view.Gravity
+import android.widget.Button
+import android.widget.ImageView
 import android.util.Log
 import android.view.Choreographer
 import android.view.View
@@ -14,6 +18,8 @@ import com.mistysteps.app.maps.MapStyle
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
+import org.maplibre.android.snapshotter.MapSnapshotter
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
@@ -54,7 +60,14 @@ class MapSpikeActivity : ComponentActivity() {
         overlay = SyncOverlay(this)
         root.addView(mapView)
         root.addView(overlay)
+        // Probe 4: render a postcard-sized map with the snapshotter from the same style and local packs.
+        // Tap the button, or start with --ez snap true (and --ed lat/lon to pick the box). Tap the image to close.
+        val image = ImageView(this).apply { visibility = View.GONE; scaleType = ImageView.ScaleType.FIT_CENTER; setBackgroundColor(Color.WHITE); setOnClickListener { visibility = View.GONE } }
+        val button = Button(this).apply { text = "Snapshot"; setOnClickListener { snapshot(image) } }
+        root.addView(button, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM or Gravity.START))
+        root.addView(image)
         setContentView(root)
+        if (intent.getBooleanExtra("snap", false)) root.post { snapshot(image) }
 
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync { map ->
@@ -79,6 +92,24 @@ class MapSpikeActivity : ComponentActivity() {
                 mapView.addOnDidFinishRenderingFrameListener { _, _, _ -> overlay.invalidate() }
             }
         }
+    }
+
+    private fun snapshot(into: ImageView) {
+        val lat = intent.getDoubleExtra("lat", OLDEHOVE.latitude)
+        val lon = intent.getDoubleExtra("lon", OLDEHOVE.longitude)
+        // About 400 m across, like a short walk's postcard.
+        val bounds = LatLngBounds.from(lat + 0.0018, lon + 0.003, lat - 0.0018, lon - 0.003)
+        val options = MapSnapshotter.Options(1080, 1350)
+            .withStyleBuilder(Style.Builder().fromJson(styleJson))
+            .withRegion(bounds)
+            .withPixelRatio(1f)
+        val started = SystemClock.elapsedRealtime()
+        val snapshotter = MapSnapshotter(this, options)
+        snapshotter.start({ snap ->
+            Log.i(TAG, "snapshot done in ${SystemClock.elapsedRealtime() - started} ms, ${snap.bitmap.width}x${snap.bitmap.height}")
+            into.setImageBitmap(snap.bitmap)
+            into.visibility = View.VISIBLE
+        }, { error -> Log.e(TAG, "snapshot failed: $error") })
     }
 
     override fun onStart() { super.onStart(); mapView.onStart() }
