@@ -22,7 +22,7 @@ enum class Reason { NETWORK, CHECKSUM, NO_SPACE }
 
 sealed class InstallResult {
     object Done : InstallResult()
-    class Failed(val reason: Reason) : InstallResult()
+    class Failed(val reason: Reason, val cause: Throwable? = null) : InstallResult()
 }
 
 /**
@@ -38,9 +38,12 @@ class PackInstaller(private val downloader: Downloader) {
         if (have > ref.bytes) { part.delete(); have = 0 }
         onProgress(have)
 
+        var seen = "no request"
         if (have < ref.bytes) {
             try {
                 val response = downloader.open(ref.url, have)
+                seen = "status ${response.status}, content length ${response.contentLength}, asked from $have"
+
                 // A server that ignores the Range header sends the whole file: start over, never append to it.
                 val append = response.status == 206 && have > 0
                 if (!append) have = 0
@@ -61,7 +64,9 @@ class PackInstaller(private val downloader: Downloader) {
                 return Failed(e)
             }
         }
-        if (part.length() != ref.bytes) return InstallResult.Failed(Reason.NETWORK)
+        if (part.length() != ref.bytes) {
+            return InstallResult.Failed(Reason.NETWORK, IOException("file is ${part.length()} of ${ref.bytes} bytes ($seen)"))
+        }
 
         if (sha256(part) != ref.sha256) {
             part.delete()
@@ -76,7 +81,7 @@ class PackInstaller(private val downloader: Downloader) {
     }
 
     private fun Failed(e: IOException) =
-        InstallResult.Failed(if (e.message?.contains("No space left", ignoreCase = true) == true) Reason.NO_SPACE else Reason.NETWORK)
+        InstallResult.Failed(if (e.message?.contains("No space left", ignoreCase = true) == true) Reason.NO_SPACE else Reason.NETWORK, e)
 
     private fun sha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")

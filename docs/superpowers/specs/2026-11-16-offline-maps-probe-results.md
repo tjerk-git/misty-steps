@@ -124,3 +124,16 @@ Start button), and the two-line onboarding titles were cramped (line height adde
 
 Not tested: resume after a reboot, low storage, no network at first launch, a catalog with a newer format, the Update
 button (only the 2026 data exists), and the download starting by itself when Wi-Fi returns after "Wait for Wi-Fi".
+
+### Known limitation: resuming from the background
+
+Found while reviewing the download job. With the app in the background (home screen) and the connection cut and restored,
+the retry fails because the host name cannot be resolved ("Unable to resolve host maps.potloodgum.com"), even a minute
+after the network is back, and sometimes the retry does not start at all. Two causes were found and one fixed:
+
+- Fixed: Android 12+ refuses to start the progress notification's foreground service from the background
+  (`ForegroundServiceStartNotAllowedException`), which killed the job. The notification is now best-effort and the job
+  carries on without it; unexpected errors end in a failed state instead of "Downloading" forever.
+- Not fixed: DNS in the background process after a lost connection. Opening connections on the active network did not help
+  (tried and reverted). Opening the app again resumes the download from the `.part` file and it finishes with a matching
+  sha256. So a cut download is not lost; it continues the next time the app is opened. Worth a closer look on a second phone.

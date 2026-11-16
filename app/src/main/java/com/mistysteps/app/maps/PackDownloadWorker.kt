@@ -111,12 +111,15 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
                 packs.removeOlderThan(entry.year, id)
                 Result.success()
             }
-            is InstallResult.Failed -> when {
+            is InstallResult.Failed -> {
+                Log.w(TAG, "install of $id failed: ${result.reason} (${result.cause})")
+                when {
                 // A cut connection is retried by WorkManager with backoff; give up after a few tries.
                 result.reason == Reason.NETWORK && runAttemptCount < MAX_ATTEMPTS -> Result.retry()
                 else -> {
                     packs.markFailed(id, result.reason)
                     Result.failure()
+                }
                 }
             }
         }
