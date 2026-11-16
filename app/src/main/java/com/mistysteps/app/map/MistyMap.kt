@@ -54,6 +54,14 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
         override fun metersToPixels(meters: Double, lat: Double) = live?.metersToPixels(meters, lat) ?: 0f
     }
 
+    private val styleListeners = mutableListOf<(Style) -> Unit>()
+
+    /** [listener] runs after every style load: layers added to the map (the trail) have to be added again each time. */
+    fun addStyleListener(listener: (Style) -> Unit) {
+        styleListeners += listener
+        map?.style?.let(listener)
+    }
+
     /** Called on every camera move, for things drawn above the map. */
     var onCameraMove: (() -> Unit)? = null
 
@@ -122,7 +130,9 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
 
     /** Draws the packs that are installed now; the camera stays where it is. */
     private fun applyStyle() {
-        map?.setStyle(Style.Builder().fromJson(MapStyle.build(template, packs.mapFiles())))
+        map?.setStyle(Style.Builder().fromJson(MapStyle.build(template, packs.mapFiles()))) { style ->
+            styleListeners.forEach { it(style) }
+        }
     }
 
     /** Looks at a place; stops following you. */

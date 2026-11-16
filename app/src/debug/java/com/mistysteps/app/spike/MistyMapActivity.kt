@@ -7,6 +7,8 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.fog.FogView
 import com.mistysteps.app.map.LatLon
 import com.mistysteps.app.map.MistyMap
+import com.mistysteps.app.map.TrailLayer
+import androidx.lifecycle.lifecycleScope
 import com.mistysteps.app.maps.MapsGraph
 
 /**
@@ -23,6 +25,9 @@ class MistyMapActivity : ComponentActivity() {
         map = MistyMap(this, MapsGraph.packs) { FogStore.lastKnown?.let { LatLon(it.first, it.second) } }
         fog = FogView(this, map.projection)
         map.onCameraMove = { fog.moved() }
+        val trail = TrailLayer()
+        map.addStyleListener { trail.install(it) }
+        trail.watch(lifecycleScope)
         val root = FrameLayout(this)
         root.addView(map.mapView)
         root.addView(fog)
