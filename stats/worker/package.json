@@ -1,0 +1,13 @@
+{
+  "name": "misty-stats",
+  "private": true,
+  "type": "module",
+  "description": "The opt-in open count for Misty Steps: stats.potloodgum.com. Counts opens per day and version, nothing else.",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "cf": "^1.0.0-beta.28",
+    "wrangler": "^4.163.0"
+  }
+}
