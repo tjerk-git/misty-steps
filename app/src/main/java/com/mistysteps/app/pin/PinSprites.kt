@@ -3,6 +3,7 @@ package com.mistysteps.app.pin
 import android.content.Context
 import android.graphics.Bitmap
 import com.mistysteps.app.character.PixelArt
+import com.mistysteps.app.character.bitmap
 
 /** The pixel icons of the pin labels, from `assets/pins.txt`. */
 object PinSprites {

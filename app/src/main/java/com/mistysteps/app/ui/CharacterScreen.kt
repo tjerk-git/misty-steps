@@ -66,38 +66,6 @@ import com.mistysteps.app.character.Character
 import com.mistysteps.app.character.Characters
 import kotlinx.coroutines.delay
 
-/** Milliseconds since the composable appeared, ticking every [stepMs]. Read it in draw lambdas only. */
-@Composable
-fun rememberTicker(stepMs: Long = 70): State<Long> = produceState(0L) {
-    val start = System.currentTimeMillis()
-    while (true) {
-        delay(stepMs)
-        value = System.currentTimeMillis() - start
-    }
-}
-
-/** Frames of one character, converted for Compose once. */
-class SpriteFrames(c: Character) {
-    val walk: List<ImageBitmap> = c.walk.map { it.asImageBitmap() }
-    val idle: List<ImageBitmap> = c.idle.map { it.asImageBitmap() }
-
-    fun at(walking: Boolean, timeMs: Long): ImageBitmap =
-        if (walking) walk[((timeMs / Characters.WALK_FRAME_MS) % 4).toInt()]
-        else idle[((timeMs / Characters.IDLE_FRAME_MS) % idle.size).toInt()]
-}
-
-/** Draws a crisp, nearest-neighbour scaled sprite filling the largest square that fits. */
-fun DrawScope.drawSprite(frame: ImageBitmap) {
-    val side = minOf(size.width, size.height).toInt()
-    val left = ((size.width - side) / 2).toInt()
-    val top = ((size.height - side) / 2).toInt()
-    drawImage(
-        frame,
-        dstOffset = IntOffset(left, top),
-        dstSize = IntSize(side, side),
-        filterQuality = FilterQuality.None,
-    )
-}
 
 @Composable
 fun CharacterScreen(onClose: () -> Unit) {

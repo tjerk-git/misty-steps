@@ -20,3 +20,15 @@ struct ConsentHostView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
+
+/// The shared Compose first-run pages, full screen.
+struct OnboardingHostView: UIViewControllerRepresentable {
+    var onDone: () -> Void
+    var onSkip: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        MainViewControllerKt.onboardingViewController(onDone: { onDone() }, onSkip: { onSkip() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}

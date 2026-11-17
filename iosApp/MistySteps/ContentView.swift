@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
+    @State private var showOnboarding = UserDefaults.standard.integer(forKey: "composeOnboarding") > 0
     @State private var showConsent = UserDefaults.standard.integer(forKey: "composeConsent") > 0
     @StateObject private var fog = FogModel(store: SQLiteTrailStore(path: ContentView.databaseURL))
 
@@ -65,6 +66,10 @@ struct ContentView: View {
             .padding(.horizontal, 8)
         }
         .overlay {
+            if showOnboarding {
+                OnboardingHostView(onDone: { showOnboarding = false }, onSkip: { showOnboarding = false })
+                    .ignoresSafeArea()
+            }
             if showConsent {
                 ConsentHostView { allowed in
                     fputs("consent answer: \(allowed)\n", stderr)

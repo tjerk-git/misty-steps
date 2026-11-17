@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable
 import com.mistysteps.app.character.Character
 import com.mistysteps.app.R
 import com.mistysteps.app.character.Characters
+import com.mistysteps.app.character.standingBitmap
 import com.mistysteps.app.maps.MapStyle
 import com.mistysteps.app.maps.MapsGraph
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -218,7 +219,7 @@ object PostcardRenderer {
             val y = view.y(last.lat)
             mc.drawOval(x - size * 0.28f, y - size * 0.07f, x + size * 0.28f, y + size * 0.07f,
                 Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x40000000 })
-            mc.drawBitmap(character.idle[0], null, RectF(x - size / 2, y - size * 0.92f, x + size / 2, y + size * 0.08f), pixelPaint())
+            mc.drawBitmap(character.standingBitmap(), null, RectF(x - size / 2, y - size * 0.92f, x + size / 2, y + size * 0.08f), pixelPaint())
         }
 
         // The card.

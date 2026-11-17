@@ -1,7 +1,5 @@
 package com.mistysteps.app.character
 
-import android.graphics.Bitmap
-
 /** Shared helpers for the 16x16 pixel sprites (characters and pin icons). */
 object PixelArt {
     /** Colour of the 1 px outline around every sprite. */
@@ -23,6 +21,4 @@ object PixelArt {
         }
         return result
     }
-
-    fun bitmap(px: IntArray, size: Int = SIZE): Bitmap = Bitmap.createBitmap(px, size, size, Bitmap.Config.ARGB_8888)
 }

@@ -2,6 +2,7 @@ package com.mistysteps.app
 
 import android.app.Application
 import com.mistysteps.app.character.Characters
+import com.mistysteps.app.character.SharedPreferencesStore
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.debug.BatteryLog
 import com.mistysteps.app.maps.MapsGraph
@@ -15,7 +16,10 @@ class MistyApplication : Application() {
         cacheDir.resolve("osmdroid-tiles").deleteRecursively()
         filesDir.resolve("osmdroid").deleteRecursively()
         FogStore.init(this)
-        Characters.init(this)
+        Characters.init(
+            assets.open("characters.txt").bufferedReader().use { it.readLines() },
+            SharedPreferencesStore(getSharedPreferences("misty", MODE_PRIVATE)),
+        )
         PinSprites.init(this)
         BatteryLog.init(this)
         MapsGraph.init(this)

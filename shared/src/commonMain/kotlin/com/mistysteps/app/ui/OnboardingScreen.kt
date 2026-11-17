@@ -1,6 +1,5 @@
 package com.mistysteps.app.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,13 +33,22 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mistysteps.app.R
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.onboarding_1_body
+import com.mistysteps.app.resources.onboarding_1_title
+import com.mistysteps.app.resources.onboarding_2_body
+import com.mistysteps.app.resources.onboarding_2_title
+import com.mistysteps.app.resources.onboarding_3_body
+import com.mistysteps.app.resources.onboarding_3_title
+import com.mistysteps.app.resources.onboarding_choose
+import com.mistysteps.app.resources.onboarding_next
+import com.mistysteps.app.resources.onboarding_skip
+import org.jetbrains.compose.resources.stringResource
 import com.mistysteps.app.character.Characters
 
 private const val PAGES = 3
@@ -53,10 +61,10 @@ private const val PAGES = 3
 @Composable
 fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
     var page by rememberSaveable { mutableIntStateOf(0) }
-    BackHandler { if (page > 0) page-- else onSkip() }
+    PlatformBackHandler { if (page > 0) page-- else onSkip() }
 
-    val titles = listOf(R.string.onboarding_1_title, R.string.onboarding_2_title, R.string.onboarding_3_title)
-    val bodies = listOf(R.string.onboarding_1_body, R.string.onboarding_2_body, R.string.onboarding_3_body)
+    val titles = listOf(Res.string.onboarding_1_title, Res.string.onboarding_2_title, Res.string.onboarding_3_title)
+    val bodies = listOf(Res.string.onboarding_1_body, Res.string.onboarding_2_body, Res.string.onboarding_3_body)
 
     Box(
         Modifier
@@ -72,7 +80,7 @@ fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onSkip) { Text(stringResource(R.string.onboarding_skip), color = Dusk) }
+                TextButton(onClick = onSkip) { Text(stringResource(Res.string.onboarding_skip), color = Dusk) }
             }
             Spacer(Modifier.weight(1f))
             Illustration(page)
@@ -107,7 +115,7 @@ fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
             ) {
                 Text(
-                    stringResource(if (page < PAGES - 1) R.string.onboarding_next else R.string.onboarding_choose),
+                    stringResource(if (page < PAGES - 1) Res.string.onboarding_next else Res.string.onboarding_choose),
                     fontSize = 16.sp,
                 )
             }

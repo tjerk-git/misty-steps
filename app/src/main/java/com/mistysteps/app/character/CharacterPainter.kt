@@ -47,7 +47,7 @@ class CharacterPainter(private val density: Float, private val fix: () -> Fix?) 
 
         canvas.drawOval(p.x - size * 0.28f, p.y - size * 0.07f, p.x + size * 0.28f, p.y + size * 0.07f, shadowPaint)
 
-        val frame = Characters.frameAt(character, walking, now)
+        val frame = Characters.frameBitmapAt(character, walking, now)
         dst.set(left, top, left + size, top + size)
         if (facingLeft) {
             canvas.save()

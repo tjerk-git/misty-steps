@@ -1,23 +1,29 @@
 package com.mistysteps.app.character
 
-import android.content.Context
-import android.graphics.Bitmap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** A playable wanderer: its walk cycle and standing pose as small pixel-art bitmaps (18x18 incl. outline). */
+/** A playable wanderer: its walk cycle and standing pose as small pixel-art frames (18x18 ARGB pixels incl. outline). */
 class Character(
     val id: String,
     val name: String,
     val blurb: String,
     /** Four walk frames. */
-    val walk: List<Bitmap>,
+    val walk: List<IntArray>,
     /** Two standing frames: a gentle breathing bob. */
-    val idle: List<Bitmap>,
+    val idle: List<IntArray>,
 )
 
-/** Loads the characters from `assets/characters.txt` and remembers which one you picked. */
+/** Where small settings are kept: SharedPreferences on Android, NSUserDefaults on iOS. */
+interface KeyValueStore {
+    fun getString(key: String): String?
+
+    /** Stores [value], or removes the key when it is null. */
+    fun putString(key: String, value: String?)
+}
+
+/** Loads the characters from the sheet in `characters.txt` and remembers which one you picked. */
 object Characters {
     const val SIZE = PixelArt.SIZE
 
@@ -27,7 +33,7 @@ object Characters {
     private val _selected = MutableStateFlow<Character?>(null)
     val selected: StateFlow<Character?> = _selected.asStateFlow()
 
-    private lateinit var prefs: android.content.SharedPreferences
+    private lateinit var prefs: KeyValueStore
 
     private val _names = MutableStateFlow<Map<String, String>>(emptyMap())
 
@@ -43,20 +49,21 @@ object Characters {
         if (all.none { it.id == id }) return
         val name = CharacterNames.clean(raw)
         _names.value = if (name == null) _names.value - id else _names.value + (id to name)
-        prefs.edit().apply { if (name == null) remove("character_name_$id") else putString("character_name_$id", name) }.apply()
+        prefs.putString("character_name_$id", name)
     }
 
-    fun init(context: Context) {
-        prefs = context.getSharedPreferences("misty", Context.MODE_PRIVATE)
-        all = context.assets.open("characters.txt").bufferedReader().use { parse(it.readLines()) }
-        val id = prefs.getString("character", null)
+    /** [sheet] is the lines of `characters.txt`; [store] keeps the choice and the names. */
+    fun init(sheet: List<String>, store: KeyValueStore) {
+        prefs = store
+        all = parse(sheet)
+        val id = prefs.getString("character")
         _selected.value = all.firstOrNull { it.id == id } ?: all.first()
-        _names.value = all.mapNotNull { c -> CharacterNames.clean(prefs.getString("character_name_${c.id}", null))?.let { c.id to it } }.toMap()
+        _names.value = all.mapNotNull { c -> CharacterNames.clean(prefs.getString("character_name_${c.id}"))?.let { c.id to it } }.toMap()
     }
 
     fun select(c: Character) {
         _selected.value = c
-        prefs.edit().putString("character", c.id).apply()
+        prefs.putString("character", c.id)
     }
 
     // ---- sprite sheet format: see the comment at the top of characters.txt -------------
@@ -100,7 +107,7 @@ object Characters {
         val palette = raw.props.getValue("palette").split(" ").filter { it.isNotBlank() }.associate {
             it[0] to (0xFF000000.toInt() or it.substringAfter(":").toInt(16))
         }
-        fun frame(legs: List<String>, bob: Int, blink: Boolean = false): Bitmap {
+        fun frame(legs: List<String>, bob: Int, blink: Boolean = false): IntArray {
             val px = IntArray(16 * 16)
             raw.body.forEachIndexed { y, row ->
                 val ty = y + bob
@@ -137,10 +144,10 @@ object Characters {
         )
     }
 
-    private fun outlined(src: IntArray): Bitmap = PixelArt.bitmap(PixelArt.outline(src))
+    private fun outlined(src: IntArray): IntArray = PixelArt.outline(src)
 
     /** Frame to show at [timeMs]: walk cycle while moving, a slow breath (with the odd blink) while standing. */
-    fun frameAt(c: Character, walking: Boolean, timeMs: Long): Bitmap =
+    fun frameAt(c: Character, walking: Boolean, timeMs: Long): IntArray =
         if (walking) c.walk[((timeMs / WALK_FRAME_MS) % 4).toInt()]
         else c.idle[((timeMs / IDLE_FRAME_MS) % c.idle.size).toInt()]
 
