@@ -1,7 +1,7 @@
 package com.mistysteps.app.maps
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.Test
 
 class FirstRunTest {
     private fun stage(onboardingDone: Boolean, consentAsked: Boolean, pickerSeen: Boolean, hasTrail: Boolean) =

@@ -1,10 +1,10 @@
 package com.mistysteps.app.map
 
 import com.mistysteps.app.data.Mercator
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 class FollowGlideTest {
     private val world = 256.0 * 32768.0 // zoom 15

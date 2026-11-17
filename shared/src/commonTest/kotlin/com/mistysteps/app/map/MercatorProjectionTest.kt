@@ -1,7 +1,7 @@
 package com.mistysteps.app.map
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.Test
 import kotlin.math.cos
 import kotlin.math.hypot
 
@@ -22,8 +22,8 @@ class MercatorProjectionTest {
             val proj = at(zoom)
             val point = proj.fromScreen(300f, 900f)
             val back = proj.toScreen(point.lat, point.lon)
-            assertEquals("x at zoom $zoom", 300f, back.x, 0.05f)
-            assertEquals("y at zoom $zoom", 900f, back.y, 0.05f)
+            assertEquals(300f, back.x, 0.05f, "x at zoom $zoom")
+            assertEquals(900f, back.y, 0.05f, "y at zoom $zoom")
         }
     }
 

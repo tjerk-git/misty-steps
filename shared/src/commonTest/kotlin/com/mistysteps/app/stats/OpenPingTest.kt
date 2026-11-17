@@ -1,10 +1,10 @@
 package com.mistysteps.app.stats
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 class OpenPingTest {
     private val gap = OpenPing.MIN_GAP_MS
@@ -50,9 +50,9 @@ class OpenPingTest {
 
     @Test
     fun aVersionTheServerWouldRejectIsNotSent() {
-        assertThrows(IllegalArgumentException::class.java) { OpenPing.payload("1.4") }
-        assertThrows(IllegalArgumentException::class.java) { OpenPing.payload("1.4.0\"}") }
-        assertThrows(IllegalArgumentException::class.java) { OpenPing.payload("1.4.0-dev1") }
+        assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4") }
+        assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4.0\"}") }
+        assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4.0-dev1") }
     }
 
     @Test

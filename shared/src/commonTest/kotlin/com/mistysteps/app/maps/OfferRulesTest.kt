@@ -1,9 +1,9 @@
 package com.mistysteps.app.maps
 
 import com.mistysteps.app.stats.Boundary
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 class OfferRulesTest {
     private val fr = Province("fr", "Friesland", Boundary("Friesland", emptyList()))
