@@ -58,3 +58,14 @@ struct CharacterHostView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
+
+/// The shared Compose stats page with demo numbers, full screen.
+struct StatsDemoHostView: UIViewControllerRepresentable {
+    var onClose: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        StatsDemoKt.statsDemoViewController(versionName: appVersion, onClose: { onClose() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}

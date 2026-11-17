@@ -1,54 +1,11 @@
 package com.mistysteps.app.stats
 
 import android.content.Context
-import androidx.annotation.StringRes
-import com.mistysteps.app.R
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.offline.CityIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-
-/** What an [AreaStat] covers. Its label is shown above the name. */
-enum class AreaKind(@StringRes val label: Int) {
-    WORLD(R.string.area_world),
-    COUNTRY(R.string.area_country),
-    CITY(R.string.area_city),
-    NEIGHBOURHOOD(R.string.area_neighbourhood),
-}
-
-/** A calm note shown instead of city and country stats. */
-enum class StatsNote(@StringRes val text: Int) {
-    OUTSIDE(R.string.stats_note_outside),
-    UNKNOWN_PLACE(R.string.stats_note_unknown),
-}
-
-data class AreaStat(
-    val kind: AreaKind,
-    /** Null for the world: it's shown as "Earth". */
-    val name: String?,
-    val clearedM2: Double,
-    /** Null when the border isn't known. */
-    val totalM2: Double?,
-) {
-    val fraction: Double? get() = totalM2?.takeIf { it > 0 }?.let { (clearedM2 / it).coerceIn(0.0, 1.0) }
-}
-
-data class Stats(
-    val clearedM2: Double,
-    val distanceM: Double,
-    val city: AreaStat?,
-    val country: AreaStat?,
-    val world: AreaStat,
-    /** Set when city/country aren't known: a calm note, not an error. */
-    val note: StatsNote?,
-)
-
-/** Your neighbourhood and how much of it is cleared. Streets are counted separately ([StatsRepository.streets]). */
-data class NeighbourhoodStat(val area: AreaStat, val boundary: Boundary)
-
-/** Result of looking up the neighbourhood: [stat] when found, otherwise maybe a [note] to show. */
-data class NeighbourhoodResult(val stat: NeighbourhoodStat?, val note: StatsNote?)
 
 /**
  * One per app, so borders parsed from disk stay in memory between visits to the stats page.

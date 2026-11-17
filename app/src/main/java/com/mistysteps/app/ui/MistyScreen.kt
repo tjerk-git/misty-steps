@@ -438,7 +438,7 @@ fun MistyScreen() {
         }
 
         if (showStats) {
-            StatsScreen(
+            AndroidStatsScreen(
                 here = remember { currentPlace() },
                 onClose = { showStats = false },
                 onOpenWalk = { id ->
