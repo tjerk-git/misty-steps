@@ -2,18 +2,25 @@ import CoreLocation
 import MapLibre
 import SwiftUI
 
-/// The map, drawn from the Misty style over a downloaded province pack.
+/// The map, drawn from the Misty style over a downloaded province pack, with the fog on top.
 struct MapView: UIViewRepresentable {
     var coordinate: CLLocationCoordinate2D?
     var styleJSON: String?
+    let fogModel: FogModel
     @Binding var status: String
 
     func makeUIView(context: Context) -> MLNMapView {
         let map = MLNMapView(frame: .zero)
         map.delegate = context.coordinator
-        map.setCenter(CLLocationCoordinate2D(latitude: 53.2012, longitude: 5.7936), zoomLevel: 13, animated: false)
+        map.setCenter(CLLocationCoordinate2D(latitude: 53.2012, longitude: 5.7936), zoomLevel: 15, animated: false)
         map.showsUserLocation = true
         map.logoView.isHidden = true
+        map.allowsRotating = false
+        map.allowsTilting = false
+        let fog = FogOverlayView(map: map, model: fogModel)
+        fog.enabled = UserDefaults.standard.string(forKey: "fog") != "0"
+        map.addSubview(fog)
+        context.coordinator.fog = fog
         return map
     }
 
@@ -25,9 +32,9 @@ struct MapView: UIViewRepresentable {
             try? styleJSON.write(to: file, atomically: true, encoding: .utf8)
             map.styleURL = file
         }
-        guard let coordinate, !context.coordinator.centered else { return }
+        guard let coordinate, !context.coordinator.centered, !context.coordinator.perfRunning else { return }
         context.coordinator.centered = true
-        map.setCenter(coordinate, zoomLevel: 15, animated: true)
+        map.setCenter(coordinate, zoomLevel: 15, animated: false)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -36,13 +43,57 @@ struct MapView: UIViewRepresentable {
         var centered = false
         var styleJSON: String?
         var status: Binding<String>?
+        var fog: FogOverlayView?
+        var perfRunning = false
+        private var link: CADisplayLink?
+        private var stamps: [CFTimeInterval] = []
+        private var perfStart: CFTimeInterval = 0
+        private weak var perfMap: MLNMapView?
+
+        func mapViewRegionIsChanging(_ mapView: MLNMapView) { fog?.mapMoved() }
+        func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) { fog?.mapMoved() }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
-            DispatchQueue.main.async { self.status?.wrappedValue = "style ok: \(style.layers.count) layers" }
+            DispatchQueue.main.async { self.status?.wrappedValue = "style ok" }
+            fog?.mapMoved()
+            if UserDefaults.standard.integer(forKey: "perf") > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 6) { self.runPerf(mapView) }
+            }
         }
 
         func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
             DispatchQueue.main.async { self.status?.wrappedValue = "map failed: \(error.localizedDescription)" }
+        }
+
+        /// Pans the map in a circle (~1 km round) for 12 s and records every frame's duration.
+        func runPerf(_ map: MLNMapView) {
+            guard !perfRunning else { return }
+            perfRunning = true; perfMap = map; stamps = []; perfStart = CACurrentMediaTime()
+            link = CADisplayLink(target: self, selector: #selector(tick(_:)))
+            link?.add(to: .main, forMode: .common)
+        }
+
+        @objc private func tick(_ l: CADisplayLink) {
+            guard let map = perfMap else { return }
+            let t = CACurrentMediaTime() - perfStart
+            stamps.append(l.timestamp)
+            let a = t * 0.8
+            map.setCenter(CLLocationCoordinate2D(latitude: 53.2012 + 0.004 * sin(a), longitude: 5.7936 + 0.007 * cos(a)),
+                          zoomLevel: 15 + 0.8 * sin(t * 0.5), animated: false)
+            if t >= 12 { finishPerf() }
+        }
+
+        private func finishPerf() {
+            link?.invalidate(); link = nil; perfRunning = false
+            let dts = zip(stamps.dropFirst(), stamps).map { ($0 - $1) * 1000 }.sorted()
+            guard !dts.isEmpty else { return }
+            func pct(_ p: Double) -> Double { dts[min(dts.count - 1, Int(Double(dts.count) * p))] }
+            let slow = Double(dts.filter { $0 > 20 }.count) / Double(dts.count) * 100
+            let s = String(format: "PERF fog=%@ spots=%d frames=%d p50=%.1fms p95=%.1fms p99=%.1fms max=%.1fms slow(>20ms)=%.1f%% maskBuilds=%d lastBuild=%.1fms",
+                           (fog?.enabled ?? false) ? "on" : "off", fog?.spotCount ?? 0, dts.count, pct(0.5), pct(0.95), pct(0.99), dts.last!, slow,
+                           fog?.builds ?? 0, fog?.lastBuildMs ?? 0)
+            fputs(s + "\n", stderr)
+            DispatchQueue.main.async { self.status?.wrappedValue = s }
         }
     }
 }

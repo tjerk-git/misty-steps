@@ -1,14 +1,17 @@
 import SwiftUI
 import Shared
 
-/// Map screen. The title strip still shows output of the shared Kotlin logic, to prove it runs on iOS.
+/// Map screen with the fog. The status strip shows the pack and map state and the fog's spot count.
 struct ContentView: View {
     @StateObject private var location = LocationModel()
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
+    private let fog = FogModel()
 
-    private let x = Mercator.shared.x(lon: 5.7936)
-    private let name = CharacterNames.shared.clean(raw: "  Misty   the\nfox  ") ?? "(none)"
+    init() {
+        let spots = UserDefaults.standard.integer(forKey: "spots")
+        if spots > 0 { fog.addStressTrail(spots: spots) }
+    }
 
     private var styleJSON: String? {
         if case .ready(let json) = packs.state { return json }
@@ -26,12 +29,17 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(coordinate: location.coordinate, styleJSON: styleJSON, status: $mapStatus).ignoresSafeArea()
-            Text("\(name)  x \(String(format: "%.4f", x))  pack: \(packText)  \(mapStatus)")
-                .font(.footnote).padding(8)
-                .background(.thinMaterial, in: Capsule())
+            MapView(coordinate: location.coordinate, styleJSON: styleJSON, fogModel: fog, status: $mapStatus)
+                .ignoresSafeArea()
+            Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
+                .font(.system(size: 10)).padding(8)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                .padding(.horizontal, 8)
         }
         .onAppear { location.start() }
+        .onChange(of: location.coordinate?.latitude) { _, _ in
+            if let c = location.coordinate { fog.record(c) }
+        }
         .task { await packs.prepare() }
     }
 }
