@@ -7,11 +7,7 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
-    @State private var showStats = UserDefaults.standard.integer(forKey: "composeStats") > 0
-    @State private var showCharacters = UserDefaults.standard.integer(forKey: "composeCharacters") > 0
-    @State private var showAbout = UserDefaults.standard.integer(forKey: "composeAbout") > 0
-    @State private var showOnboarding = UserDefaults.standard.integer(forKey: "composeOnboarding") > 0
-    @State private var showConsent = UserDefaults.standard.integer(forKey: "composeConsent") > 0
+    @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: SQLiteTrailStore(path: ContentView.databaseURL))
 
     private static var databaseURL: URL {
@@ -51,10 +47,9 @@ struct ContentView: View {
                         .background(.thinMaterial, in: Capsule())
                 }
                 Spacer()
-                if UserDefaults.standard.integer(forKey: "composeHello") > 0 {
-                    SharedHelloView().frame(height: 190).clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                HStack {
+                HStack(spacing: 12) {
+                    Button { app.route = .characters } label: { Image(systemName: "pawprint.fill") }
+                        .buttonStyle(.bordered).controlSize(.large)
                     Button(fog.session == nil ? "Start wandering" : "Stop") {
                         if fog.session == nil { fog.beginWalk(); following = true } else { fog.endWalk() }
                     }
@@ -63,34 +58,34 @@ struct ContentView: View {
                         Button { following = true } label: { Image(systemName: "location.fill") }
                             .buttonStyle(.bordered).controlSize(.large)
                     }
+                    Button { app.route = .about } label: { Image(systemName: "info.circle") }
+                        .buttonStyle(.bordered).controlSize(.large)
                 }
                 .padding(.bottom, 28)
             }
             .padding(.horizontal, 8)
         }
         .overlay {
-            if showStats {
-                StatsDemoHostView(onClose: { showStats = false }).ignoresSafeArea()
-            }
-            if showCharacters {
-                CharacterHostView(onClose: { showCharacters = false }).ignoresSafeArea()
-            }
-            if showAbout {
-                AboutHostView(onClose: { showAbout = false }).ignoresSafeArea()
-            }
-            if showOnboarding {
-                OnboardingHostView(onDone: { showOnboarding = false }, onSkip: { showOnboarding = false })
-                    .ignoresSafeArea()
-            }
-            if showConsent {
-                ConsentHostView { allowed in
-                    fputs("consent answer: \(allowed)\n", stderr)
-                    showConsent = false
-                }
-                .ignoresSafeArea()
+            switch app.route {
+            case .onboarding:
+                OnboardingHostView(onDone: { app.finishOnboarding(hasTrailPoints: fog.count > 0) },
+                                   onSkip: { app.finishOnboarding(hasTrailPoints: fog.count > 0) }).ignoresSafeArea()
+            case .consent:
+                ConsentHostView { allowed in app.answerConsent(allowed, hasTrailPoints: fog.count > 0) }.ignoresSafeArea()
+            case .picker:
+                EmptyView() // the province picker comes with the iOS pack manager
+            case .stats:
+                StatsDemoHostView(onClose: { app.close() }).ignoresSafeArea()
+            case .about:
+                AboutHostView(onClose: { app.close() }).ignoresSafeArea()
+            case .characters:
+                CharacterHostView(onClose: { app.close() }).ignoresSafeArea()
+            case nil:
+                EmptyView()
             }
         }
         .onAppear {
+            app.start(hasTrailPoints: fog.count > 0)
             location.onFix = { fog.onLocation($0) }
             location.start()
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
