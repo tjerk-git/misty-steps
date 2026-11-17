@@ -15,7 +15,12 @@ targets:
   MistySteps:
     type: application
     platform: iOS
-    sources: [MistySteps]
+    sources:
+      - MistySteps
+      # The same style template and glyphs the Android app uses; one copy in the repo.
+      - path: ../app/src/main/assets/maps
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: MapLibre
         product: MapLibre
