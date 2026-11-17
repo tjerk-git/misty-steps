@@ -1,19 +1,20 @@
 import SwiftUI
 import Shared
 
-/// First iOS build: proves the shared Kotlin logic runs on iOS. The map and fog come next.
+/// Map screen. The title strip still shows output of the shared Kotlin logic, to prove it runs on iOS.
 struct ContentView: View {
+    @StateObject private var location = LocationModel()
+
     private let x = Mercator.shared.x(lon: 5.7936)
-    private let y = Mercator.shared.y(lat: 53.2012)
     private let name = CharacterNames.shared.clean(raw: "  Misty   the\nfox  ") ?? "(none)"
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Misty Steps").font(.largeTitle)
-            Text("Leeuwarden in Mercator units")
-            Text(String(format: "x %.5f  y %.5f", x, y)).monospaced()
-            Text("Cleaned name: \(name)")
+        ZStack(alignment: .top) {
+            MapView(coordinate: location.coordinate).ignoresSafeArea()
+            Text("Misty Steps  x \(String(format: "%.4f", x))  \(name)")
+                .font(.footnote).padding(8)
+                .background(.thinMaterial, in: Capsule())
         }
-        .padding()
+        .onAppear { location.start() }
     }
 }
