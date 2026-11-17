@@ -9,7 +9,7 @@ import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 5) {
+    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
@@ -151,7 +151,7 @@ class TrailDatabase(context: Context) :
         )
     }
 
-    fun insert(points: List<TrailPoint>) {
+    override fun insert(points: List<TrailPoint>) {
         val db = writableDatabase
         db.beginTransaction()
         try {
@@ -170,7 +170,7 @@ class TrailDatabase(context: Context) :
         }
     }
 
-    fun loadAll(): List<TrailPoint> {
+    override fun loadAll(): List<TrailPoint> {
         val out = ArrayList<TrailPoint>()
         readableDatabase.rawQuery("SELECT lat, lon, time, radius, session_id FROM points ORDER BY id", null).use { c ->
             while (c.moveToNext()) {
@@ -251,7 +251,7 @@ class TrailDatabase(context: Context) :
         return addedPoints to addedSessions
     }
 
-    fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
+    override fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
         c.moveToFirst(); c.getLong(0)
     }
 

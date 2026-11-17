@@ -8,6 +8,15 @@ final class FogModel {
     private(set) var version: Int32 = 0
     var onChange: (() -> Void)?
     private var last: CLLocationCoordinate2D?
+    private let store: PointStore
+    private let writer = DispatchQueue(label: "fog-store")
+
+    /// Opens the store and puts every saved spot back into the index.
+    init(store: PointStore) {
+        self.store = store
+        for p in store.loadAll() { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        version += 1
+    }
 
     var count: Int { Int(index.count) }
 
@@ -16,6 +25,9 @@ final class FogModel {
         if let last, hypot((c.latitude - last.latitude) * 111_000, (c.longitude - last.longitude) * 67_000) < 15 { return }
         last = c
         index.add(lat: c.latitude, lon: c.longitude, radiusMeters: FogConstants.shared.CLEAR_RADIUS_M)
+        let point = TrailPoint(lat: c.latitude, lon: c.longitude, time: Int64(Date().timeIntervalSince1970 * 1000),
+                               radius: FogConstants.shared.CLEAR_RADIUS_M, sessionId: nil)
+        writer.async { [store] in store.insert(points: [point]) }
         version += 1
         onChange?()
     }

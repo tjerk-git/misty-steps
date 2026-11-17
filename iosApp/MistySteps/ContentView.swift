@@ -6,7 +6,11 @@ struct ContentView: View {
     @StateObject private var location = LocationModel()
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
-    private let fog = FogModel()
+    private let fog = FogModel(store: SQLitePointStore(path: ContentView.databaseURL))
+
+    private static var databaseURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("trails.db")
+    }
 
     init() {
         let spots = UserDefaults.standard.integer(forKey: "spots")
