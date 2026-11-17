@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftUI
 import Shared
 
@@ -59,12 +60,22 @@ struct CharacterHostView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
 
-/// The shared Compose stats page with demo numbers, full screen.
-struct StatsDemoHostView: UIViewControllerRepresentable {
+/// The shared Compose stats page, counted from the trails stored on this phone.
+struct StatsHostView: UIViewControllerRepresentable {
+    let store: SQLiteTrailStore
+    let here: CLLocationCoordinate2D?
+    let packs: PackManager
+    let provinces: [PackEntry]?
+    var onOpenPicker: () -> Void
+    var onOpenAbout: () -> Void
     var onClose: () -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
-        StatsDemoKt.statsDemoViewController(versionName: appVersion, onClose: { onClose() })
+        StatsIosKt.statsViewController(
+            points: store, sessions: store,
+            hereLat: here.map { KotlinDouble(value: $0.latitude) }, hereLon: here.map { KotlinDouble(value: $0.longitude) },
+            versionName: appVersion, packs: packs, provinces: provinces,
+            onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onClose: { onClose() })
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}

@@ -46,6 +46,8 @@ struct ContentView: View {
                         Button { following = true } label: { Image(systemName: "location.fill") }
                             .buttonStyle(.bordered).controlSize(.large)
                     }
+                    Button { app.route = .stats } label: { Image(systemName: "chart.bar.fill") }
+                        .buttonStyle(.bordered).controlSize(.large)
                     Button { app.route = .about } label: { Image(systemName: "info.circle") }
                         .buttonStyle(.bordered).controlSize(.large)
                 }
@@ -66,7 +68,11 @@ struct ContentView: View {
                     .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
                     .ignoresSafeArea()
             case .stats:
-                StatsDemoHostView(onClose: { app.close() }).ignoresSafeArea()
+                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, packs: packs.manager, provinces: packs.provinces,
+                              onOpenPicker: { app.route = .picker }, onOpenAbout: { app.route = .about },
+                              onClose: { app.close() })
+                    .id(packs.provinces?.count ?? -1)
+                    .ignoresSafeArea()
             case .about:
                 AboutHostView(onClose: { app.close() }).ignoresSafeArea()
             case .characters:

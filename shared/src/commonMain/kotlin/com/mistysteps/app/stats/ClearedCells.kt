@@ -1,6 +1,6 @@
 package com.mistysteps.app.stats
 
-import androidx.collection.MutableLongSet
+import com.mistysteps.app.data.toRadians
 import com.mistysteps.app.data.TrailPoint
 import kotlin.math.cos
 import kotlin.math.floor
@@ -12,7 +12,7 @@ import kotlin.math.sqrt
  * Rows are fixed slices of latitude; each row's cell width in longitude is chosen so
  * every cell covers about the same ground area.
  */
-class ClearedCells private constructor(private val cells: MutableLongSet) {
+class ClearedCells private constructor(private val cells: LongHashSet) {
 
     val count get() = cells.size
     val areaM2 get() = cells.size * CELL_M * CELL_M
@@ -50,10 +50,10 @@ class ClearedCells private constructor(private val cells: MutableLongSet) {
         private const val M_PER_DEG = 111_320.0
         private const val D_LAT = CELL_M / M_PER_DEG
 
-        private fun dLon(lat: Double) = CELL_M / (M_PER_DEG * cos(Math.toRadians(lat)).coerceAtLeast(0.01))
+        private fun dLon(lat: Double) = CELL_M / (M_PER_DEG * cos(toRadians(lat)).coerceAtLeast(0.01))
 
         fun from(points: List<TrailPoint>): ClearedCells {
-            val cells = MutableLongSet()
+            val cells = LongHashSet()
             for (p in points) {
                 val r = p.radius
                 val row0 = floor((p.lat - r / M_PER_DEG) / D_LAT).toInt()
@@ -64,7 +64,7 @@ class ClearedCells private constructor(private val cells: MutableLongSet) {
                     if (dy * dy > r * r) continue
                     val dx = sqrt(r * r - dy * dy)
                     val step = dLon(latC)
-                    val halfLon = dx / (M_PER_DEG * cos(Math.toRadians(latC)).coerceAtLeast(0.01))
+                    val halfLon = dx / (M_PER_DEG * cos(toRadians(latC)).coerceAtLeast(0.01))
                     // Cells whose centre lies within the circle's chord on this row.
                     val col0 = kotlin.math.ceil((p.lon - halfLon) / step - 0.5).toInt()
                     val col1 = floor((p.lon + halfLon) / step - 0.5).toInt()

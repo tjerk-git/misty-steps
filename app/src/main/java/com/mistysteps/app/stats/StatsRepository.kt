@@ -3,6 +3,7 @@ package com.mistysteps.app.stats
 import android.content.Context
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.offline.CityIndex
+import com.mistysteps.app.offline.load
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

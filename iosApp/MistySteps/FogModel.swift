@@ -15,7 +15,7 @@ final class FogModel: ObservableObject {
     func observe(_ f: @escaping () -> Void) { observers.append(f) }
     private func notify() { observers.forEach { $0() } }
 
-    private let store: SQLiteTrailStore
+    let store: SQLiteTrailStore
     private let writer = DispatchQueue(label: "fog-store")
     private let recorder = WalkRecorder()
 
@@ -27,12 +27,16 @@ final class FogModel: ObservableObject {
 
     var count: Int { Int(index.count) }
 
+    /// The last place a spot was cleared, for the stats when there is no fix yet.
+    private(set) var lastKnown: CLLocationCoordinate2D?
+
     /// Opens the store and puts every saved spot back into the index.
     init(store: SQLiteTrailStore) {
         self.store = store
         for p in store.loadAll() {
             index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
             trails.add(p: p, newSegment: false)
+            lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
         }
         version += 1
     }
@@ -63,6 +67,7 @@ final class FogModel: ObservableObject {
 
     /// A fix from Core Location. Only walks clear fog.
     func onLocation(_ l: CLLocation) {
+        lastKnown = l.coordinate
         guard let s = session else { return }
         let ms = Int64(l.timestamp.timeIntervalSince1970 * 1000)
         let fix = RecordedFix(lat: l.coordinate.latitude, lon: l.coordinate.longitude,
