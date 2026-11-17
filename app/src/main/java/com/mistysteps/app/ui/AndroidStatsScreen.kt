@@ -30,7 +30,7 @@ fun AndroidStatsScreen(
         showBattery = BatteryLog.enabled,
         slots = StatsSlots(
             mapsCard = { YourMapsCard(catalog, onOpenPicker) },
-            backupCard = { onImported -> BackupCard(onImported = onImported) },
+            backupCard = { onImported -> BackupCard(rememberAndroidBackupHost(), onImported) },
             usageCard = { UsageCountsSwitch() },
             onFeedback = { sendFeedback(context) },
         ),

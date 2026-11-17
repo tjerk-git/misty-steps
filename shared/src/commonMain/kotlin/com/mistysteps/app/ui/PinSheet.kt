@@ -37,10 +37,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.stringResource
-import com.mistysteps.app.R
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.cancel
+import com.mistysteps.app.resources.pin_delete
+import com.mistysteps.app.resources.pin_edit
+import com.mistysteps.app.resources.pin_edit_title
+import com.mistysteps.app.resources.pin_keep
+import com.mistysteps.app.resources.pin_leave
+import com.mistysteps.app.resources.pin_note
+import com.mistysteps.app.resources.pin_note_hint
+import com.mistysteps.app.resources.pin_note_optional
+import com.mistysteps.app.resources.pin_on_walk
+import com.mistysteps.app.resources.pin_place
+import com.mistysteps.app.resources.pin_remove
+import com.mistysteps.app.resources.pin_remove_title
+import com.mistysteps.app.resources.save
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,13 +60,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinGroup
-import com.mistysteps.app.pin.titleRes
+import com.mistysteps.app.pin.textResource
+import com.mistysteps.app.pin.titleResource
 import com.mistysteps.app.pin.PinLabel
-import com.mistysteps.app.pin.textRes
 import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.pin.PinSprites
-import java.text.DateFormat
-import java.util.Date
 
 /** Which pin sheet is open on the map screen. */
 sealed interface PinSheetState {
@@ -86,10 +96,10 @@ fun NewPinSheet(onPlace: (labelKey: String, note: String?) -> Unit, onDismiss: (
                     onClick = { if (chosen != null) onPlace(chosen.key, PinRules.cleanNote(note)) },
                     enabled = chosen != null && PinRules.canPlace(chosen, PinRules.cleanNote(note)),
                     colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                ) { Text(stringResource(R.string.pin_place)) }
+                ) { Text(stringResource(Res.string.pin_place)) }
             },
         ) {
-            SheetTitle(stringResource(R.string.pin_leave))
+            SheetTitle(stringResource(Res.string.pin_leave))
             LabelPicker(selected = label, onSelect = { label = it })
             Spacer(Modifier.height(12.dp))
             NoteField(note, required = label == PinLabel.OTHER, onChange = { note = it })
@@ -110,7 +120,6 @@ fun PinDetailSheet(
     var picked by remember(pin.id) { mutableStateOf<PinLabel?>(null) }
     var note by remember(pin.id) { mutableStateOf(pin.note.orEmpty()) }
     var confirmDelete by remember(pin.id) { mutableStateOf(false) }
-    val day = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -120,18 +129,18 @@ fun PinDetailSheet(
         if (!editing) {
             SheetBody(
                 buttons = {
-                    TextButton(onClick = { confirmDelete = true }) { Text(stringResource(R.string.pin_delete), color = Ember) }
-                    TextButton(onClick = { editing = true }) { Text(stringResource(R.string.pin_edit), color = Ink) }
+                    TextButton(onClick = { confirmDelete = true }) { Text(stringResource(Res.string.pin_delete), color = Ember) }
+                    TextButton(onClick = { editing = true }) { Text(stringResource(Res.string.pin_edit), color = Ink) }
                 },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     PinIcon(pin.label, 48)
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(stringResource(pin.label.textRes), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(pin.label.textResource), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                         val placed = buildList {
-                            add(day.format(Date(pin.time)))
-                            pin.sessionId?.let { add(stringResource(R.string.pin_on_walk, day.format(Date(it)))) }
+                            add(formatDate(pin.time))
+                            pin.sessionId?.let { add(stringResource(Res.string.pin_on_walk, formatDate(it))) }
                         }
                         Text(placed.joinToString(" · "), color = Dusk, fontSize = 12.sp)
                     }
@@ -146,17 +155,17 @@ fun PinDetailSheet(
             SheetBody(
                 buttons = {
                     TextButton(onClick = { editing = false; picked = null; note = pin.note.orEmpty() }) {
-                        Text(stringResource(R.string.cancel), color = Dusk)
+                        Text(stringResource(Res.string.cancel), color = Dusk)
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = { onSave(PinRules.keyAfterEdit(pin.labelKey, picked), PinRules.cleanNote(note)) },
                         enabled = PinRules.canPlace(shown, PinRules.cleanNote(note)),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                    ) { Text(stringResource(R.string.save)) }
+                    ) { Text(stringResource(Res.string.save)) }
                 },
             ) {
-                SheetTitle(stringResource(R.string.pin_edit_title))
+                SheetTitle(stringResource(Res.string.pin_edit_title))
                 LabelPicker(selected = shown, onSelect = { picked = it })
                 Spacer(Modifier.height(12.dp))
                 NoteField(note, required = shown == PinLabel.OTHER, onChange = { note = it })
@@ -167,11 +176,11 @@ fun PinDetailSheet(
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.pin_remove_title)) },
+            title = { Text(stringResource(Res.string.pin_remove_title)) },
             confirmButton = {
-                TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(R.string.pin_remove), color = Ember) }
+                TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(Res.string.pin_remove), color = Ember) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.pin_keep)) } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.pin_keep)) } },
         )
     }
 }
@@ -213,7 +222,7 @@ private fun SheetTitle(text: String) {
 @Composable
 private fun LabelPicker(selected: PinLabel?, onSelect: (PinLabel) -> Unit) {
     for (group in PinGroup.entries) {
-        Text(stringResource(group.titleRes).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+        Text(stringResource(group.titleResource).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (label in PinLabel.entries.filter { it.group == group }) {
@@ -244,7 +253,7 @@ private fun LabelTile(label: PinLabel, selected: Boolean, modifier: Modifier, on
         PinIcon(label, 40)
         Spacer(Modifier.height(4.dp))
         Text(
-            stringResource(label.textRes),
+            stringResource(label.textResource),
             fontSize = 11.sp,
             lineHeight = 13.sp,
             color = Ink,
@@ -262,8 +271,8 @@ private fun NoteField(note: String, required: Boolean, onChange: (String) -> Uni
         onValueChange = { onChange(it.take(PinRules.NOTE_MAX)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        label = { Text(stringResource(if (required) R.string.pin_note else R.string.pin_note_optional)) },
-        placeholder = { Text(stringResource(R.string.pin_note_hint)) },
+        label = { Text(stringResource(if (required) Res.string.pin_note else Res.string.pin_note_optional)) },
+        placeholder = { Text(stringResource(Res.string.pin_note_hint)) },
         supportingText = { Text("${note.length}/${PinRules.NOTE_MAX}") },
     )
 }
