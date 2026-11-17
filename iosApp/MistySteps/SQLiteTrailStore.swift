@@ -157,6 +157,46 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         return out
     }
 
+    /// One walk, or nil.
+    func loadSession(id: Int64) -> Session? {
+        loadSessions(limit: nil).first { $0.id == id }
+    }
+
+    /// The spots of one walk, in order.
+    func loadSessionPoints(id: Int64) -> [TrailPoint] {
+        var out: [TrailPoint] = []
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id FROM points WHERE session_id = ? ORDER BY id", -1, &stmt, nil)
+        sqlite3_bind_int64(stmt, 1, id)
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
+            out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session))
+        }
+        sqlite3_finalize(stmt)
+        return out
+    }
+
+    /// The spots of other walks (and of before walks were logged) inside a box, for working out what a walk cleared that was new.
+    func loadOtherPointsIn(id: Int64, minLat: Double, minLon: Double, maxLat: Double, maxLon: Double) -> [TrailPoint] {
+        var out: [TrailPoint] = []
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, """
+            SELECT lat, lon, time, radius, session_id FROM points
+            WHERE (session_id IS NULL OR session_id != ?) AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?
+            """, -1, &stmt, nil)
+        sqlite3_bind_int64(stmt, 1, id)
+        sqlite3_bind_double(stmt, 2, minLat); sqlite3_bind_double(stmt, 3, maxLat)
+        sqlite3_bind_double(stmt, 4, minLon); sqlite3_bind_double(stmt, 5, maxLon)
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
+            out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session))
+        }
+        sqlite3_finalize(stmt)
+        return out
+    }
+
     func countPoints() -> Int64 {
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM points", -1, &stmt, nil)

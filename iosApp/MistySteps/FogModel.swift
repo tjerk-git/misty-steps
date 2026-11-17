@@ -23,6 +23,8 @@ final class FogModel: ObservableObject {
     @Published private(set) var session: Session?
     @Published private(set) var distanceM = 0.0
     @Published private(set) var inVehicle = false
+    /// The walk that just ended, for the postcard.
+    @Published private(set) var finished: Session?
     private var sessionPoints: Int32 = 0
 
     var count: Int { Int(index.count) }
@@ -63,7 +65,15 @@ final class FogModel: ObservableObject {
         let done = Session(id: s.id, startTime: s.startTime, endTime: KotlinLong(value: Int64(Date().timeIntervalSince1970 * 1000)),
                            distanceM: distanceM, points: sessionPoints, batteryStart: s.batteryStart, batteryEnd: nil, newAreaM2: nil)
         session = nil; inVehicle = false
-        writer.async { [store] in store.endSession(s: done) }
+        writer.async { [store] in
+            store.endSession(s: done)
+            // Count the ground nobody had cleared before this walk, like Android does; then the postcard can say so.
+            let area = FogModel.newGround(store: store, walk: done.id)
+            let final = Session(id: done.id, startTime: done.startTime, endTime: done.endTime, distanceM: done.distanceM, points: done.points,
+                                batteryStart: done.batteryStart, batteryEnd: done.batteryEnd, newAreaM2: area.map { KotlinDouble(value: $0) })
+            if area != nil { store.endSession(s: final) }
+            DispatchQueue.main.async { self.finished = final }
+        }
         version += 1
         notify()
     }
@@ -91,6 +101,19 @@ final class FogModel: ObservableObject {
         writer.async { [store] in store.insert(points: points) }
         version += 1
         notify()
+    }
+
+    /// Area (m²) this walk cleared that no other walk had; nil when it has no spots.
+    private static func newGround(store: SQLiteTrailStore, walk id: Int64) -> Double? {
+        let mine = store.loadSessionPoints(id: id)
+        guard let first = mine.first else { return nil }
+        let pad = 0.01 // about 1 km of latitude: plenty for 100 m circles
+        let padLon = pad / max(cos(first.lat * .pi / 180), 0.05)
+        let others = store.loadOtherPointsIn(
+            id: id,
+            minLat: mine.map { $0.lat }.min()! - pad, minLon: mine.map { $0.lon }.min()! - padLon,
+            maxLat: mine.map { $0.lat }.max()! + pad, maxLon: mine.map { $0.lon }.max()! + padLon)
+        return ClearedCells.Companion.shared.from(points: mine).areaNotIn(other: ClearedCells.Companion.shared.from(points: others))
     }
 
     /// Test data: random walks of cleared spots around Leeuwarden, like a long-time user's trail.

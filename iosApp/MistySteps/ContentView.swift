@@ -11,6 +11,8 @@ struct ContentView: View {
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
     @State private var pinSheet: PinSheetTarget?
+    @StateObject private var postcards = PostcardPainterImpl(store: ContentView.store)
+    @State private var postcardWalk: Int64?
     @State private var hint: String?
 
     /// One database file for the spots, walks and pins.
@@ -83,6 +85,9 @@ struct ContentView: View {
             .padding(.horizontal, 8)
         }
         .overlay {
+            if let id = postcardWalk {
+                PostcardHostView(walkId: id, painter: postcards, onClose: { postcardWalk = nil }).id(id).ignoresSafeArea()
+            }
             if let target = pinSheet {
                 PinSheetHostView(book: pins.book, target: target, onDone: { pinSheet = nil }).ignoresSafeArea()
             }
@@ -100,6 +105,7 @@ struct ContentView: View {
             case .stats:
                 StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, packs: packs.manager, provinces: packs.provinces,
                               onOpenPicker: { app.route = .picker }, onOpenAbout: { app.route = .about },
+                              onOpenWalk: { id in app.close(); postcardWalk = id },
                               onClose: { app.close() })
                     .id(packs.provinces?.count ?? -1)
                     .ignoresSafeArea()
@@ -113,6 +119,11 @@ struct ContentView: View {
         }
         .onAppear {
             app.pickerAvailable = true
+            postcards.pins = pins.book
+            postcards.packs = packs
+            // Test hook: -postcard last opens the postcard of the newest walk.
+            if UserDefaults.standard.string(forKey: "postcard") == "last",
+               let newest = (fog.store.loadSessions(limit: KotlinInt(value: 1)) as? [Session])?.first { postcardWalk = newest.id }
             // The anonymous open count: release builds only. A test can point it at a local server (-pingurl, -pingrelease 1).
             #if DEBUG
             if UserDefaults.standard.integer(forKey: "pingrelease") > 0, let url = UserDefaults.standard.string(forKey: "pingurl") {
@@ -143,6 +154,10 @@ struct ContentView: View {
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
+        }
+        .onChange(of: fog.finished?.id) { _, id in
+            // A postcard when a walk ends (not for tiny ones, like a start-stop by mistake).
+            if let walk = fog.finished, let id, walk.distanceM >= StatsScreenKt.MIN_WALK_M { postcardWalk = id }
         }
         .task {
             await packs.prepare()

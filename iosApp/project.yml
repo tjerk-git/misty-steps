@@ -20,6 +20,7 @@ targets:
       properties:
         # Compose Multiplatform on iOS aborts at start without this.
         CADisableMinimumFrameDurationOnPhone: true
+        NSPhotoLibraryAddUsageDescription: Misty Steps saves your postcard to Photos when you tap Save.
     sources:
       - MistySteps
       # The same style template and glyphs the Android app uses; one copy in the repo.

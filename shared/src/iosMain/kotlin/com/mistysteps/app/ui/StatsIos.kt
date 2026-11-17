@@ -47,6 +47,7 @@ fun statsViewController(
     provinces: List<PackEntry>?,
     onOpenPicker: () -> Unit,
     onOpenAbout: () -> Unit,
+    onOpenWalk: (Long) -> Unit,
     onClose: () -> Unit,
 ): UIViewController = ComposeUIViewController {
     MistyTheme {
@@ -79,7 +80,7 @@ fun statsViewController(
                 },
             ),
             onClose = onClose,
-            onOpenWalk = {},
+            onOpenWalk = onOpenWalk,
             onOpenAbout = onOpenAbout,
             onOpenPin = {},
         )

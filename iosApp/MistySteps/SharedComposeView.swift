@@ -69,6 +69,7 @@ struct StatsHostView: UIViewControllerRepresentable {
     let provinces: [PackEntry]?
     var onOpenPicker: () -> Void
     var onOpenAbout: () -> Void
+    var onOpenWalk: (Int64) -> Void
     var onClose: () -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
@@ -76,7 +77,7 @@ struct StatsHostView: UIViewControllerRepresentable {
             points: store, sessions: store,
             hereLat: here.map { KotlinDouble(value: $0.latitude) }, hereLon: here.map { KotlinDouble(value: $0.longitude) },
             versionName: appVersion, pins: pins.pins, packs: packs, provinces: provinces,
-            onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onClose: { onClose() })
+            onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onOpenWalk: { onOpenWalk($0.int64Value) }, onClose: { onClose() })
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
@@ -108,6 +109,19 @@ struct PinSheetHostView: UIViewControllerRepresentable {
         let controller = PinSheetIosKt.pinSheetViewController(book: book, state: target.state, onDone: { onDone() })
         controller.view.backgroundColor = .clear
         return controller
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
+/// The shared Compose postcard page, full screen; the picture is painted by [painter].
+struct PostcardHostView: UIViewControllerRepresentable {
+    let walkId: Int64
+    let painter: PostcardPainterImpl
+    var onClose: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        PostcardIosKt.postcardViewController(walkId: walkId, painter: painter, onClose: { onClose() })
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}

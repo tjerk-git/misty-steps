@@ -127,6 +127,7 @@
     <string name="postcard_description">Ansichtkaart van je wandeling</string>
     <string name="postcard_failed">Kon deze wandeling niet tekenen.</string>
     <string name="postcard_painting">Je ansichtkaart wordt geschilderd…</string>
+    <string name="postcard_saved_photos">Bewaard in Foto’s</string>
     <string name="postcard_saved">Bewaard in Afbeeldingen › Misty Steps</string>
     <string name="postcard_use_share">Gebruik Deel om hem op deze telefoon te bewaren</string>
     <string name="postcard_save_failed">Kon de ansichtkaart niet bewaren</string>

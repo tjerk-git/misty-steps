@@ -128,6 +128,7 @@
     <string name="postcard_description">Postcard of your walk</string>
     <string name="postcard_failed">Couldn’t draw this walk.</string>
     <string name="postcard_painting">Painting your postcard…</string>
+    <string name="postcard_saved_photos">Saved to Photos</string>
     <string name="postcard_saved">Saved to Pictures › Misty Steps</string>
     <string name="postcard_use_share">Use Share to save it on this phone</string>
     <string name="postcard_save_failed">Couldn’t save the postcard</string>

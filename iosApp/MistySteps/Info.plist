@@ -20,5 +20,7 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Misty Steps saves your postcard to Photos when you tap Save.</string>
 </dict>
 </plist>
