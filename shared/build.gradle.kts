@@ -14,9 +14,13 @@ kotlin {
         withHostTest {}
     }
 
-    // iOS targets: configured now, built once Xcode is installed.
-    iosArm64()
-    iosSimulatorArm64()
+    // iOS targets, exported as the static framework "Shared" for the Xcode app.
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+    }
 
     // Runs the shared tests as native code on this Mac, no simulator needed.
     macosArm64()
