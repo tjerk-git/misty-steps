@@ -64,7 +64,7 @@
     <string name="streets_header">Streets</string>
     <string name="streets_walked">%1$d of %2$d streets walked</string>
     <string name="streets_still">Still in the mist</string>
-    <string name="streets_pct_walked">%1$d%% walked</string>
+    <string name="streets_pct_walked">%1$s walked</string>
     <string name="streets_more">and %1$d more</string>
     <string name="area_world">World</string>
     <string name="area_country">Country</string>
@@ -211,7 +211,7 @@
     <string name="maps_update">Update</string>
     <string name="maps_remove">Remove</string>
     <string name="maps_data_year">Data from %1$d</string>
-    <string name="maps_downloading">Downloading… %1$d%%</string>
+    <string name="maps_downloading">Downloading… %1$s</string>
     <string name="maps_failed">Download failed. Try again.</string>
     <string name="maps_no_space">Not enough space on this phone.</string>
     <string name="maps_update_app">Update the app to use new maps.</string>

@@ -147,7 +147,7 @@ fun ProvincePickerScreen(
                                     Text(entry.name, color = Ink, fontSize = 16.sp)
                                     val note = when (packState) {
                                         is PackState.Ready -> stringResource(Res.string.maps_data_year, packState.year)
-                                        is PackState.Downloading -> stringResource(Res.string.maps_downloading, percent(packState))
+                                        is PackState.Downloading -> stringResource(Res.string.maps_downloading, "${percent(packState)}%")
                                         else -> null
                                     }
                                     if (note != null) Text(note, color = Dusk, fontSize = 12.sp)

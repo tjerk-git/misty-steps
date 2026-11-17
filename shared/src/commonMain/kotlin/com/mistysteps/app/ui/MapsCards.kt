@@ -106,7 +106,7 @@ fun YourMapsCard(provinces: List<PackEntry>?, packs: PackManager, onAdd: () -> U
 private fun statusText(state: PackState, entry: PackEntry): String = when (state) {
     is PackState.Ready -> stringResource(Res.string.maps_data_year, state.year)
     is PackState.UpdateAvailable -> stringResource(Res.string.maps_data_year, state.installedYear)
-    is PackState.Downloading -> stringResource(Res.string.maps_downloading, percent(state))
+    is PackState.Downloading -> stringResource(Res.string.maps_downloading, "${percent(state)}%")
     is PackState.Failed -> stringResource(if (state.reason == Reason.NO_SPACE) Res.string.maps_no_space else Res.string.maps_failed)
     PackState.NotDownloaded -> formatSize(entry.map.bytes)
 }

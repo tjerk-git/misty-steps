@@ -21,6 +21,9 @@ kotlin {
         minSdk = 26
 
         withHostTest {}
+
+        // Without this the Compose resources (the shared strings) are not packaged into the Android app.
+        androidResources { enable = true }
     }
 
     // iOS targets, exported as the static framework "Shared" for the Xcode app.

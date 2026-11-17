@@ -472,7 +472,7 @@ private fun ColumnScope.Streets(st: StreetStats) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Text(p.name, color = Ink, fontSize = 14.sp, modifier = Modifier.weight(1f))
                 if (p.walkedFraction > 0.05) {
-                    Text(stringResource(Res.string.streets_pct_walked, (p.walkedFraction * 100).toInt()), color = Dusk, fontSize = 13.sp)
+                    Text(stringResource(Res.string.streets_pct_walked, "${(p.walkedFraction * 100).toInt()}%"), color = Dusk, fontSize = 13.sp)
                 }
             }
         }

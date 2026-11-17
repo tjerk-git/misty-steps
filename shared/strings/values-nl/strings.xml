@@ -63,7 +63,7 @@
     <string name="streets_header">Straten</string>
     <string name="streets_walked">%1$d van %2$d straten gelopen</string>
     <string name="streets_still">Nog in de mist</string>
-    <string name="streets_pct_walked">%1$d%% gelopen</string>
+    <string name="streets_pct_walked">%1$s gelopen</string>
     <string name="streets_more">en nog %1$d</string>
     <string name="area_world">Wereld</string>
     <string name="area_country">Land</string>
@@ -210,7 +210,7 @@
     <string name="maps_update">Werk bij</string>
     <string name="maps_remove">Verwijder</string>
     <string name="maps_data_year">Gegevens uit %1$d</string>
-    <string name="maps_downloading">Downloaden… %1$d%%</string>
+    <string name="maps_downloading">Downloaden… %1$s</string>
     <string name="maps_failed">Download mislukt. Probeer het opnieuw.</string>
     <string name="maps_no_space">Niet genoeg ruimte op deze telefoon.</string>
     <string name="maps_update_app">Werk de app bij om nieuwe kaarten te gebruiken.</string>
