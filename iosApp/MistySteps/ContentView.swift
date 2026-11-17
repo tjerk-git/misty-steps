@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
+    @State private var showCharacters = UserDefaults.standard.integer(forKey: "composeCharacters") > 0
     @State private var showAbout = UserDefaults.standard.integer(forKey: "composeAbout") > 0
     @State private var showOnboarding = UserDefaults.standard.integer(forKey: "composeOnboarding") > 0
     @State private var showConsent = UserDefaults.standard.integer(forKey: "composeConsent") > 0
@@ -67,6 +68,9 @@ struct ContentView: View {
             .padding(.horizontal, 8)
         }
         .overlay {
+            if showCharacters {
+                CharacterHostView(onClose: { showCharacters = false }).ignoresSafeArea()
+            }
             if showAbout {
                 AboutHostView(onClose: { showAbout = false }).ignoresSafeArea()
             }

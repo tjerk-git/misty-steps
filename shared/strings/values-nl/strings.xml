@@ -32,7 +32,7 @@
     <string name="dialog_rationale_text">Misty Steps heeft je nauwkeurige locatie nodig terwijl je wandelt, zodat de mist binnen 50 m om je heen kan optrekken. Je route wordt alleen op deze telefoon bewaard.</string>
     <string name="dialog_continue">Ga door</string>
     <string name="dialog_settings_title">Toestemming voor locatie staat uit</string>
-    <string name="dialog_settings_text">Geef Misty Steps in Instellingen toestemming om je nauwkeurige locatie te gebruiken, zodat de mist kan optrekken (Toestemmingen → Locatie → Alleen tijdens gebruik van de app toestaan, met \"Nauwkeurige locatie gebruiken\" aan).</string>
+    <string name="dialog_settings_text">Geef Misty Steps in Instellingen toestemming om je nauwkeurige locatie te gebruiken, zodat de mist kan optrekken (Toestemmingen → Locatie → Alleen tijdens gebruik van de app toestaan, met “Nauwkeurige locatie gebruiken” aan).</string>
     <string name="open_settings">Open instellingen</string>
 
     <!-- Statistieken -->

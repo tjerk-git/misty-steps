@@ -23,7 +23,7 @@
     <string name="show_my_location">Show my location</string>
     <string name="drop_a_pin">Drop a pin</string>
     <string name="mist_cleared">%1$s of mist cleared</string>
-    <string name="banner_pin_tip">Tip: long-press ground you\'ve cleared to leave a pin there. Tap to close.</string>
+    <string name="banner_pin_tip">Tip: long-press ground you’ve cleared to leave a pin there. Tap to close.</string>
     <string name="banner_start">Tap Start wandering and go outside. The mist lifts wherever you walk.</string>
     <string name="toast_pin_fog">Pins go on cleared ground. Walk here first.</string>
     <string name="toast_looking">Looking for you in the mist…</string>
@@ -33,7 +33,7 @@
     <string name="dialog_rationale_text">Misty Steps needs your precise location while you wander, so it can clear the mist within 50 m of you. Your trail is only stored on this phone.</string>
     <string name="dialog_continue">Continue</string>
     <string name="dialog_settings_title">Location permission is off</string>
-    <string name="dialog_settings_text">To clear the mist, allow Misty Steps to use your precise location in Settings (Permissions → Location → Allow only while using the app, with \"Use precise location\" on).</string>
+    <string name="dialog_settings_text">To clear the mist, allow Misty Steps to use your precise location in Settings (Permissions → Location → Allow only while using the app, with “Use precise location” on).</string>
     <string name="open_settings">Open settings</string>
 
     <!-- Stats screen -->
@@ -49,7 +49,7 @@
     <string name="stats_note_outside">City and country stats only cover the Netherlands for now.</string>
     <string name="stats_note_unknown">Start wandering once and your city and country stats will appear.</string>
     <string name="feedback_row_title">Send feedback</string>
-    <string name="feedback_row_sub">A bug, an idea, a street that\'s wrong: I read everything</string>
+    <string name="feedback_row_sub">A bug, an idea, a street that’s wrong: I read everything</string>
     <string name="made_by_title">Made by Potloodgum</string>
     <string name="made_by_sub">Who made this, and why · buy me a coffee</string>
     <string name="version_app">Misty Steps %1$s</string>
@@ -58,7 +58,7 @@
     <string name="walk_new_mist">%1$s new mist</string>
     <string name="walks_show_fewer">Show fewer</string>
     <string name="walks_show_all">Show all %1$d walks</string>
-    <string name="pins_empty">Leave a pin when something catches your eye: tap the pin button while you wander, or long-press ground you\'ve already cleared.</string>
+    <string name="pins_empty">Leave a pin when something catches your eye: tap the pin button while you wander, or long-press ground you’ve already cleared.</string>
     <string name="streets_counting">Counting streets…</string>
     <string name="hood_finding">Finding your neighbourhood…</string>
     <string name="streets_header">Streets</string>
@@ -79,22 +79,22 @@
 
     <!-- Backup -->
     <string name="backup_title">Your trails</string>
-    <string name="backup_intro">Save all your trails and walks to a file, or add them from one: for a backup or a new phone. The file is plain text, so it\'s yours to keep.</string>
+    <string name="backup_intro">Save all your trails and walks to a file, or add them from one: for a backup or a new phone. The file is plain text, so it’s yours to keep.</string>
     <string name="backup_export">Export</string>
     <string name="backup_import">Import</string>
     <string name="backup_stop_to_import">Stop wandering to import.</string>
     <string name="backup_saved">Saved %1$s</string>
-    <string name="backup_save_failed">Couldn\'t save the file</string>
-    <string name="backup_read_failed">Couldn\'t read the file</string>
-    <string name="backup_not_a_backup">This file isn\'t a Misty Steps backup.</string>
+    <string name="backup_save_failed">Couldn’t save the file</string>
+    <string name="backup_read_failed">Couldn’t read the file</string>
+    <string name="backup_not_a_backup">This file isn’t a Misty Steps backup.</string>
     <string name="backup_newer">This backup comes from a newer Misty Steps. Update the app first.</string>
     <string name="backup_broken_pin">This backup has a broken pin in it.</string>
     <string name="backup_broken_point">This backup has a broken point in it.</string>
     <string name="backup_add_title">Add these trails?</string>
-    <string name="backup_add_body">This backup from %1$s has %2$s. They\'ll be added to the trails on this phone. Nothing here is deleted, and points you already have are skipped.</string>
+    <string name="backup_add_body">This backup from %1$s has %2$s. They’ll be added to the trails on this phone. Nothing here is deleted, and points you already have are skipped.</string>
     <string name="backup_add_button">Add trails</string>
     <string name="backup_added">Added %1$s</string>
-    <string name="backup_add_failed">Couldn\'t import the trails</string>
+    <string name="backup_add_failed">Couldn’t import the trails</string>
     <string name="backup_counts">%1$s, %2$s and %3$s</string>
     <plurals name="backup_points">
         <item quantity="one">%1$s point</item>
@@ -126,24 +126,24 @@
     <!-- Postcard -->
     <string name="postcard_title">Your walk</string>
     <string name="postcard_description">Postcard of your walk</string>
-    <string name="postcard_failed">Couldn\'t draw this walk.</string>
+    <string name="postcard_failed">Couldn’t draw this walk.</string>
     <string name="postcard_painting">Painting your postcard…</string>
     <string name="postcard_saved">Saved to Pictures › Misty Steps</string>
     <string name="postcard_use_share">Use Share to save it on this phone</string>
-    <string name="postcard_save_failed">Couldn\'t save the postcard</string>
+    <string name="postcard_save_failed">Couldn’t save the postcard</string>
     <string name="postcard_back">Back to the mist</string>
     <string name="postcard_share_chooser">Share your walk</string>
     <string name="osm_credit">© OpenStreetMap contributors · © OpenMapTiles</string>
 
     <!-- Characters. The name and blurb in assets/characters.txt are the fallback. -->
     <string name="characters_title">Who walks the mist?</string>
-    <string name="characters_sub">Pick your wanderer. They\'ll walk with you on the map.</string>
+    <string name="characters_sub">Pick your wanderer. They’ll walk with you on the map.</string>
     <string name="character_cat_name">Trail Cat</string>
     <string name="character_cat_blurb">Nine lives, zero regrets.</string>
     <string name="character_dog_name">Scout Dog</string>
     <string name="character_dog_blurb">Has sniffed every lamppost. Wants to sniff more.</string>
     <string name="character_otter_name">Sea Otter</string>
-    <string name="character_otter_blurb">Left the sea for a stroll. Isn\'t going back.</string>
+    <string name="character_otter_blurb">Left the sea for a stroll. Isn’t going back.</string>
     <string name="character_capybara_name">Capybara</string>
     <string name="character_capybara_blurb">Unbothered. Moisturised. Zero cares given.</string>
     <string name="character_cow_name">Wander Cow</string>
@@ -202,7 +202,7 @@
     <string name="picker_later">You can add more any time under Your maps.</string>
     <string name="picker_existing">The online map is gone in this version. Pick the provinces you walk in to get your streets back.</string>
     <string name="picker_offline">Go online once to see the maps.</string>
-    <string name="data_warning">%1$s. You\'re on mobile data. Download anyway?</string>
+    <string name="data_warning">%1$s. You’re on mobile data. Download anyway?</string>
     <string name="data_download">Download</string>
     <string name="data_wait_wifi">Wait for Wi-Fi</string>
     <string name="offer_card">No map of %1$s yet. Download (%2$s)</string>

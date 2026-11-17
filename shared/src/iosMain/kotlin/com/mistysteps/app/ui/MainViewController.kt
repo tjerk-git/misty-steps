@@ -28,3 +28,7 @@ fun usageCardViewController(versionName: String): UIViewController = ComposeUIVi
         UsageCountsCard(optedIn = on, onOptedInChange = { on = it; defaults.setBool(it, forKey = "usage_opt_in") }, versionName = versionName)
     }
 }
+
+/** The "choose your wanderer" page. */
+fun characterViewController(onClose: () -> Unit): UIViewController =
+    ComposeUIViewController { MistyTheme { CharacterScreen(onClose) } }

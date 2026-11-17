@@ -1,6 +1,5 @@
 package com.mistysteps.app.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -41,9 +40,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.mistysteps.app.R
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.allStringResources
+import com.mistysteps.app.resources.back_to_map
+import com.mistysteps.app.resources.cancel
+import com.mistysteps.app.resources.character_rename_cd
+import com.mistysteps.app.resources.character_rename_empty
+import com.mistysteps.app.resources.character_rename_hint
+import com.mistysteps.app.resources.character_rename_title
+import com.mistysteps.app.resources.characters_sub
+import com.mistysteps.app.resources.characters_title
+import com.mistysteps.app.resources.save
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -51,7 +59,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -69,7 +76,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun CharacterScreen(onClose: () -> Unit) {
-    BackHandler(onBack = onClose)
+    PlatformBackHandler(onBack = onClose)
     val selected by Characters.selected.collectAsState()
     val ticker = rememberTicker()
     val sprites = remember { Characters.all.map { it to SpriteFrames(it) } }
@@ -88,10 +95,10 @@ fun CharacterScreen(onClose: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onClose) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_map), tint = Ink)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back_to_map), tint = Ink)
                 }
                 Text(
-                    stringResource(R.string.characters_title),
+                    stringResource(Res.string.characters_title),
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 24.sp,
@@ -99,7 +106,7 @@ fun CharacterScreen(onClose: () -> Unit) {
                 )
             }
             Text(
-                stringResource(R.string.characters_sub),
+                stringResource(Res.string.characters_sub),
                 color = Dusk,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(start = 12.dp, bottom = 16.dp),
@@ -169,7 +176,7 @@ private fun CharacterCard(
                 IconButton(onClick = { renaming = true }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.character_rename_cd, custom ?: species),
+                        contentDescription = stringResource(Res.string.character_rename_cd, custom ?: species),
                         tint = Dusk,
                         modifier = Modifier.size(16.dp),
                     )
@@ -192,11 +199,8 @@ private fun CharacterCard(
 /** The translated name or blurb of a character, falling back to the English text in the sprite file. */
 @Composable
 private fun characterText(character: Character, part: String, fallback: String): String {
-    val context = LocalContext.current
-    val id = remember(character.id, part) {
-        context.resources.getIdentifier("character_${character.id}_$part", "string", context.packageName)
-    }
-    return if (id != 0) stringResource(id) else fallback
+    val resource = remember(character.id, part) { Res.allStringResources["character_${character.id}_$part"] }
+    return if (resource != null) stringResource(resource) else fallback
 }
 
 /** Asks for a name for one character. Saving an empty name takes the name away: the species name shows again. */
@@ -205,20 +209,20 @@ private fun RenameDialog(id: String, species: String, current: String?, onClose:
     var text by remember { mutableStateOf(current.orEmpty()) }
     AlertDialog(
         onDismissRequest = onClose,
-        title = { Text(stringResource(R.string.character_rename_title)) },
+        title = { Text(stringResource(Res.string.character_rename_title)) },
         text = {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it.take(CharacterNames.MAX_LENGTH) },
                 singleLine = true,
-                label = { Text(stringResource(R.string.character_rename_hint)) },
+                label = { Text(stringResource(Res.string.character_rename_hint)) },
                 placeholder = { Text(species) },
-                supportingText = { Text(stringResource(R.string.character_rename_empty, species)) },
+                supportingText = { Text(stringResource(Res.string.character_rename_empty, species)) },
             )
         },
         confirmButton = {
-            TextButton(onClick = { Characters.setName(id, text); onClose() }) { Text(stringResource(R.string.save)) }
+            TextButton(onClick = { Characters.setName(id, text); onClose() }) { Text(stringResource(Res.string.save)) }
         },
-        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(Res.string.cancel)) } },
     )
 }

@@ -47,3 +47,14 @@ struct AboutHostView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
+
+/// The shared Compose character picker, full screen.
+struct CharacterHostView: UIViewControllerRepresentable {
+    var onClose: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        MainViewControllerKt.characterViewController(onClose: { onClose() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
