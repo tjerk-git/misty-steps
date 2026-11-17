@@ -45,7 +45,7 @@
     <string name="stats_walks_header">Your walks</string>
     <string name="stats_places_header">Your places</string>
     <string name="stats_more_header">More</string>
-    <string name="stats_privacy">City and country borders come with the app, so working out where you are happens on this phone. Your trails never leave it. Maps are downloaded from maps.potloodgum.com, which only learns which provinces you pick.</string>
+    <string name="stats_privacy">City and country borders come with the app, so working out where you are happens on this phone. Your trails never leave it. Maps are downloaded from maps.potloodgum.com, which only learns which provinces you pick. If you allow it, the app also counts how often it is opened, anonymously.</string>
     <string name="stats_note_outside">City and country stats only cover the Netherlands for now.</string>
     <string name="stats_note_unknown">Start wandering once and your city and country stats will appear.</string>
     <string name="feedback_row_title">Send feedback</string>
@@ -155,7 +155,7 @@
     <string name="about_title">About Misty Steps</string>
     <string name="about_maker">Made by Tjerk at Potloodgum, a one-person studio in Leeuwarden. Fixing the world in tiny steps.</string>
     <string name="about_why">I wanted a reason to walk down streets I had never been down. Misty Steps turns your own neighbourhood into a map to uncover, one step (or pedal, or push) at a time.</string>
-    <string name="about_promise">No ads, no accounts, no tracking. Your trails never leave your phone.</string>
+    <string name="about_promise">No ads, no accounts. Your trails never leave your phone. If you allow it, the app counts how often it is opened, with nothing that says who you are.</string>
     <string name="about_donate_text">If it gets you out the door, you can buy me a coffee. It keeps the mist drifting.</string>
     <string name="about_donate_button">Buy me a coffee</string>
     <string name="about_feedback_text">Found a bug, or have an idea? Tell me. I read everything.</string>
@@ -195,7 +195,7 @@
     <string name="onboarding_2_title">Your steps clear it</string>
     <string name="onboarding_2_body">Tap Start wandering and walk, run or cycle. The mist lifts around you.</string>
     <string name="onboarding_3_title">Yours alone</string>
-    <string name="onboarding_3_body">No account, no tracking. Your trails never leave your phone.</string>
+    <string name="onboarding_3_body">No account. Your trails never leave your phone.</string>
     <string name="picker_title">Which provinces do you want to explore?</string>
     <string name="picker_total">Total: %1$s</string>
     <string name="picker_skip">Skip for now</string>
@@ -225,4 +225,10 @@
     <string name="consent_body">One tiny message each time you open the app: just that it was opened and which version. No name, no ID, no location, nothing about your walks. You can change this any time under More on the stats page.</string>
     <string name="consent_yes">Yes, count my opens</string>
     <string name="consent_no">No thanks</string>
+    <!-- Usage counts card -->
+    <string name="usage_title">Usage counts</string>
+    <string name="usage_body">Count how often the app is opened, anonymously.</string>
+    <string name="usage_what">What is sent</string>
+    <string name="usage_sent_note">Nothing else is sent: no ID, no location, no walks.</string>
+    <string name="usage_close">Close</string>
 </resources>
