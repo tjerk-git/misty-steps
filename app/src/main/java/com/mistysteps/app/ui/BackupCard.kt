@@ -67,6 +67,7 @@ fun BackupCard(onImported: () -> Unit) {
             val msg = try {
                 val backup = withContext(Dispatchers.IO) {
                     val backup = FogStore.exportBackup(BuildConfig.VERSION_NAME, Characters.selected.value?.id)
+                        .copy(characterNames = Characters.allCustomNames())
                     context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(backup.toJson().toByteArray()) }
                     backup
                 }
@@ -152,6 +153,8 @@ fun BackupCard(onImported: () -> Unit) {
                             val r = withContext(Dispatchers.IO) { FogStore.importBackup(backup) }
                             // A fresh phone also takes the wanderer from the backup.
                             if (r.wasEmpty) backup.character?.let { id -> Characters.all.firstOrNull { it.id == id }?.let(Characters::select) }
+                            // Names fill in where you haven't named a character yet; nothing you named is overwritten.
+                            backup.characterNames.forEach { (id, name) -> if (Characters.customName(id) == null) Characters.setName(id, name) }
                             onImported()
                             context.getString(R.string.backup_added, formatBackupCounts(r.spots, r.walks, r.pins, context.resources))
                         } catch (e: Exception) {

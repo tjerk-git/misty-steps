@@ -29,11 +29,29 @@ object Characters {
 
     private lateinit var prefs: android.content.SharedPreferences
 
+    private val _names = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    /** The names you gave your characters, by character id. A character without an entry shows its species name. */
+    val names: StateFlow<Map<String, String>> = _names.asStateFlow()
+
+    fun customName(id: String): String? = _names.value[id]
+
+    fun allCustomNames(): Map<String, String> = _names.value
+
+    /** Gives a character a name ([CharacterNames] cleans it); an empty name takes it away again. Unknown ids are ignored. */
+    fun setName(id: String, raw: String?) {
+        if (all.none { it.id == id }) return
+        val name = CharacterNames.clean(raw)
+        _names.value = if (name == null) _names.value - id else _names.value + (id to name)
+        prefs.edit().apply { if (name == null) remove("character_name_$id") else putString("character_name_$id", name) }.apply()
+    }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("misty", Context.MODE_PRIVATE)
         all = context.assets.open("characters.txt").bufferedReader().use { parse(it.readLines()) }
         val id = prefs.getString("character", null)
         _selected.value = all.firstOrNull { it.id == id } ?: all.first()
+        _names.value = all.mapNotNull { c -> CharacterNames.clean(prefs.getString("character_name_${c.id}", null))?.let { c.id to it } }.toMap()
     }
 
     fun select(c: Character) {
@@ -82,11 +100,20 @@ object Characters {
         val palette = raw.props.getValue("palette").split(" ").filter { it.isNotBlank() }.associate {
             it[0] to (0xFF000000.toInt() or it.substringAfter(":").toInt(16))
         }
-        fun frame(legs: List<String>, bob: Int): Bitmap {
+        fun frame(legs: List<String>, bob: Int, blink: Boolean = false): Bitmap {
             val px = IntArray(16 * 16)
             raw.body.forEachIndexed { y, row ->
                 val ty = y + bob
-                if (ty < 16) row.forEachIndexed { x, ch -> palette[ch]?.let { px[ty * 16 + x] = it } }
+                if (ty < 16) row.forEachIndexed { x, ch ->
+                    // Blinking: the eye pixel borrows whatever's directly above it (fur/head), closing the lid.
+                    // Works for every character for free since they all use 'E' for the eye.
+                    if (blink && ch == 'E') {
+                        val above = if (ty > 0) px[(ty - 1) * 16 + x] else 0
+                        if (above != 0) px[ty * 16 + x] = above
+                    } else {
+                        palette[ch]?.let { px[ty * 16 + x] = it }
+                    }
+                }
             }
             legs.forEachIndexed { y, row ->
                 row.forEachIndexed { x, ch -> palette[ch]?.let { px[(13 + y) * 16 + x] = it } }
@@ -94,8 +121,13 @@ object Characters {
             return outlined(px)
         }
         val walk = raw.legs.mapIndexed { i, legs -> frame(legs, if (i % 2 == 1) 1 else 0) }
-        // Standing: legs together (the "passing" pose), breathing up and down.
-        val idle = listOf(frame(raw.legs[1], 0), frame(raw.legs[1], 1))
+        // Standing: legs together (the "passing" pose), breathing up and down, with an occasional blink.
+        val idle = listOf(
+            frame(raw.legs[1], 0),
+            frame(raw.legs[1], 1),
+            frame(raw.legs[1], 0),
+            frame(raw.legs[1], 1, blink = true),
+        )
         return Character(
             id = raw.id,
             name = raw.props["name"] ?: raw.id,
@@ -107,10 +139,10 @@ object Characters {
 
     private fun outlined(src: IntArray): Bitmap = PixelArt.bitmap(PixelArt.outline(src))
 
-    /** Frame to show at [timeMs]: walk cycle while moving, a slow breath while standing. */
+    /** Frame to show at [timeMs]: walk cycle while moving, a slow breath (with the odd blink) while standing. */
     fun frameAt(c: Character, walking: Boolean, timeMs: Long): Bitmap =
         if (walking) c.walk[((timeMs / WALK_FRAME_MS) % 4).toInt()]
-        else c.idle[((timeMs / IDLE_FRAME_MS) % 2).toInt()]
+        else c.idle[((timeMs / IDLE_FRAME_MS) % c.idle.size).toInt()]
 
     const val WALK_FRAME_MS = 140L
     const val IDLE_FRAME_MS = 600L

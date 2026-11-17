@@ -33,6 +33,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import com.mistysteps.app.character.CharacterNames
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.mistysteps.app.R
@@ -92,7 +100,7 @@ class SpriteFrames(c: Character) {
 
     fun at(walking: Boolean, timeMs: Long): ImageBitmap =
         if (walking) walk[((timeMs / Characters.WALK_FRAME_MS) % 4).toInt()]
-        else idle[((timeMs / Characters.IDLE_FRAME_MS) % 2).toInt()]
+        else idle[((timeMs / Characters.IDLE_FRAME_MS) % idle.size).toInt()]
 }
 
 /** Draws a crisp, nearest-neighbour scaled sprite filling the largest square that fits. */
@@ -195,7 +203,30 @@ private fun CharacterCard(
                     .drawBehind { drawSprite(frames.at(walking = isSelected, timeMs = time())) }
             )
             Spacer(Modifier.height(10.dp))
-            Text(characterText(character, "name", character.name), fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Ink)
+            val species = characterText(character, "name", character.name)
+            val custom = Characters.names.collectAsState().value[character.id]
+            var renaming by remember { mutableStateOf(false) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    custom ?: species,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 17.sp,
+                    color = Ink,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                IconButton(onClick = { renaming = true }, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.character_rename_cd, custom ?: species),
+                        tint = Dusk,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+            // With your own name on the card, the species stays visible underneath.
+            if (custom != null) Text(species, fontSize = 12.sp, color = Dusk)
+            if (renaming) RenameDialog(character.id, species, custom) { renaming = false }
             Text(
                 characterText(character, "blurb", character.blurb),
                 fontSize = 12.sp,
@@ -215,4 +246,28 @@ private fun characterText(character: Character, part: String, fallback: String):
         context.resources.getIdentifier("character_${character.id}_$part", "string", context.packageName)
     }
     return if (id != 0) stringResource(id) else fallback
+}
+
+/** Asks for a name for one character. Saving an empty name takes the name away: the species name shows again. */
+@Composable
+private fun RenameDialog(id: String, species: String, current: String?, onClose: () -> Unit) {
+    var text by remember { mutableStateOf(current.orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(stringResource(R.string.character_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.take(CharacterNames.MAX_LENGTH) },
+                singleLine = true,
+                label = { Text(stringResource(R.string.character_rename_hint)) },
+                placeholder = { Text(species) },
+                supportingText = { Text(stringResource(R.string.character_rename_empty, species)) },
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { Characters.setName(id, text); onClose() }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) } },
+    )
 }

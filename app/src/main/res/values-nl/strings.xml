@@ -138,17 +138,17 @@
     <string name="characters_title">Wie loopt door de mist?</string>
     <string name="characters_sub">Kies je wandelmaatje. Het loopt met je mee op de kaart.</string>
     <string name="character_cat_name">Wandelkat</string>
-    <string name="character_cat_blurb">Negen levens, één paar heel goede wandelschoenen.</string>
+    <string name="character_cat_blurb">Negen levens, geen spijt.</string>
     <string name="character_dog_name">Padvinderhond</string>
     <string name="character_dog_blurb">Heeft elke lantaarnpaal besnuffeld. Wil er nog meer.</string>
     <string name="character_otter_name">Zeeotter</string>
-    <string name="character_otter_blurb">Verliet de zee voor een wandelingetje. Nam de regenjas toch mee.</string>
+    <string name="character_otter_blurb">Verliet de zee voor een wandelingetje. Gaat niet meer terug.</string>
     <string name="character_capybara_name">Capibara</string>
-    <string name="character_capybara_blurb">Onverstoorbaar. Gehydrateerd. Draagt een mandarijn.</string>
+    <string name="character_capybara_blurb">Onverstoorbaar. Gehydrateerd. Maakt zich nergens druk om.</string>
     <string name="character_cow_name">Zwerfkoe</string>
     <string name="character_cow_blurb">De wijde wereld in. Moooi!</string>
     <string name="character_horse_name">Trekpaard</string>
-    <string name="character_horse_blurb">Draagt zijn eigen zadeltassen. Weigert jou te dragen.</string>
+    <string name="character_horse_blurb">Loopt overal naartoe. Weigert jou te dragen.</string>
 
     <!-- Over -->
     <string name="about_title">Over Misty Steps</string>
@@ -230,4 +230,10 @@
     <string name="usage_what">Wat wordt verstuurd</string>
     <string name="usage_sent_note">Er wordt niets anders verstuurd: geen ID, geen locatie, geen wandelingen.</string>
     <string name="usage_close">Sluiten</string>
+    <!-- Naming characters -->
+    <string name="character_rename_title">Geef je wandelmaatje een naam</string>
+    <string name="character_rename_hint">Naam</string>
+    <string name="character_rename_empty">Laat leeg voor %1$s</string>
+    <string name="character_rename_cd">Hernoem %1$s</string>
+    <string name="postcard_with">met %1$s</string>
 </resources>

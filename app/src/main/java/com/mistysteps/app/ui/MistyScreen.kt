@@ -459,6 +459,9 @@ fun MistyScreen() {
         if (showCharacters) {
             CharacterScreen(onClose = { showCharacters = false })
         }
+        postcardWalk?.let { walkId ->
+            PostcardScreen(walkId = walkId, onClose = { postcardWalk = null })
+        }
         if (showAbout) {
             AboutScreen(onClose = { showAbout = false })
         }

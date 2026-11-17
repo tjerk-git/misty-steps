@@ -19,6 +19,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.mistysteps.app.character.Character
 import com.mistysteps.app.R
+import com.mistysteps.app.character.Characters
 import com.mistysteps.app.maps.MapStyle
 import com.mistysteps.app.maps.MapsGraph
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -84,7 +85,9 @@ object PostcardRenderer {
             walk.newAreaM2?.let { add(context.getString(R.string.walk_new_mist, formatArea(it))) }
         }
         val credit = context.getString(R.string.osm_credit)
-        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit) }
+        // Only a name you gave: the species name would just say what the picture already shows.
+        val withLine = character?.let { Characters.customName(it.id) }?.let { context.getString(R.string.postcard_with, it) }
+        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit, withLine) }
     }
 
     /** Which part of the world the map shows: mercator centre and pixels per mercator unit. */
@@ -152,7 +155,7 @@ object PostcardRenderer {
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,
-        pins: List<Pin>, parts: List<String>, credit: String,
+        pins: List<Pin>, parts: List<String>, credit: String, withLine: String?,
     ): Bitmap {
         val last = points.lastOrNull()
         val palette = MistPalette.at(walk.endTime ?: walk.startTime, last?.lat ?: 52.0, last?.lon ?: 5.0)
@@ -231,6 +234,18 @@ object PostcardRenderer {
         text.textSize = 64f
         text.letterSpacing = 0.06f
         c.drawText("Misty Steps", MARGIN.toFloat(), y0, text)
+        withLine?.let { line ->
+            // Right-aligned on the title's line, smaller and in the quieter colour.
+            val title = text.textSize
+            text.typeface = Typeface.MONOSPACE
+            text.letterSpacing = 0f
+            text.textSize = 34f
+            text.color = DUSK
+            text.textAlign = Paint.Align.RIGHT
+            c.drawText(line, (W - MARGIN).toFloat(), y0, text)
+            text.textAlign = Paint.Align.LEFT
+            text.textSize = title
+        }
 
         text.typeface = Typeface.MONOSPACE
         text.letterSpacing = 0f

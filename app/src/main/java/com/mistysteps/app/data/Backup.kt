@@ -2,6 +2,7 @@ package com.mistysteps.app.data
 
 import androidx.annotation.StringRes
 import com.mistysteps.app.R
+import com.mistysteps.app.character.CharacterNames
 import com.mistysteps.app.pin.Pin
 import org.json.JSONArray
 import org.json.JSONObject
@@ -27,6 +28,8 @@ data class Backup(
     val sessions: List<Session>,
     val points: List<TrailPoint>,
     val pins: List<Pin> = emptyList(),
+    /** The names you gave your characters, by character id. Added later: older files don't have it. */
+    val characterNames: Map<String, String> = emptyMap(),
 ) {
     fun toJson(): String {
         val root = JSONObject()
@@ -36,6 +39,7 @@ data class Backup(
         root.put("app", appVersion)
         root.put("distanceM", distanceM)
         character?.let { root.put("character", it) }
+        if (characterNames.isNotEmpty()) root.put("characterNames", JSONObject().also { o -> characterNames.forEach { (id, name) -> o.put(id, name) } })
         root.put("sessions", JSONArray().also { arr ->
             for (s in sessions) arr.put(JSONObject().apply {
                 put("id", s.id)
@@ -87,6 +91,17 @@ data class Backup(
             )
         }
 
+        /** Names from a file: cleaned the same way as typed ones; anything that isn't text, or is blank, is dropped. */
+        private fun readNames(o: JSONObject?): Map<String, String> {
+            if (o == null) return emptyMap()
+            val names = LinkedHashMap<String, String>()
+            for (id in o.keys()) {
+                val raw = o.opt(id) as? String ?: continue
+                CharacterNames.clean(raw)?.let { names[id] = it }
+            }
+            return names
+        }
+
         const val FORMAT = "misty-steps-backup"
         const val VERSION = 1
 
@@ -114,6 +129,7 @@ data class Backup(
                 appVersion = root.optString("app"),
                 distanceM = root.optDouble("distanceM", 0.0),
                 character = root.optString("character").ifBlank { null },
+                characterNames = readNames(root.optJSONObject("characterNames")),
                 sessions = (0 until sessions.length()).map { i ->
                     val s = sessions.getJSONObject(i)
                     Session(
