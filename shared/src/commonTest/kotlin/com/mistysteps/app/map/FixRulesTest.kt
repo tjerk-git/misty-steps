@@ -1,10 +1,10 @@
 package com.mistysteps.app.map
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertSame
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 class FixRulesTest {
     private fun fix(time: Long, accuracy: Float? = 10f) = Fix(53.2, 5.8, bearing = null, speed = null, accuracy = accuracy, time = time)

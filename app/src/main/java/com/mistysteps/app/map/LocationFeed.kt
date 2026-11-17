@@ -9,39 +9,15 @@ import android.os.Bundle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-data class Fix(
-    val lat: Double,
-    val lon: Double,
-    val bearing: Float?,
-    val speed: Float?,
-    val accuracy: Float?,
-    val time: Long,
-)
-
-object FixRules {
-    const val MAX_AGE_MS = 10_000L
-
-    /** The newest fix wins; at the same moment the more accurate one does. */
-    fun prefer(current: Fix?, candidate: Fix): Fix = when {
-        current == null -> candidate
-        candidate.time > current.time -> candidate
-        candidate.time < current.time -> current
-        (candidate.accuracy ?: Float.MAX_VALUE) < (current.accuracy ?: Float.MAX_VALUE) -> candidate
-        else -> current
-    }
-
-    fun isStale(fix: Fix, now: Long): Boolean = now - fix.time > MAX_AGE_MS
-}
-
 /**
  * Where you are, for the map: the character, the camera and pins use it. It listens to GPS itself while the map
  * is open; [offer] lets the recording service hand over its fixes too, so both feed the same value.
  */
-class LocationFeed(context: Context) {
+class LocationFeed(context: Context) : LocationSource {
     private val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     private val _fix = MutableStateFlow<Fix?>(null)
-    val fix: StateFlow<Fix?> = _fix
+    override val fix: StateFlow<Fix?> = _fix
 
     private var listening = false
 
@@ -70,7 +46,7 @@ class LocationFeed(context: Context) {
 
     /** Starts listening; the caller has checked the location permission. */
     @SuppressLint("MissingPermission")
-    fun start() {
+    override fun start() {
         if (listening) return
         listening = true
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -79,7 +55,7 @@ class LocationFeed(context: Context) {
         }
     }
 
-    fun stop() {
+    override fun stop() {
         if (!listening) return
         listening = false
         manager.removeUpdates(listener)
