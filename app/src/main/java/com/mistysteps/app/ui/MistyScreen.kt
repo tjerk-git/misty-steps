@@ -123,6 +123,7 @@ fun MistyScreen() {
     var showPicker by rememberSaveable { mutableStateOf(false) }
     var pickerPreselect by rememberSaveable { mutableStateOf(listOf<String>()) }
     val catalog by rememberCatalog()
+    val packManager = rememberPackManager()
     val inVehicle by FogStore.inVehicle.collectAsState()
     var dialog by remember { mutableStateOf<PermissionDialog?>(null) }
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
@@ -466,7 +467,7 @@ fun MistyScreen() {
             AboutScreen(versionName = BuildConfig.VERSION_NAME, feedbackDetails = feedbackDetails(), onClose = { showAbout = false })
         }
         if (showPicker) {
-            ProvincePickerScreen(catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })
+            ProvincePickerScreen(catalog?.provinces, packManager, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })
         }
         if (firstRun == FirstRunStage.ONBOARDING.name) {
             val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); finishStep(FirstRunStage.ONBOARDING) }
@@ -481,7 +482,7 @@ fun MistyScreen() {
         }
         if (firstRun == FirstRunStage.PICKER.name) {
             ProvincePickerScreen(
-                catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser,
+                catalog?.provinces, packManager, pickerPreselect.toSet(), existingUser,
                 onDone = {
                     hints.edit().putBoolean(ONBOARDING_DONE, true).putBoolean(PICKER_SEEN, true).apply()
                     finishStep(FirstRunStage.PICKER)

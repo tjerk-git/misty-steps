@@ -51,13 +51,13 @@ class PickerStateTest {
         File(tmp.root, "2026/fr/map.pmtiles").apply { parentFile!!.mkdirs(); writeBytes(ByteArray(1)) }
         packs.markDownloading("dr", 5, 41)
         val state = PickerState(options).toggle("fr").toggle("dr").toggle("zh")
-        assertEquals(listOf("zh"), state.toDownload(packs).map { it.id })
+        assertEquals(listOf("zh"), state.toDownload(packs::state).map { it.id })
     }
 
     @Test
     fun toDownloadRetriesAFailedProvince() {
         val packs = ProvincePacks(tmp.root)
         packs.markFailed("fr", Reason.NETWORK)
-        assertEquals(listOf("fr"), PickerState(options).toggle("fr").toDownload(packs).map { it.id })
+        assertEquals(listOf("fr"), PickerState(options).toggle("fr").toDownload(packs::state).map { it.id })
     }
 }

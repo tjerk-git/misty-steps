@@ -1,8 +1,5 @@
 package com.mistysteps.app.ui
 
-import android.content.Context
-import android.net.ConnectivityManager
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,20 +33,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mistysteps.app.R
-import com.mistysteps.app.maps.Catalog
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.data_download
+import com.mistysteps.app.resources.data_wait_wifi
+import com.mistysteps.app.resources.data_warning
+import com.mistysteps.app.resources.maps_data_year
+import com.mistysteps.app.resources.maps_downloading
+import com.mistysteps.app.resources.picker_existing
+import com.mistysteps.app.resources.picker_later
+import com.mistysteps.app.resources.picker_offline
+import com.mistysteps.app.resources.picker_skip
+import com.mistysteps.app.resources.picker_title
+import com.mistysteps.app.resources.picker_total
+import com.mistysteps.app.resources.picker_download
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import com.mistysteps.app.maps.DownloadPolicy
-import com.mistysteps.app.maps.PackDownloads
+import com.mistysteps.app.maps.PackManager
+import com.mistysteps.app.maps.percent
+import com.mistysteps.app.maps.PackEntry
 import com.mistysteps.app.maps.PackState
 import com.mistysteps.app.maps.PickerState
-import com.mistysteps.app.maps.ProvincePacks
 import com.mistysteps.app.maps.formatSize
 
 /**
@@ -59,24 +67,23 @@ import com.mistysteps.app.maps.formatSize
  */
 @Composable
 fun ProvincePickerScreen(
-    catalog: Catalog?,
-    packs: ProvincePacks,
+    provinces: List<PackEntry>?,
+    packs: PackManager,
     preselected: Set<String>,
     existingUser: Boolean,
     onDone: () -> Unit,
 ) {
-    BackHandler(onBack = onDone)
-    val context = LocalContext.current
+    PlatformBackHandler(onBack = onDone)
     packs.version.collectAsState().value // recompose when a download starts or finishes
     // Saved as a list: it survives rotation and the app being killed in the background.
     var ticked by rememberSaveable { mutableStateOf(preselected.toList()) }
     var askAboutData by rememberSaveable { mutableStateOf(false) }
-    val state = PickerState(catalog?.provinces.orEmpty(), ticked.toSet())
-    val toDownload = catalog?.let { state.toDownload(packs) }.orEmpty()
+    val state = PickerState(provinces.orEmpty(), ticked.toSet())
+    val toDownload = if (provinces != null) state.toDownload(packs::state) else emptyList()
     val downloadBytes = toDownload.sumOf { it.map.bytes }
 
     fun start(unmeteredOnly: Boolean) {
-        toDownload.forEach { PackDownloads.enqueue(context, it, unmeteredOnly) }
+        toDownload.forEach { packs.download(it, unmeteredOnly) }
         onDone()
     }
 
@@ -93,7 +100,7 @@ fun ProvincePickerScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
             Text(
-                stringResource(R.string.picker_title),
+                stringResource(Res.string.picker_title),
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 24.sp,
@@ -101,12 +108,12 @@ fun ProvincePickerScreen(
             )
             if (existingUser) {
                 Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.picker_existing), fontSize = 14.sp, lineHeight = 20.sp, color = Dusk)
+                Text(stringResource(Res.string.picker_existing), fontSize = 14.sp, lineHeight = 20.sp, color = Dusk)
             }
             Spacer(Modifier.height(16.dp))
 
-            if (catalog == null) {
-                Text(stringResource(R.string.picker_offline), fontSize = 16.sp, color = Dusk)
+            if (provinces == null) {
+                Text(stringResource(Res.string.picker_offline), fontSize = 16.sp, color = Dusk)
                 Spacer(Modifier.weight(1f))
             } else {
                 Surface(
@@ -139,8 +146,8 @@ fun ProvincePickerScreen(
                                 Column(Modifier.weight(1f)) {
                                     Text(entry.name, color = Ink, fontSize = 16.sp)
                                     val note = when (packState) {
-                                        is PackState.Ready -> stringResource(R.string.maps_data_year, packState.year)
-                                        is PackState.Downloading -> stringResource(R.string.maps_downloading, percent(packState))
+                                        is PackState.Ready -> stringResource(Res.string.maps_data_year, packState.year)
+                                        is PackState.Downloading -> stringResource(Res.string.maps_downloading, percent(packState))
                                         else -> null
                                     }
                                     if (note != null) Text(note, color = Dusk, fontSize = 12.sp)
@@ -153,9 +160,9 @@ fun ProvincePickerScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-            if (catalog != null) {
+            if (provinces != null) {
                 Text(
-                    stringResource(R.string.picker_total, formatSize(state.totalBytes)),
+                    stringResource(Res.string.picker_total, formatSize(state.totalBytes)),
                     color = Ink,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(start = 4.dp),
@@ -163,21 +170,20 @@ fun ProvincePickerScreen(
                 Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        val metered = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).isActiveNetworkMetered
-                        if (DownloadPolicy.needsDataWarning(metered, downloadBytes)) askAboutData = true else start(unmeteredOnly = false)
+                        if (DownloadPolicy.needsDataWarning(packs.isMetered(), downloadBytes)) askAboutData = true else start(unmeteredOnly = false)
                     },
                     enabled = toDownload.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
                 ) {
-                    Text(pluralStringResource(R.plurals.picker_download, toDownload.size, toDownload.size), fontSize = 16.sp)
+                    Text(pluralStringResource(Res.plurals.picker_download, toDownload.size, toDownload.size), fontSize = 16.sp)
                 }
             }
             TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.picker_skip), color = Dusk)
+                Text(stringResource(Res.string.picker_skip), color = Dusk)
             }
             Text(
-                stringResource(R.string.picker_later),
+                stringResource(Res.string.picker_later),
                 color = Dusk,
                 fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
@@ -189,20 +195,18 @@ fun ProvincePickerScreen(
     if (askAboutData) {
         AlertDialog(
             onDismissRequest = { askAboutData = false },
-            text = { Text(stringResource(R.string.data_warning, formatSize(downloadBytes))) },
+            text = { Text(stringResource(Res.string.data_warning, formatSize(downloadBytes))) },
             confirmButton = {
                 TextButton(onClick = { askAboutData = false; start(unmeteredOnly = false) }) {
-                    Text(stringResource(R.string.data_download))
+                    Text(stringResource(Res.string.data_download))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { askAboutData = false; start(unmeteredOnly = true) }) {
-                    Text(stringResource(R.string.data_wait_wifi))
+                    Text(stringResource(Res.string.data_wait_wifi))
                 }
             },
         )
     }
 }
 
-internal fun percent(state: PackState.Downloading): Int =
-    if (state.total > 0) (state.bytes * 100 / state.total).toInt().coerceIn(0, 100) else 0

@@ -22,6 +22,7 @@ fun AndroidStatsScreen(
     val context = LocalContext.current
     val source = remember { AndroidStatsSource(context) }
     val catalog by rememberCatalog()
+    val packManager = rememberPackManager()
     StatsScreen(
         source = source,
         pins = PinStore.pins,
@@ -29,7 +30,7 @@ fun AndroidStatsScreen(
         versionName = BuildConfig.VERSION_NAME,
         showBattery = BatteryLog.enabled,
         slots = StatsSlots(
-            mapsCard = { YourMapsCard(catalog, onOpenPicker) },
+            mapsCard = { YourMapsCard(catalog?.provinces, packManager, onOpenPicker) },
             backupCard = { onImported -> BackupCard(rememberAndroidBackupHost(), onImported) },
             usageCard = { UsageCountsSwitch() },
             onFeedback = { sendFeedback(context) },

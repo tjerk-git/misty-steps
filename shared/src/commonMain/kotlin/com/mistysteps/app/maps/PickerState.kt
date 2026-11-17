@@ -13,9 +13,9 @@ class PickerState(allOptions: List<PackEntry>, preselected: Set<String> = emptyS
     fun toggle(id: String): PickerState = PickerState(options, if (id in selected) selected - id else selected + id)
 
     /** The ticked provinces that still need downloading: not installed and not already on their way. */
-    fun toDownload(packs: ProvincePacks): List<PackEntry> =
+    fun toDownload(stateOf: (PackEntry) -> PackState): List<PackEntry> =
         options.filter { it.id in selected }.filter {
-            when (packs.state(it)) {
+            when (stateOf(it)) {
                 is PackState.Ready, is PackState.Downloading -> false
                 else -> true
             }
