@@ -6,6 +6,7 @@ import SwiftUI
 /// The map, drawn from the Misty style over a downloaded province pack, with the fog on top.
 struct MapView: UIViewRepresentable {
     var coordinate: CLLocationCoordinate2D?
+    let locationModel: LocationModel
     var styleJSON: String?
     let fogModel: FogModel
     let pinsModel: PinsModel
@@ -19,14 +20,18 @@ struct MapView: UIViewRepresentable {
         let map = MLNMapView(frame: .zero)
         map.delegate = context.coordinator
         map.setCenter(CLLocationCoordinate2D(latitude: 53.2012, longitude: 5.7936), zoomLevel: 15, animated: false)
-        map.showsUserLocation = true
+        map.showsUserLocation = false // the character shows where you are
         map.logoView.isHidden = true
         map.allowsRotating = false
         map.allowsTilting = false
         let fog = FogOverlayView(map: map, model: fogModel)
         fog.enabled = UserDefaults.standard.string(forKey: "fog") != "0"
         map.addSubview(fog)
+        let character = CharacterOverlayView(map: map)
+        map.addSubview(character)
         context.coordinator.fog = fog
+        context.coordinator.character = character
+        locationModel.observeFixes { [weak character] in character?.offer($0) }
         context.coordinator.model = fogModel
         context.coordinator.pinsModel = pinsModel
         fogModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshTrail() }
@@ -70,6 +75,7 @@ struct MapView: UIViewRepresentable {
         var status: Binding<String>?
         var following: Binding<Bool>?
         var fog: FogOverlayView?
+        var character: CharacterOverlayView?
         var model: FogModel?
         var pinsModel: PinsModel?
         var onOpenPin: (Int64) -> Void = { _ in }
@@ -87,8 +93,8 @@ struct MapView: UIViewRepresentable {
         private var perfStart: CFTimeInterval = 0
         private weak var perfMap: MLNMapView?
 
-        func mapViewRegionIsChanging(_ mapView: MLNMapView) { fog?.mapMoved() }
-        func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) { fog?.mapMoved() }
+        func mapViewRegionIsChanging(_ mapView: MLNMapView) { fog?.mapMoved(); character?.refresh() }
+        func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) { fog?.mapMoved(); character?.refresh() }
 
         /// Dragging or pinching the map stops following; the recentre button starts it again.
         func mapView(_ mapView: MLNMapView, regionWillChangeWith reason: MLNCameraChangeReason, animated: Bool) {
@@ -206,26 +212,7 @@ struct MapView: UIViewRepresentable {
         }
 
         private static func pinImage(_ label: PinLabel) -> UIImage? {
-            let pixels = PinSprites.shared.pixels(label: label)
-            let n = 18, scale = 3
-            var rgba = [UInt8](repeating: 0, count: n * n * 4)
-            for i in 0..<(n * n) {
-                let p = UInt32(bitPattern: pixels.get(index: Int32(i)))
-                let a = (p >> 24) & 255
-                rgba[4 * i] = UInt8(((p >> 16) & 255) * a / 255)
-                rgba[4 * i + 1] = UInt8(((p >> 8) & 255) * a / 255)
-                rgba[4 * i + 2] = UInt8((p & 255) * a / 255)
-                rgba[4 * i + 3] = UInt8(a)
-            }
-            guard let ctx = CGContext(data: &rgba, width: n, height: n, bitsPerComponent: 8, bytesPerRow: n * 4,
-                                      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
-                  let small = ctx.makeImage() else { return nil }
-            let size = CGSize(width: n * scale, height: n * scale)
-            let format = UIGraphicsImageRendererFormat(); format.scale = 1
-            return UIGraphicsImageRenderer(size: size, format: format).image { r in
-                r.cgContext.interpolationQuality = .none
-                r.cgContext.draw(small, in: CGRect(origin: .zero, size: size))
-            }
+            PixelImage.make(pixels: PinSprites.shared.pixels(label: label))
         }
 
         @objc func longPressed(_ g: UILongPressGestureRecognizer) {

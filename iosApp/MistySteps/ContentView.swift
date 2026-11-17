@@ -43,7 +43,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(coordinate: location.coordinate, styleJSON: packs.styleJSON, fogModel: fog, pinsModel: pins,
+            MapView(coordinate: location.coordinate, locationModel: location, styleJSON: packs.styleJSON, fogModel: fog, pinsModel: pins,
                     onOpenPin: { pinSheet = .open(id: $0) },
                     onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },

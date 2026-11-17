@@ -6,6 +6,9 @@ final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var coordinate: CLLocationCoordinate2D?
     /// Every fix, for the recorder (the published coordinate only drives the camera).
     var onFix: ((CLLocation) -> Void)?
+    /// More listeners for every fix (the character on the map).
+    private var observers: [(CLLocation) -> Void] = []
+    func observeFixes(_ f: @escaping (CLLocation) -> Void) { observers.append(f) }
     private let manager = CLLocationManager()
 
     override init() {
@@ -20,7 +23,7 @@ final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        for l in locations { onFix?(l) }
+        for l in locations { onFix?(l); observers.forEach { $0(l) } }
         coordinate = locations.last?.coordinate
     }
 
