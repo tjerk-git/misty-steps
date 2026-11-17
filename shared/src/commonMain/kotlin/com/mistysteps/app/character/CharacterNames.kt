@@ -16,11 +16,13 @@ object CharacterNames {
         var pendingSpace = false
         var i = 0
         while (i < raw.length && count < MAX_LENGTH) {
-            val cp = raw.codePointAt(i)
-            i += java.lang.Character.charCount(cp)
+            val c = raw[i]
+            // A surrogate pair is one character to the user: keep both halves together.
+            val pair = c.isHighSurrogate() && i + 1 < raw.length && raw[i + 1].isLowSurrogate()
+            i += if (pair) 2 else 1
             when {
-                java.lang.Character.isWhitespace(cp) -> pendingSpace = out.isNotEmpty()
-                java.lang.Character.isISOControl(cp) -> Unit
+                !pair && c.isWhitespace() -> pendingSpace = out.isNotEmpty()
+                !pair && c.isISOControl() -> Unit
                 else -> {
                     if (pendingSpace) {
                         out.append(' ')
@@ -28,7 +30,8 @@ object CharacterNames {
                         pendingSpace = false
                         if (count >= MAX_LENGTH) break
                     }
-                    out.appendCodePoint(cp)
+                    out.append(c)
+                    if (pair) out.append(raw[i - 1])
                     count++
                 }
             }

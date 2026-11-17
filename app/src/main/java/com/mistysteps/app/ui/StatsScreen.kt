@@ -51,6 +51,7 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.PinStore
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinLabel
+import com.mistysteps.app.pin.textRes
 import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.data.Session
 import com.mistysteps.app.debug.BatteryLog
@@ -333,7 +334,7 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
                     PinIcon(icons.getValue(label), 28)
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "${stringResource(label.text)} (${labelPins.size})",
+                        "${stringResource(label.textRes)} (${labelPins.size})",
                         color = Ink,
                         fontSize = 15.sp,
                         modifier = Modifier.weight(1f),
@@ -352,7 +353,7 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
                             PinIcon(icons.getValue(pin.label), 18)
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                pin.note ?: stringResource(pin.label.text),
+                                pin.note ?: stringResource(pin.label.textRes),
                                 color = Ink,
                                 fontSize = 14.sp,
                                 maxLines = 1,

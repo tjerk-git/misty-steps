@@ -70,8 +70,8 @@ class Trails {
             var dLon = lon2 - lon1
             if (dLon > 180) dLon -= 360
             if (dLon < -180) dLon += 360
-            val x = Math.toRadians(dLon) * cos(Math.toRadians((lat1 + lat2) / 2))
-            val y = Math.toRadians(lat2 - lat1)
+            val x = toRadians(dLon) * cos(toRadians((lat1 + lat2) / 2))
+            val y = toRadians(lat2 - lat1)
             return sqrt(x * x + y * y) * 6_371_000.0
         }
     }

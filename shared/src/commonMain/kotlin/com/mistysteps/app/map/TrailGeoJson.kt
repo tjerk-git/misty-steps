@@ -29,7 +29,7 @@ object TrailGeoJson {
             for (i in 1..last) {
                 val x = xy[2 * i]
                 val y = xy[2 * i + 1]
-                if (i != last && Math.abs(x - lx) < step && Math.abs(y - ly) < step) continue
+                if (i != last && kotlin.math.abs(x - lx) < step && kotlin.math.abs(y - ly) < step) continue
                 append(out, x, y, firstPoint = false)
                 lx = x
                 ly = y
@@ -45,5 +45,5 @@ object TrailGeoJson {
     }
 
     /** Seven decimals is about a centimetre. */
-    private fun round(v: Double): Double = Math.round(v * 1e7) / 1e7
+    private fun round(v: Double): Double = kotlin.math.floor(v * 1e7 + 0.5) / 1e7
 }

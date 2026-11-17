@@ -48,7 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinGroup
+import com.mistysteps.app.pin.titleRes
 import com.mistysteps.app.pin.PinLabel
+import com.mistysteps.app.pin.textRes
 import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.pin.PinSprites
 import java.text.DateFormat
@@ -132,7 +134,7 @@ fun PinDetailSheet(
                     PinIcon(icons.getValue(pin.label), 48)
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(stringResource(pin.label.text), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(pin.label.textRes), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                         val placed = buildList {
                             add(day.format(Date(pin.time)))
                             pin.sessionId?.let { add(stringResource(R.string.pin_on_walk, day.format(Date(it)))) }
@@ -218,7 +220,7 @@ private fun SheetTitle(text: String) {
 private fun LabelPicker(selected: PinLabel?, onSelect: (PinLabel) -> Unit) {
     val icons = rememberPinIcons()
     for (group in PinGroup.entries) {
-        Text(stringResource(group.title).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+        Text(stringResource(group.titleRes).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (label in PinLabel.entries.filter { it.group == group }) {
@@ -249,7 +251,7 @@ private fun LabelTile(label: PinLabel, icon: ImageBitmap, selected: Boolean, mod
         PinIcon(icon, 40)
         Spacer(Modifier.height(4.dp))
         Text(
-            stringResource(label.text),
+            stringResource(label.textRes),
             fontSize = 11.sp,
             lineHeight = 13.sp,
             color = Ink,

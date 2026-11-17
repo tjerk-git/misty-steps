@@ -1,5 +1,6 @@
 package com.mistysteps.app.stats
 
+import com.mistysteps.app.data.toRadians
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
@@ -102,8 +103,8 @@ class Boundary(
             var total = 0.0
             for (i in 0 until n) {
                 val j = (i + 1) % n
-                val lon1 = Math.toRadians(ring[2 * i]); val lat1 = Math.toRadians(ring[2 * i + 1])
-                val lon2 = Math.toRadians(ring[2 * j]); val lat2 = Math.toRadians(ring[2 * j + 1])
+                val lon1 = toRadians(ring[2 * i]); val lat1 = toRadians(ring[2 * i + 1])
+                val lon2 = toRadians(ring[2 * j]); val lat2 = toRadians(ring[2 * j + 1])
                 total += (lon2 - lon1) * (2 + sin(lat1) + sin(lat2))
             }
             return total * R * R / 2

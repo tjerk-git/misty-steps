@@ -1,5 +1,6 @@
 package com.mistysteps.app.stats
 
+import com.mistysteps.app.data.toRadians
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sqrt
@@ -37,7 +38,7 @@ object StreetCoverage {
     fun compute(streets: List<Street>, trail: DoubleArray, inside: (Double, Double) -> Boolean): StreetStats {
         if (streets.isEmpty()) return StreetStats(0, 0, emptyList())
         val refLat = streets.first().lines.first()[1]
-        val kx = M_PER_DEG * cos(Math.toRadians(refLat)) // metres per degree of longitude here
+        val kx = M_PER_DEG * cos(toRadians(refLat)) // metres per degree of longitude here
         val grid = Grid(trail, kx)
 
         val progress = ArrayList<StreetProgress>()

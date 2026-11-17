@@ -52,7 +52,7 @@ object OsmRings {
     /** [a] followed by [b] without repeating the shared node. */
     private fun join(a: DoubleArray, b: DoubleArray): DoubleArray {
         val out = a.copyOf(a.size + b.size - 2)
-        System.arraycopy(b, 2, out, a.size, b.size - 2)
+        b.copyInto(out, a.size, 2, b.size)
         return out
     }
 

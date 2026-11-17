@@ -18,7 +18,7 @@ object Mercator {
 
     fun y(lat: Double): Double {
         val clamped = lat.coerceIn(-MAX_LAT, MAX_LAT)
-        val s = sin(Math.toRadians(clamped))
+        val s = sin(toRadians(clamped))
         return 0.5 - ln((1 + s) / (1 - s)) / (4 * PI)
     }
 
@@ -26,11 +26,11 @@ object Mercator {
     fun lon(x: Double): Double = x * 360.0 - 180.0
 
     /** Inverse of [y]. */
-    fun lat(y: Double): Double = Math.toDegrees(kotlin.math.atan(kotlin.math.sinh(PI * (1 - 2 * y))))
+    fun lat(y: Double): Double = toDegrees(kotlin.math.atan(kotlin.math.sinh(PI * (1 - 2 * y))))
 
     /** Length of [meters] on the ground at [lat], expressed in normalised mercator units. */
     fun metersToUnits(meters: Double, lat: Double): Double {
         val clamped = lat.coerceIn(-MAX_LAT, MAX_LAT)
-        return meters / (EARTH_CIRCUMFERENCE_M * cos(Math.toRadians(clamped)))
+        return meters / (EARTH_CIRCUMFERENCE_M * cos(toRadians(clamped)))
     }
 }

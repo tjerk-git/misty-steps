@@ -18,7 +18,6 @@ interface Downloader {
     fun open(url: String, from: Long): Response
 }
 
-enum class Reason { NETWORK, CHECKSUM, NO_SPACE }
 
 sealed class InstallResult {
     object Done : InstallResult()

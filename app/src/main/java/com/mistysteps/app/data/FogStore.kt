@@ -21,7 +21,7 @@ import kotlin.math.ceil
  */
 object FogStore {
     /** Radius of fog cleared around every recorded spot. */
-    const val CLEAR_RADIUS_M = 50.0
+    const val CLEAR_RADIUS_M = FogConstants.CLEAR_RADIUS_M
 
     /** The spot where a walk starts gets a bigger clearing. */
     const val START_CLEAR_RADIUS_M = 100.0

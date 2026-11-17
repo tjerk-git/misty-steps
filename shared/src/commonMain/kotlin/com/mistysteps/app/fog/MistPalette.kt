@@ -1,5 +1,7 @@
 package com.mistysteps.app.fog
 
+import com.mistysteps.app.data.toDegrees
+import com.mistysteps.app.data.toRadians
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -41,16 +43,16 @@ object MistPalette {
     /** The sun's height above the horizon in degrees (low-precision formula, good to ~1°). */
     fun sunElevation(epochMs: Long, lat: Double, lon: Double): Double {
         val d = epochMs / 86_400_000.0 - 10_957.5 // days since J2000 (2000-01-01 12:00 UTC)
-        val g = Math.toRadians((357.529 + 0.98560028 * d).mod(360.0))
+        val g = toRadians((357.529 + 0.98560028 * d).mod(360.0))
         val q = (280.459 + 0.98564736 * d).mod(360.0)
-        val l = Math.toRadians(q + 1.915 * sin(g) + 0.020 * sin(2 * g))
-        val e = Math.toRadians(23.439 - 0.00000036 * d)
+        val l = toRadians(q + 1.915 * sin(g) + 0.020 * sin(2 * g))
+        val e = toRadians(23.439 - 0.00000036 * d)
         val ra = atan2(cos(e) * sin(l), cos(l))
         val dec = asin(sin(e) * sin(l))
         val gmstDeg = (280.46061837 + 360.98564736629 * d).mod(360.0)
-        val ha = Math.toRadians(gmstDeg + lon) - ra
-        val phi = Math.toRadians(lat)
-        return Math.toDegrees(asin(sin(phi) * sin(dec) + cos(phi) * cos(dec) * cos(ha)))
+        val ha = toRadians(gmstDeg + lon) - ra
+        val phi = toRadians(lat)
+        return toDegrees(asin(sin(phi) * sin(dec) + cos(phi) * cos(dec) * cos(ha)))
     }
 
     private fun argb(a: Int, r: Int, g: Int, b: Int) = (a shl 24) or (r shl 16) or (g shl 8) or b

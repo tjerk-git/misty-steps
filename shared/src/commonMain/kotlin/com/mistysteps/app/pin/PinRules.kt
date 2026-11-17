@@ -22,7 +22,7 @@ object PinRules {
         var s = raw.replace(lineBreaks, " ").trim()
         if (s.length > NOTE_MAX) {
             s = s.take(NOTE_MAX)
-            if (Character.isHighSurrogate(s.last())) s = s.dropLast(1)
+            if (s.last().isHighSurrogate()) s = s.dropLast(1)
             s = s.trim()
         }
         return s.ifEmpty { null }

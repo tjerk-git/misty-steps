@@ -6,8 +6,6 @@ import com.mistysteps.app.stats.Boundary
 import org.json.JSONArray
 import org.json.JSONObject
 
-class Province(val id: String, val name: String, val boundary: Boundary)
-
 /**
  * The twelve Dutch provinces, from `assets/nl-provinces.json`: which one a coordinate is in, all on the
  * phone. Borders are simplified (about 300 m), good enough to pick a map to download.

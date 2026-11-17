@@ -5,14 +5,6 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-sealed class PackState {
-    object NotDownloaded : PackState()
-    class Downloading(val bytes: Long, val total: Long) : PackState()
-    class Ready(val year: Int) : PackState()
-    class UpdateAvailable(val installedYear: Int, val newYear: Int) : PackState()
-    class Failed(val reason: Reason) : PackState()
-}
-
 /**
  * The map packs on this phone, in `<root>/<year>/<province id>/map.pmtiles` (root is `filesDir/maps/nl`).
  * What is installed comes from the files; "downloading" and "failed" are remembered while the app runs.

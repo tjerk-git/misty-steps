@@ -74,6 +74,7 @@ kotlin {
 
 dependencies {
     // The map: MapLibre Native, drawing the downloaded province packs.
+    implementation(project(":shared"))
     implementation("org.maplibre.gl:android-sdk:11.8.0")
 
     implementation("androidx.core:core-ktx:1.15.0")

@@ -325,15 +325,6 @@ class TrailDatabase(context: Context) :
     }
 }
 
-data class TrailPoint(
-    val lat: Double,
-    val lon: Double,
-    val time: Long,
-    val radius: Double = FogStore.CLEAR_RADIUS_M,
-    /** The walk this spot belongs to; null for spots from before walks were logged. */
-    val sessionId: Long? = null,
-)
-
 /** One walk: from "Start wandering" to stop. */
 data class Session(
     val id: Long,

@@ -1,5 +1,6 @@
 package com.mistysteps.app.map
 
+import com.mistysteps.app.data.toRadians
 import com.mistysteps.app.data.Mercator
 import kotlin.math.cos
 import kotlin.math.pow
@@ -49,7 +50,7 @@ class MercatorProjection(
     )
 
     override fun metersToPixels(meters: Double, lat: Double): Float =
-        (meters / (EARTH_CIRCUMFERENCE * cos(Math.toRadians(lat)) / worldSizePx)).toFloat()
+        (meters / (EARTH_CIRCUMFERENCE * cos(toRadians(lat)) / worldSizePx)).toFloat()
 
     private companion object {
         const val EARTH_CIRCUMFERENCE = 40_075_016.686
