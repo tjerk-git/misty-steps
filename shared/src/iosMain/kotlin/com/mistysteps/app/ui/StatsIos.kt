@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
 import com.mistysteps.app.data.PointStore
 import com.mistysteps.app.data.SessionStore
+import com.mistysteps.app.data.BackupHost
 import com.mistysteps.app.maps.PackEntry
 import com.mistysteps.app.maps.PackManager
 import com.mistysteps.app.offline.CityIndex
@@ -43,6 +44,7 @@ fun statsViewController(
     hereLon: Double?,
     versionName: String,
     pins: StateFlow<List<Pin>>,
+    backup: BackupHost,
     packs: PackManager,
     provinces: List<PackEntry>?,
     onOpenPicker: () -> Unit,
@@ -62,7 +64,7 @@ fun statsViewController(
             showBattery = false,
             slots = StatsSlots(
                 mapsCard = { YourMapsCard(provinces, packs, onOpenPicker) },
-                backupCard = { _ -> }, // backup comes to iOS later
+                backupCard = { onImported -> BackupCard(backup, onImported) },
                 usageCard = {
                     UsageCountsCard(
                         optedIn = optedIn,

@@ -5,9 +5,9 @@ import Shared
 /// The cleared spots (in the shared PointIndex) and the walk being recorded (shared WalkRecorder).
 /// Main thread only. `onChange` tells the fog to redraw.
 final class FogModel: ObservableObject {
-    let index = PointIndex()
+    private(set) var index = PointIndex()
     /// The lines of every walk, for drawing.
-    let trails = Trails()
+    private(set) var trails = Trails()
     private(set) var version: Int32 = 0
     private var observers: [() -> Void] = []
 
@@ -44,6 +44,19 @@ final class FogModel: ObservableObject {
             lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
         }
         version += 1
+    }
+
+    /// Reads every spot from the store again (after an import).
+    func reload() {
+        index = PointIndex()
+        trails = Trails()
+        for p in store.loadAll() {
+            index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
+            trails.add(p: p, newSegment: false)
+            lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+        }
+        version += 1
+        notify()
     }
 
     /// "Start wandering": a new walk, its own line, logged in the store.

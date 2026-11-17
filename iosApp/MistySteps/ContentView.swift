@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var pinSheet: PinSheetTarget?
     @StateObject private var postcards = PostcardPainterImpl(store: ContentView.store)
     @State private var postcardWalk: Int64?
+    @State private var backupHost: IosBackupHost?
     @State private var hint: String?
 
     /// One database file for the spots, walks and pins.
@@ -102,8 +103,8 @@ struct ContentView: View {
                                onDone: { app.finishPicker(hasTrailPoints: fog.count > 0) })
                     .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
                     .ignoresSafeArea()
-            case .stats:
-                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, packs: packs.manager, provinces: packs.provinces,
+            case .stats where backupHost != nil:
+                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, backup: backupHost!, packs: packs.manager, provinces: packs.provinces,
                               onOpenPicker: { app.route = .picker }, onOpenAbout: { app.route = .about },
                               onOpenWalk: { id in app.close(); postcardWalk = id },
                               onClose: { app.close() })
@@ -113,14 +114,32 @@ struct ContentView: View {
                 AboutHostView(onClose: { app.close() }).ignoresSafeArea()
             case .characters:
                 CharacterHostView(onClose: { app.close() }).ignoresSafeArea()
-            case nil:
+            default:
                 EmptyView()
             }
         }
         .onAppear {
             app.pickerAvailable = true
             postcards.pins = pins.book
+            let backup = BackupPlatform(store: fog.store, fog: fog, pins: pins)
+            backupHost = IosBackupHost(files: backup, data: backup, versionName: appVersion)
             postcards.packs = packs
+            // Test hooks: -backuptest export|import -backuppath <file> runs the backup host without the file dialogs.
+            if let mode = UserDefaults.standard.string(forKey: "backuptest"), let host = backupHost {
+                if mode == "export" {
+                    host.export { counts, error in
+                        fputs("BACKUP export: \(counts.map { "\($0.points) points, \($0.walks) walks, \($0.pins) pins" } ?? "none") \(error.map { "error \($0)" } ?? "")\n", stderr)
+                    }
+                } else if mode == "import" {
+                    host.pickImport { pending, error in
+                        guard let pending else { fputs("BACKUP import: nothing to import \(error.map { "error \($0)" } ?? "")\n", stderr); return }
+                        fputs("BACKUP import: file has \(pending.counts.points) points, \(pending.counts.walks) walks, \(pending.counts.pins) pins\n", stderr)
+                        host.confirmImport(pending: pending) { added, error in
+                            fputs("BACKUP import: added \(added.map { "\($0.points) points, \($0.walks) walks, \($0.pins) pins" } ?? "none") \(error.map { "error \($0)" } ?? "")\n", stderr)
+                        }
+                    }
+                }
+            }
             // Test hook: -postcard last opens the postcard of the newest walk.
             if UserDefaults.standard.string(forKey: "postcard") == "last",
                let newest = (fog.store.loadSessions(limit: KotlinInt(value: 1)) as? [Session])?.first { postcardWalk = newest.id }
@@ -155,6 +174,7 @@ struct ContentView: View {
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
         }
+        .onChange(of: fog.session?.id) { _, _ in backupHost?.setRecording(value: fog.session != nil) }
         .onChange(of: fog.finished?.id) { _, id in
             // A postcard when a walk ends (not for tiny ones, like a start-stop by mistake).
             if let walk = fog.finished, let id, walk.distanceM >= StatsScreenKt.MIN_WALK_M { postcardWalk = id }

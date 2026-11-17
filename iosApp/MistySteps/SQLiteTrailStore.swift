@@ -197,6 +197,60 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         return out
     }
 
+    /// Adds a backup's walks and spots. Only adds: spots already here (same place and time) and walks already here (same id) are
+    /// skipped, nothing is changed or deleted. Returns how many spots and walks were added.
+    func importData(points: [TrailPoint], sessions: [Session]) -> BackupCounts {
+        var have = Set<String>()
+        var read: OpaquePointer?
+        sqlite3_prepare_v2(db, "SELECT lat, lon, time FROM points", -1, &read, nil)
+        while sqlite3_step(read) == SQLITE_ROW {
+            have.insert("\(sqlite3_column_double(read, 0)),\(sqlite3_column_double(read, 1)),\(sqlite3_column_int64(read, 2))")
+        }
+        sqlite3_finalize(read)
+        var addedSessions: Int32 = 0, addedPoints: Int32 = 0
+        exec("BEGIN")
+        var s: OpaquePointer?
+        sqlite3_prepare_v2(db, """
+            INSERT OR IGNORE INTO sessions (id, start_time, end_time, distance_m, points, battery_start, battery_end, new_area_m2)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, -1, &s, nil)
+        for x in sessions {
+            sqlite3_bind_int64(s, 1, x.id); sqlite3_bind_int64(s, 2, x.startTime)
+            if let e = x.endTime { sqlite3_bind_int64(s, 3, e.int64Value) } else { sqlite3_bind_null(s, 3) }
+            sqlite3_bind_double(s, 4, x.distanceM); sqlite3_bind_int(s, 5, x.points)
+            if let b = x.batteryStart { sqlite3_bind_int(s, 6, b.int32Value) } else { sqlite3_bind_null(s, 6) }
+            if let b = x.batteryEnd { sqlite3_bind_int(s, 7, b.int32Value) } else { sqlite3_bind_null(s, 7) }
+            if let a = x.newAreaM2 { sqlite3_bind_double(s, 8, a.doubleValue) } else { sqlite3_bind_null(s, 8) }
+            sqlite3_step(s)
+            if sqlite3_changes(db) > 0 { addedSessions += 1 }
+            sqlite3_reset(s)
+        }
+        sqlite3_finalize(s)
+        var p: OpaquePointer?
+        sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id) VALUES (?, ?, ?, ?, ?)", -1, &p, nil)
+        for x in points {
+            guard have.insert("\(x.lat),\(x.lon),\(x.time)").inserted else { continue }
+            sqlite3_bind_double(p, 1, x.lat); sqlite3_bind_double(p, 2, x.lon)
+            sqlite3_bind_int64(p, 3, x.time); sqlite3_bind_double(p, 4, x.radius)
+            if let id = x.sessionId { sqlite3_bind_int64(p, 5, id.int64Value) } else { sqlite3_bind_null(p, 5) }
+            sqlite3_step(p)
+            sqlite3_reset(p)
+            addedPoints += 1
+        }
+        sqlite3_finalize(p)
+        exec("COMMIT")
+        return BackupCounts(points: addedPoints, walks: addedSessions, pins: 0)
+    }
+
+    /// Adds a backup's pins, skipping ones already here (same time and place). Returns how many were added.
+    func importPins(_ incoming: [Pin]) -> Int32 {
+        let fresh = PinRules.shared.doNewPins(existing: loadPins(), incoming: incoming) as? [Pin] ?? []
+        for pin in fresh { _ = insertPin(p: pin) }
+        return Int32(fresh.count)
+    }
+
+    func isEmpty() -> Bool { countPoints() == 0 }
+
     func countPoints() -> Int64 {
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM points", -1, &stmt, nil)

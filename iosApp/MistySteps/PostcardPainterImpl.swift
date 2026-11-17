@@ -46,8 +46,7 @@ final class PostcardPainterImpl: NSObject, ObservableObject, PostcardPainter {
             let file = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).png")
             guard (try? png.write(to: file)) != nil else { return }
             let sheet = UIActivityViewController(activityItems: [file], applicationActivities: nil)
-            var top = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.rootViewController
-            while let presented = top?.presentedViewController { top = presented }
+            let top = UIApplication.topViewController()
             sheet.popoverPresentationController?.sourceView = top?.view
             top?.present(sheet, animated: true)
         }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.getString
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,7 +70,7 @@ private class AndroidBackupHost(private val context: Context) : BackupHost {
                 val backup = Backup.fromJson(text)
                 PendingImport(backup.exportedAt, BackupCounts(backup.points.size, backup.sessions.size, backup.pins.size), backup)
             } catch (e: BackupException) {
-                throw BackupFailure(context.getString(e.problem.res))
+                throw BackupFailure(getString(e.problem.res))
             } catch (e: Exception) {
                 throw BackupFailure()
             }

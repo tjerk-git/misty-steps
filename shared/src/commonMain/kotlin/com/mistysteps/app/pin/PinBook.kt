@@ -48,6 +48,12 @@ class PinBook(private val storage: PinStorage) {
         onChanged?.invoke()
     }
 
+    /** Reads every pin from the storage again (after an import). */
+    fun reload() {
+        _pins.value = storage.loadPins()
+        onChanged?.invoke()
+    }
+
     fun byId(id: Long): Pin? = _pins.value.firstOrNull { it.id == id }
 
     /** The pins dropped on one walk, in the order they were placed. */

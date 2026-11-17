@@ -65,6 +65,7 @@ struct StatsHostView: UIViewControllerRepresentable {
     let store: SQLiteTrailStore
     let here: CLLocationCoordinate2D?
     let pins: PinBook
+    let backup: BackupHost
     let packs: PackManager
     let provinces: [PackEntry]?
     var onOpenPicker: () -> Void
@@ -76,7 +77,7 @@ struct StatsHostView: UIViewControllerRepresentable {
         StatsIosKt.statsViewController(
             points: store, sessions: store,
             hereLat: here.map { KotlinDouble(value: $0.latitude) }, hereLon: here.map { KotlinDouble(value: $0.longitude) },
-            versionName: appVersion, pins: pins.pins, packs: packs, provinces: provinces,
+            versionName: appVersion, pins: pins.pins, backup: backup, packs: packs, provinces: provinces,
             onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onOpenWalk: { onOpenWalk($0.int64Value) }, onClose: { onClose() })
     }
 
