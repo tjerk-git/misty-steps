@@ -1,10 +1,10 @@
 import SwiftUI
 import Shared
 
-/// Hosts a Compose Multiplatform screen from the shared module inside SwiftUI.
+/// The shared Compose usage-count switch (anonymous open count), kept in UserDefaults.
 struct SharedHelloView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.sharedHelloViewController()
+        MainViewControllerKt.usageCardViewController(versionName: appVersion)
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
@@ -28,6 +28,21 @@ struct OnboardingHostView: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIViewController {
         MainViewControllerKt.onboardingViewController(onDone: { onDone() }, onSkip: { onSkip() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
+let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+
+/// The shared Compose about page, full screen.
+struct AboutHostView: UIViewControllerRepresentable {
+    var onClose: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let device = UIDevice.current
+        let details = "\n\n\n\u{2014}\nMisty Steps \(appVersion)\niOS \(device.systemVersion), \(device.model)\n"
+        return MainViewControllerKt.aboutViewController(versionName: appVersion, feedbackDetails: details, onClose: { onClose() })
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}

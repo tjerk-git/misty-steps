@@ -43,6 +43,7 @@ kotlin {
             api(compose.material3)
             api(compose.ui)
             api(compose.components.resources)
+            api("org.jetbrains.compose.material:material-icons-core:1.7.3")
         }
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.11.0")

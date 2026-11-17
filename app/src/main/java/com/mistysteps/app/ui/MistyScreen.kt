@@ -463,7 +463,7 @@ fun MistyScreen() {
             PostcardScreen(walkId = walkId, onClose = { postcardWalk = null })
         }
         if (showAbout) {
-            AboutScreen(onClose = { showAbout = false })
+            AboutScreen(versionName = BuildConfig.VERSION_NAME, feedbackDetails = feedbackDetails(), onClose = { showAbout = false })
         }
         if (showPicker) {
             ProvincePickerScreen(catalog, MapsGraph.packs, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })

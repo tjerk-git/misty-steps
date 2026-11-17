@@ -189,7 +189,7 @@ fun StatsScreen(
             Spacer(Modifier.height(8.dp))
             BackupCard(onImported = { refresh++ })
             Spacer(Modifier.height(12.dp))
-            UsageCountsCard()
+            UsageCountsSwitch()
             Spacer(Modifier.height(12.dp))
             MadeBy(onOpenAbout)
             Spacer(Modifier.height(12.dp))
