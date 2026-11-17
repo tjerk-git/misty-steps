@@ -2,32 +2,69 @@ import CoreLocation
 import Foundation
 import Shared
 
-/// The cleared spots, in the shared PointIndex. Main thread only. `onChange` tells the fog to redraw.
-final class FogModel {
+/// The cleared spots (in the shared PointIndex) and the walk being recorded (shared WalkRecorder).
+/// Main thread only. `onChange` tells the fog to redraw.
+final class FogModel: ObservableObject {
     let index = PointIndex()
     private(set) var version: Int32 = 0
     var onChange: (() -> Void)?
-    private var last: CLLocationCoordinate2D?
-    private let store: PointStore
+
+    private let store: SQLiteTrailStore
     private let writer = DispatchQueue(label: "fog-store")
+    private let recorder = WalkRecorder()
+
+    /// The walk being recorded, or nil.
+    @Published private(set) var session: Session?
+    @Published private(set) var distanceM = 0.0
+    @Published private(set) var inVehicle = false
+    private var sessionPoints: Int32 = 0
+
+    var count: Int { Int(index.count) }
 
     /// Opens the store and puts every saved spot back into the index.
-    init(store: PointStore) {
+    init(store: SQLiteTrailStore) {
         self.store = store
         for p in store.loadAll() { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
         version += 1
     }
 
-    var count: Int { Int(index.count) }
+    /// "Start wandering": a new walk, its own line, logged in the store.
+    func beginWalk() {
+        guard session == nil else { return }
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        let s = Session(id: now, startTime: now, endTime: nil, distanceM: 0, points: 0,
+                        batteryStart: nil, batteryEnd: nil, newAreaM2: nil)
+        recorder.begin()
+        session = s; distanceM = 0; sessionPoints = 0; inVehicle = false
+        writer.async { [store] in store.startSession(s: s) }
+    }
 
-    /// A fix from Core Location: clears a spot, unless it is right next to the last one.
-    func record(_ c: CLLocationCoordinate2D) {
-        if let last, hypot((c.latitude - last.latitude) * 111_000, (c.longitude - last.longitude) * 67_000) < 15 { return }
-        last = c
-        index.add(lat: c.latitude, lon: c.longitude, radiusMeters: FogConstants.shared.CLEAR_RADIUS_M)
-        let point = TrailPoint(lat: c.latitude, lon: c.longitude, time: Int64(Date().timeIntervalSince1970 * 1000),
-                               radius: FogConstants.shared.CLEAR_RADIUS_M, sessionId: nil)
-        writer.async { [store] in store.insert(points: [point]) }
+    /// Ends the walk and saves its log entry.
+    func endWalk() {
+        guard let s = session else { return }
+        recorder.end()
+        let done = Session(id: s.id, startTime: s.startTime, endTime: KotlinLong(value: Int64(Date().timeIntervalSince1970 * 1000)),
+                           distanceM: distanceM, points: sessionPoints, batteryStart: s.batteryStart, batteryEnd: nil, newAreaM2: nil)
+        session = nil; inVehicle = false
+        writer.async { [store] in store.endSession(s: done) }
+    }
+
+    /// A fix from Core Location. Only walks clear fog.
+    func onLocation(_ l: CLLocation) {
+        guard let s = session else { return }
+        let ms = Int64(l.timestamp.timeIntervalSince1970 * 1000)
+        let fix = RecordedFix(lat: l.coordinate.latitude, lon: l.coordinate.longitude,
+                              accuracyM: l.horizontalAccuracy >= 0 ? KotlinFloat(value: Float(l.horizontalAccuracy)) : nil,
+                              timeMs: ms, elapsedMs: ms)
+        guard recorder.accepts(fix: fix) else { return }
+        let step = recorder.onFix(fix: fix, sessionId: KotlinLong(value: s.id))
+        if recorder.inVehicle != inVehicle { inVehicle = recorder.inVehicle }
+        guard let step else { return }
+        for p in step.points { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        sessionPoints += Int32(step.points.count)
+        distanceM += step.distanceM
+        let points = step.points
+        writer.async { [store] in store.insert(points: points) }
         version += 1
         onChange?()
     }

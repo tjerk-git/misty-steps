@@ -8,6 +8,7 @@ struct MapView: UIViewRepresentable {
     var styleJSON: String?
     let fogModel: FogModel
     @Binding var status: String
+    @Binding var following: Bool
 
     func makeUIView(context: Context) -> MLNMapView {
         let map = MLNMapView(frame: .zero)
@@ -32,9 +33,14 @@ struct MapView: UIViewRepresentable {
             try? styleJSON.write(to: file, atomically: true, encoding: .utf8)
             map.styleURL = file
         }
-        guard let coordinate, !context.coordinator.centered, !context.coordinator.perfRunning else { return }
-        context.coordinator.centered = true
-        map.setCenter(coordinate, zoomLevel: 15, animated: false)
+        context.coordinator.following = $following
+        guard let coordinate, !context.coordinator.perfRunning else { return }
+        if !context.coordinator.centered {
+            context.coordinator.centered = true
+            map.setCenter(coordinate, zoomLevel: 16, animated: false)
+        } else if following {
+            map.setCenter(coordinate, animated: true)
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -43,6 +49,7 @@ struct MapView: UIViewRepresentable {
         var centered = false
         var styleJSON: String?
         var status: Binding<String>?
+        var following: Binding<Bool>?
         var fog: FogOverlayView?
         var perfRunning = false
         private var link: CADisplayLink?
@@ -52,6 +59,13 @@ struct MapView: UIViewRepresentable {
 
         func mapViewRegionIsChanging(_ mapView: MLNMapView) { fog?.mapMoved() }
         func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) { fog?.mapMoved() }
+
+        /// Dragging or pinching the map stops following; the recentre button starts it again.
+        func mapView(_ mapView: MLNMapView, regionWillChangeWith reason: MLNCameraChangeReason, animated: Bool) {
+            if reason.contains(.gesturePan) || reason.contains(.gesturePinch) || reason.contains(.gestureZoomIn) || reason.contains(.gestureZoomOut) {
+                DispatchQueue.main.async { self.following?.wrappedValue = false }
+            }
+        }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
             DispatchQueue.main.async { self.status?.wrappedValue = "style ok" }

@@ -9,7 +9,7 @@ import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore {
+    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore, SessionStore {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
@@ -183,7 +183,7 @@ class TrailDatabase(context: Context) :
         return out
     }
 
-    fun startSession(s: Session) {
+    override fun startSession(s: Session) {
         writableDatabase.insert("sessions", null, ContentValues(3).apply {
             put("id", s.id)
             put("start_time", s.startTime)
@@ -191,7 +191,7 @@ class TrailDatabase(context: Context) :
         })
     }
 
-    fun endSession(s: Session) {
+    override fun endSession(s: Session) {
         writableDatabase.update(
             "sessions",
             ContentValues(5).apply {
@@ -270,7 +270,7 @@ class TrailDatabase(context: Context) :
     }
 
     /** Newest first. [limit] null = all. */
-    fun loadSessions(limit: Int?): List<Session> {
+    override fun loadSessions(limit: Int?): List<Session> {
         val out = ArrayList<Session>()
         readableDatabase.rawQuery(
             "$SESSION_COLUMNS FROM sessions ORDER BY start_time DESC" + (limit?.let { " LIMIT $it" } ?: ""), null,
@@ -325,16 +325,3 @@ class TrailDatabase(context: Context) :
     }
 }
 
-/** One walk: from "Start wandering" to stop. */
-data class Session(
-    val id: Long,
-    val startTime: Long,
-    val endTime: Long? = null,
-    val distanceM: Double = 0.0,
-    val points: Int = 0,
-    /** Battery percentage when the walk started and ended. */
-    val batteryStart: Int? = null,
-    val batteryEnd: Int? = null,
-    /** Ground this walk cleared that no earlier walk had, in m². Null until the walk has ended. */
-    val newAreaM2: Double? = null,
-)
