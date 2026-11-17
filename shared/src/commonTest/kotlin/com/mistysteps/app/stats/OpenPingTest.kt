@@ -49,6 +49,17 @@ class OpenPingTest {
     }
 
     @Test
+    fun theIosPayloadSaysIos() {
+        assertEquals("""{"v":"0.1.0","os":"ios"}""", OpenPing.payload("0.1.0", "ios"))
+    }
+
+    @Test
+    fun aPlatformTheServerDoesNotKnowIsNotSent() {
+        assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4.0", "windows") }
+        assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4.0", "ios\"}") }
+    }
+
+    @Test
     fun aVersionTheServerWouldRejectIsNotSent() {
         assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4") }
         assertFailsWith<IllegalArgumentException> { OpenPing.payload("1.4.0\"}") }

@@ -16,9 +16,13 @@ object OpenPing {
     fun shouldPing(optedIn: Boolean, release: Boolean, lastPingAt: Long, now: Long): Boolean =
         optedIn && release && now - lastPingAt >= MIN_GAP_MS
 
+    /** The platforms the server accepts. */
+    private val PLATFORMS = setOf("android", "ios")
+
     /** The exact body that is sent: `{"v":"1.4.0","os":"android"}`. */
-    fun payload(versionName: String): String {
+    fun payload(versionName: String, os: String = "android"): String {
         require(VERSION.matches(versionName)) { "version not accepted by the server: $versionName" }
-        return """{"v":"$versionName","os":"android"}"""
+        require(os in PLATFORMS) { "platform not accepted by the server: $os" }
+        return """{"v":"$versionName","os":"$os"}"""
     }
 }

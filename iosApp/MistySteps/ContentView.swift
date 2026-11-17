@@ -113,6 +113,14 @@ struct ContentView: View {
         }
         .onAppear {
             app.pickerAvailable = true
+            // The anonymous open count: release builds only. A test can point it at a local server (-pingurl, -pingrelease 1).
+            #if DEBUG
+            if UserDefaults.standard.integer(forKey: "pingrelease") > 0, let url = UserDefaults.standard.string(forKey: "pingurl") {
+                OpenPingSender.pingIfAllowed(release: true, url: url)
+            }
+            #else
+            OpenPingSender.pingIfAllowed(release: true)
+            #endif
             // Test hook: -spots N adds a stress trail of N cleared spots.
             let spots = UserDefaults.standard.integer(forKey: "spots")
             if spots > 0 { fog.addStressTrail(spots: spots) }
