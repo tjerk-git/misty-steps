@@ -15,6 +15,11 @@ targets:
   MistySteps:
     type: application
     platform: iOS
+    info:
+      path: MistySteps/Info.plist
+      properties:
+        # Compose Multiplatform on iOS aborts at start without this.
+        CADisableMinimumFrameDurationOnPhone: true
     sources:
       - MistySteps
       # The same style template and glyphs the Android app uses; one copy in the repo.

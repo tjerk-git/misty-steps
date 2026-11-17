@@ -1,6 +1,8 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.compose")
 }
 
 kotlin {
@@ -29,6 +31,10 @@ kotlin {
         commonMain.dependencies {
             // Pure logic only: no Android or JVM APIs in here.
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+            api(compose.runtime)
+            api(compose.foundation)
+            api(compose.material3)
+            api(compose.ui)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

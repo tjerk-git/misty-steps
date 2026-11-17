@@ -46,6 +46,9 @@ struct ContentView: View {
                         .background(.thinMaterial, in: Capsule())
                 }
                 Spacer()
+                if UserDefaults.standard.integer(forKey: "composeHello") > 0 {
+                    SharedHelloView().frame(height: 110).clipShape(RoundedRectangle(cornerRadius: 12))
+                }
                 HStack {
                     Button(fog.session == nil ? "Start wandering" : "Stop") {
                         if fog.session == nil { fog.beginWalk(); following = true } else { fog.endWalk() }
