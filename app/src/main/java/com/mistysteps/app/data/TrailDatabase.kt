@@ -5,11 +5,12 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinStorage
 import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore, SessionStore {
+    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore, SessionStore, PinStorage {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
@@ -71,9 +72,9 @@ class TrailDatabase(context: Context) :
     // ---- pins ------------------------------------------------------------------------------
 
     /** Returns the new pin's id. */
-    fun insertPin(p: Pin): Long = writableDatabase.insert("pins", null, pinValues(p))
+    override fun insertPin(p: Pin): Long = writableDatabase.insert("pins", null, pinValues(p))
 
-    fun updatePin(id: Long, labelKey: String, note: String?) {
+    override fun updatePin(id: Long, labelKey: String, note: String?) {
         writableDatabase.update(
             "pins",
             ContentValues(2).apply {
@@ -84,12 +85,12 @@ class TrailDatabase(context: Context) :
         )
     }
 
-    fun deletePin(id: Long) {
+    override fun deletePin(id: Long) {
         writableDatabase.delete("pins", "id = ?", arrayOf(id.toString()))
     }
 
     /** Newest first. */
-    fun loadPins(): List<Pin> {
+    override fun loadPins(): List<Pin> {
         val out = ArrayList<Pin>()
         readableDatabase.rawQuery(
             "SELECT id, lat, lon, time, label, note, session_id FROM pins ORDER BY time DESC, id DESC", null,

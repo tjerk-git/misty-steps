@@ -8,6 +8,10 @@ struct MapView: UIViewRepresentable {
     var coordinate: CLLocationCoordinate2D?
     var styleJSON: String?
     let fogModel: FogModel
+    let pinsModel: PinsModel
+    var onOpenPin: (Int64) -> Void
+    var onNewPin: (CLLocationCoordinate2D) -> Void
+    var onFogPress: () -> Void
     @Binding var status: String
     @Binding var following: Bool
 
@@ -24,12 +28,24 @@ struct MapView: UIViewRepresentable {
         map.addSubview(fog)
         context.coordinator.fog = fog
         context.coordinator.model = fogModel
+        context.coordinator.pinsModel = pinsModel
         fogModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshTrail() }
+        pinsModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshPins() }
+        // Long-press on cleared ground leaves a pin; a tap on a pin opens it.
+        let press = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.longPressed(_:)))
+        press.minimumPressDuration = 0.6
+        map.addGestureRecognizer(press)
+        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(_:)))
+        tap.delegate = context.coordinator
+        map.addGestureRecognizer(tap)
         return map
     }
 
     func updateUIView(_ map: MLNMapView, context: Context) {
         context.coordinator.status = $status
+        context.coordinator.onOpenPin = onOpenPin
+        context.coordinator.onNewPin = onNewPin
+        context.coordinator.onFogPress = onFogPress
         if let styleJSON, context.coordinator.styleJSON != styleJSON {
             context.coordinator.styleJSON = styleJSON
             let file = FileManager.default.temporaryDirectory.appendingPathComponent("misty-style.json")
@@ -48,13 +64,19 @@ struct MapView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    final class Coordinator: NSObject, MLNMapViewDelegate {
+    final class Coordinator: NSObject, MLNMapViewDelegate, UIGestureRecognizerDelegate {
         var centered = false
         var styleJSON: String?
         var status: Binding<String>?
         var following: Binding<Bool>?
         var fog: FogOverlayView?
         var model: FogModel?
+        var pinsModel: PinsModel?
+        var onOpenPin: (Int64) -> Void = { _ in }
+        var onNewPin: (CLLocationCoordinate2D) -> Void = { _ in }
+        var onFogPress: () -> Void = {}
+        private var pinSource: MLNShapeSource?
+        private static let pinLayerIds = ["pins-icons", "pins-dots-REST", "pins-dots-SENSES", "pins-dots-ANIMALS", "pins-dots-FINDS", "pins-dots-OTHER"]
         private var pastSource: MLNShapeSource?
         private var nowSource: MLNShapeSource?
         private var lastTrailRefresh: CFTimeInterval = 0
@@ -78,6 +100,7 @@ struct MapView: UIViewRepresentable {
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
             DispatchQueue.main.async { self.status?.wrappedValue = "style ok" }
             installTrail(style)
+            installPins(style)
             fog?.mapMoved()
             if UserDefaults.standard.integer(forKey: "perf") > 0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 6) { self.runPerf(mapView) }
@@ -132,6 +155,98 @@ struct MapView: UIViewRepresentable {
             if let s = shape(pair.first as String?) { nowSource?.shape = s }
             if let s = shape(pair.second as String?) { pastSource?.shape = s }
         }
+
+        // MARK: pins
+
+        /// The pin icons (pixel art, drawn at 3x so MapLibre keeps them crisp) and the layers: dots when zoomed out, icons close up.
+        private func installPins(_ style: MLNStyle) {
+            for label in PinLabel.entries {
+                if let image = Coordinator.pinImage(label) { style.setImage(image, forName: "pin-\(label.key)") }
+            }
+            let source = MLNShapeSource(identifier: "pins", shape: MLNShapeCollectionFeature(shapes: []), options: nil)
+            style.addSource(source)
+            let groups: [(String, UIColor)] = PinGroup.entries.map { ($0.name, Coordinator.color(argb: $0.dotColor)) }
+                + [("OTHER", UIColor(red: 0x5B / 255, green: 0x6B / 255, blue: 0x8C / 255, alpha: 1))]
+            for (name, color) in groups {
+                let dots = MLNCircleStyleLayer(identifier: "pins-dots-\(name)", source: source)
+                dots.predicate = NSPredicate(format: "group == %@", name)
+                dots.circleRadius = NSExpression(forConstantValue: 5)
+                dots.circleColor = NSExpression(forConstantValue: color)
+                dots.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+                dots.circleStrokeWidth = NSExpression(forConstantValue: 1.5)
+                dots.minimumZoomLevel = 10
+                dots.maximumZoomLevel = 14
+                style.addLayer(dots)
+            }
+            let icons = MLNSymbolStyleLayer(identifier: "pins-icons", source: source)
+            icons.iconImageName = NSExpression(forKeyPath: "icon")
+            icons.iconAnchor = NSExpression(forConstantValue: NSValue(mlnIconAnchor: .bottom))
+            icons.iconAllowsOverlap = NSExpression(forConstantValue: true)
+            icons.iconScale = NSExpression(forConstantValue: 0.87)
+            icons.minimumZoomLevel = 14
+            style.addLayer(icons)
+            pinSource = source
+            refreshPins()
+        }
+
+        func refreshPins() {
+            guard let pinSource, let pinsModel else { return }
+            let features: [MLNPointFeature] = pinsModel.all.map { pin in
+                let f = MLNPointFeature()
+                f.coordinate = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.lon)
+                f.attributes = ["id": pin.id, "icon": "pin-\(pin.labelKey)", "group": pin.label.group?.name ?? "OTHER"]
+                return f
+            }
+            pinSource.shape = MLNShapeCollectionFeature(shapes: features)
+        }
+
+        private static func color(argb: Int32) -> UIColor {
+            let v = UInt32(bitPattern: argb)
+            return UIColor(red: CGFloat((v >> 16) & 255) / 255, green: CGFloat((v >> 8) & 255) / 255, blue: CGFloat(v & 255) / 255, alpha: 1)
+        }
+
+        private static func pinImage(_ label: PinLabel) -> UIImage? {
+            let pixels = PinSprites.shared.pixels(label: label)
+            let n = 18, scale = 3
+            var rgba = [UInt8](repeating: 0, count: n * n * 4)
+            for i in 0..<(n * n) {
+                let p = UInt32(bitPattern: pixels.get(index: Int32(i)))
+                let a = (p >> 24) & 255
+                rgba[4 * i] = UInt8(((p >> 16) & 255) * a / 255)
+                rgba[4 * i + 1] = UInt8(((p >> 8) & 255) * a / 255)
+                rgba[4 * i + 2] = UInt8((p & 255) * a / 255)
+                rgba[4 * i + 3] = UInt8(a)
+            }
+            guard let ctx = CGContext(data: &rgba, width: n, height: n, bitsPerComponent: 8, bytesPerRow: n * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  let small = ctx.makeImage() else { return nil }
+            let size = CGSize(width: n * scale, height: n * scale)
+            let format = UIGraphicsImageRendererFormat(); format.scale = 1
+            return UIGraphicsImageRenderer(size: size, format: format).image { r in
+                r.cgContext.interpolationQuality = .none
+                r.cgContext.draw(small, in: CGRect(origin: .zero, size: size))
+            }
+        }
+
+        @objc func longPressed(_ g: UILongPressGestureRecognizer) {
+            guard g.state == .began, let map = g.view as? MLNMapView, let model else { return }
+            let coordinate = map.convert(g.location(in: map), toCoordinateFrom: map)
+            if PinRules.shared.isCleared(index: model.index, lat: coordinate.latitude, lon: coordinate.longitude) {
+                onNewPin(coordinate)
+            } else {
+                onFogPress()
+            }
+        }
+
+        @objc func tapped(_ g: UITapGestureRecognizer) {
+            guard let map = g.view as? MLNMapView else { return }
+            let p = g.location(in: map)
+            let hit = CGRect(x: p.x - 22, y: p.y - 40, width: 44, height: 56) // icons sit above the spot
+            let found = map.visibleFeatures(in: hit, styleLayerIdentifiers: Set(Coordinator.pinLayerIds))
+            if let id = (found.first?.attribute(forKey: "id") as? NSNumber)?.int64Value { onOpenPin(id) }
+        }
+
+        func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
 
         /// Pans the map in a circle (~1 km round) for 12 s and records every frame's duration.
         func runPerf(_ map: MLNMapView) {

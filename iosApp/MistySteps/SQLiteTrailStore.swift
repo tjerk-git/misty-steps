@@ -3,7 +3,9 @@ import SQLite3
 import Shared
 
 /// Spots and walks in a SQLite file, same table layout as Android's trails.db. The iOS PointStore and SessionStore.
-final class SQLiteTrailStore: NSObject, PointStore, SessionStore {
+private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
+final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     private var db: OpaquePointer?
 
     init(path: URL) {
@@ -23,6 +25,12 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore {
                 battery_start INTEGER, battery_end INTEGER, new_area_m2 REAL)
             """)
         exec("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
+        exec("""
+            CREATE TABLE IF NOT EXISTS pins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, lat REAL NOT NULL, lon REAL NOT NULL, time INTEGER NOT NULL,
+                label TEXT NOT NULL, note TEXT, session_id INTEGER)
+            """)
+        exec("CREATE INDEX IF NOT EXISTS pins_session ON pins(session_id)")
     }
 
     deinit { sqlite3_close(db) }
@@ -95,6 +103,55 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore {
                 batteryStart: isNull(5) ? nil : KotlinInt(value: sqlite3_column_int(stmt, 5)),
                 batteryEnd: isNull(6) ? nil : KotlinInt(value: sqlite3_column_int(stmt, 6)),
                 newAreaM2: isNull(7) ? nil : KotlinDouble(value: sqlite3_column_double(stmt, 7))))
+        }
+        sqlite3_finalize(stmt)
+        return out
+    }
+
+    // MARK: pins (same table as Android's)
+
+    func insertPin(p: Pin) -> Int64 {
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "INSERT INTO pins (lat, lon, time, label, note, session_id) VALUES (?, ?, ?, ?, ?, ?)", -1, &stmt, nil)
+        sqlite3_bind_double(stmt, 1, p.lat)
+        sqlite3_bind_double(stmt, 2, p.lon)
+        sqlite3_bind_int64(stmt, 3, p.time)
+        sqlite3_bind_text(stmt, 4, p.labelKey, -1, SQLITE_TRANSIENT)
+        if let n = p.note { sqlite3_bind_text(stmt, 5, n, -1, SQLITE_TRANSIENT) } else { sqlite3_bind_null(stmt, 5) }
+        if let s = p.sessionId { sqlite3_bind_int64(stmt, 6, s.int64Value) } else { sqlite3_bind_null(stmt, 6) }
+        sqlite3_step(stmt)
+        sqlite3_finalize(stmt)
+        return sqlite3_last_insert_rowid(db)
+    }
+
+    func updatePin(id: Int64, labelKey: String, note: String?) {
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "UPDATE pins SET label = ?, note = ? WHERE id = ?", -1, &stmt, nil)
+        sqlite3_bind_text(stmt, 1, labelKey, -1, SQLITE_TRANSIENT)
+        if let n = note { sqlite3_bind_text(stmt, 2, n, -1, SQLITE_TRANSIENT) } else { sqlite3_bind_null(stmt, 2) }
+        sqlite3_bind_int64(stmt, 3, id)
+        sqlite3_step(stmt)
+        sqlite3_finalize(stmt)
+    }
+
+    func deletePin(id: Int64) {
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "DELETE FROM pins WHERE id = ?", -1, &stmt, nil)
+        sqlite3_bind_int64(stmt, 1, id)
+        sqlite3_step(stmt)
+        sqlite3_finalize(stmt)
+    }
+
+    func loadPins() -> [Pin] {
+        var out: [Pin] = []
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "SELECT id, lat, lon, time, label, note, session_id FROM pins ORDER BY time DESC, id DESC", -1, &stmt, nil)
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let note: String? = sqlite3_column_type(stmt, 5) == SQLITE_NULL ? nil : String(cString: sqlite3_column_text(stmt, 5))
+            let session: KotlinLong? = sqlite3_column_type(stmt, 6) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 6))
+            out.append(Pin(id: sqlite3_column_int64(stmt, 0), lat: sqlite3_column_double(stmt, 1), lon: sqlite3_column_double(stmt, 2),
+                           time: sqlite3_column_int64(stmt, 3), labelKey: String(cString: sqlite3_column_text(stmt, 4)),
+                           note: note, sessionId: session))
         }
         sqlite3_finalize(stmt)
         return out

@@ -30,6 +30,9 @@ final class FogModel: ObservableObject {
     /// The last place a spot was cleared, for the stats when there is no fix yet.
     private(set) var lastKnown: CLLocationCoordinate2D?
 
+    /// The newest fix that was good enough to use, for dropping a pin where you stand.
+    private(set) var lastGoodFix: CLLocation?
+
     /// Opens the store and puts every saved spot back into the index.
     init(store: SQLiteTrailStore) {
         self.store = store
@@ -68,6 +71,7 @@ final class FogModel: ObservableObject {
     /// A fix from Core Location. Only walks clear fog.
     func onLocation(_ l: CLLocation) {
         lastKnown = l.coordinate
+        if l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 35 { lastGoodFix = l }
         guard let s = session else { return }
         let ms = Int64(l.timestamp.timeIntervalSince1970 * 1000)
         let fix = RecordedFix(lat: l.coordinate.latitude, lon: l.coordinate.longitude,

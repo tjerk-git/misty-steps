@@ -64,6 +64,7 @@ struct CharacterHostView: UIViewControllerRepresentable {
 struct StatsHostView: UIViewControllerRepresentable {
     let store: SQLiteTrailStore
     let here: CLLocationCoordinate2D?
+    let pins: PinBook
     let packs: PackManager
     let provinces: [PackEntry]?
     var onOpenPicker: () -> Void
@@ -74,7 +75,7 @@ struct StatsHostView: UIViewControllerRepresentable {
         StatsIosKt.statsViewController(
             points: store, sessions: store,
             hereLat: here.map { KotlinDouble(value: $0.latitude) }, hereLon: here.map { KotlinDouble(value: $0.longitude) },
-            versionName: appVersion, packs: packs, provinces: provinces,
+            versionName: appVersion, pins: pins.pins, packs: packs, provinces: provinces,
             onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onClose: { onClose() })
     }
 
@@ -92,6 +93,21 @@ struct PickerHostView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         MainViewControllerKt.provincePickerViewController(
             provinces: provinces, packs: packs, preselected: preselected, existingUser: existingUser, onDone: { onDone() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
+/// The shared Compose pin sheets (leave a pin, look at one), on a transparent view over the map.
+struct PinSheetHostView: UIViewControllerRepresentable {
+    let book: PinBook
+    let target: PinSheetTarget
+    var onDone: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = PinSheetIosKt.pinSheetViewController(book: book, state: target.state, onDone: { onDone() })
+        controller.view.backgroundColor = .clear
+        return controller
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}

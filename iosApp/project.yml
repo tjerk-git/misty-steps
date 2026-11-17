@@ -30,6 +30,8 @@ targets:
         buildPhase: resources
       - path: ../app/src/main/assets/nl-index.json
         buildPhase: resources
+      - path: ../app/src/main/assets/pins.txt
+        buildPhase: resources
     dependencies:
       - package: MapLibre
         product: MapLibre

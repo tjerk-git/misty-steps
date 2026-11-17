@@ -8,7 +8,13 @@ struct ContentView: View {
     @State private var mapStatus = "loading"
     @State private var following = true
     @StateObject private var app = AppModel()
-    @StateObject private var fog = FogModel(store: SQLiteTrailStore(path: ContentView.databaseURL))
+    @StateObject private var fog = FogModel(store: ContentView.store)
+    @StateObject private var pins = PinsModel(storage: ContentView.store)
+    @State private var pinSheet: PinSheetTarget?
+    @State private var hint: String?
+
+    /// One database file for the spots, walks and pins.
+    private static let store = SQLiteTrailStore(path: ContentView.databaseURL)
 
     private static var databaseURL: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("trails.db")
@@ -21,9 +27,27 @@ struct ContentView: View {
 
     private var packText: String { "\(packs.manager.mapFiles().count) packs" }
 
+    /// "Leave a pin" while walking: at the newest good fix, if it is fresh.
+    private func dropPin() {
+        if let fix = fog.lastGoodFix, Date().timeIntervalSince(fix.timestamp) <= 30 {
+            pinSheet = .new(lat: fix.coordinate.latitude, lon: fix.coordinate.longitude, sessionId: fog.session?.id)
+        } else {
+            showHint(IosTextsKt.pinLookingHint())
+        }
+    }
+
+    private func showHint(_ text: String) {
+        hint = text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { if hint == text { hint = nil } }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(coordinate: location.coordinate, styleJSON: packs.styleJSON, fogModel: fog, status: $mapStatus, following: $following)
+            MapView(coordinate: location.coordinate, styleJSON: packs.styleJSON, fogModel: fog, pinsModel: pins,
+                    onOpenPin: { pinSheet = .open(id: $0) },
+                    onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
+                    onFogPress: { showHint(IosTextsKt.pinFogHint()) },
+                    status: $mapStatus, following: $following)
                 .ignoresSafeArea()
             VStack(spacing: 6) {
                 Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
@@ -34,10 +58,18 @@ struct ContentView: View {
                         .font(.headline).padding(.horizontal, 14).padding(.vertical, 6)
                         .background(.thinMaterial, in: Capsule())
                 }
+                if let hint {
+                    Text(hint).font(.footnote).padding(10)
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                }
                 Spacer()
                 HStack(spacing: 12) {
                     Button { app.route = .characters } label: { Image(systemName: "pawprint.fill") }
                         .buttonStyle(.bordered).controlSize(.large)
+                    if fog.session != nil {
+                        Button { dropPin() } label: { Image(systemName: "mappin.and.ellipse") }
+                            .buttonStyle(.bordered).controlSize(.large)
+                    }
                     Button(fog.session == nil ? "Start wandering" : "Stop") {
                         if fog.session == nil { fog.beginWalk(); following = true } else { fog.endWalk() }
                     }
@@ -56,6 +88,9 @@ struct ContentView: View {
             .padding(.horizontal, 8)
         }
         .overlay {
+            if let target = pinSheet {
+                PinSheetHostView(book: pins.book, target: target, onDone: { pinSheet = nil }).ignoresSafeArea()
+            }
             switch app.route {
             case .onboarding:
                 OnboardingHostView(onDone: { app.finishOnboarding(hasTrailPoints: fog.count > 0) },
@@ -68,7 +103,7 @@ struct ContentView: View {
                     .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
                     .ignoresSafeArea()
             case .stats:
-                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, packs: packs.manager, provinces: packs.provinces,
+                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, packs: packs.manager, provinces: packs.provinces,
                               onOpenPicker: { app.route = .picker }, onOpenAbout: { app.route = .about },
                               onClose: { app.close() })
                     .id(packs.provinces?.count ?? -1)
@@ -83,6 +118,18 @@ struct ContentView: View {
         }
         .onAppear {
             app.pickerAvailable = true
+            // Test hooks: -demopins 1 adds a few pins near Leeuwarden; -pinsheet new|open opens a sheet.
+            if UserDefaults.standard.integer(forKey: "demopins") > 0 && pins.all.isEmpty {
+                for (i, key) in ["sit", "view", "crow", "cat", "path"].enumerated() {
+                    _ = pins.book.add(lat: 53.2012 + 0.0004 * Double(i), lon: 5.7936 + 0.0006 * Double(i), labelKey: key, note: i == 2 ? "Loud one" : nil,
+                                      sessionId: nil, nowMs: Int64(Date().timeIntervalSince1970 * 1000))
+                }
+            }
+            switch UserDefaults.standard.string(forKey: "pinsheet") {
+            case "new": pinSheet = .new(lat: 53.2012, lon: 5.7936, sessionId: nil)
+            case "open": if let first = pins.all.first { pinSheet = .open(id: first.id) }
+            default: break
+            }
             app.start(hasTrailPoints: fog.count > 0)
             location.onFix = { fog.onLocation($0) }
             location.start()

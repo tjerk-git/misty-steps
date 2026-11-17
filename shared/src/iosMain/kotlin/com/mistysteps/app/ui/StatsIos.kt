@@ -14,7 +14,7 @@ import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.stats.LocalStatsSource
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import platform.Foundation.NSBundle
 import platform.Foundation.NSString
 import platform.Foundation.NSURL
@@ -42,6 +42,7 @@ fun statsViewController(
     hereLat: Double?,
     hereLon: Double?,
     versionName: String,
+    pins: StateFlow<List<Pin>>,
     packs: PackManager,
     provinces: List<PackEntry>?,
     onOpenPicker: () -> Unit,
@@ -54,7 +55,7 @@ fun statsViewController(
         var optedIn by remember { mutableStateOf(defaults.boolForKey("analytics_opt_in")) }
         StatsScreen(
             source = source,
-            pins = MutableStateFlow(emptyList<Pin>()), // pins come to iOS later
+            pins = pins,
             here = if (hereLat != null && hereLon != null) hereLat to hereLon else null,
             versionName = versionName,
             showBattery = false,
