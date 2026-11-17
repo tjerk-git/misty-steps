@@ -1,9 +1,5 @@
 package com.mistysteps.app.ui
 
-import android.graphics.Bitmap
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +22,17 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.ImageBitmap
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.postcard_back
+import com.mistysteps.app.resources.postcard_description
+import com.mistysteps.app.resources.postcard_failed
+import com.mistysteps.app.resources.postcard_painting
+import com.mistysteps.app.resources.postcard_title
+import com.mistysteps.app.resources.save
+import com.mistysteps.app.resources.share
+import kotlinx.coroutines.CancellationException
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,49 +44,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import com.mistysteps.app.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mistysteps.app.character.Characters
-import com.mistysteps.app.data.FogStore
-import com.mistysteps.app.data.PinStore
-import com.mistysteps.app.postcard.PostcardRenderer
-import com.mistysteps.app.postcard.PostcardShare
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+/**
+ * What the postcard screen needs from the platform: painting the picture, saving it to the photos and sharing it.
+ * Painting uses the map and trail of the walk, so it stays platform code.
+ */
+interface PostcardHost {
+    /** The picture of walk [walkId], or null when there is no such walk, it is empty, or painting failed. */
+    suspend fun render(walkId: Long): ImageBitmap?
+
+    /** A file name for the picture of walk [walkId], without extension. */
+    fun fileName(walkId: Long): String
+
+    /** Saves [card] to the photos and returns what to tell the person. */
+    suspend fun save(card: ImageBitmap, name: String): String
+
+    suspend fun share(card: ImageBitmap, name: String)
+}
 
 /** A postcard of one walk, shown when a walk ends and when you tap one in the walk log. */
 @Composable
-fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
-    BackHandler(onBack = onClose)
-    val context = LocalContext.current
+fun PostcardScreen(walkId: Long, host: PostcardHost, onClose: () -> Unit) {
+    PlatformBackHandler(onBack = onClose)
     val scope = rememberCoroutineScope()
-    var card by remember { mutableStateOf<Bitmap?>(null) }
+    var card by remember { mutableStateOf<ImageBitmap?>(null) }
     var failed by remember { mutableStateOf(false) }
-    val name = remember(walkId) { "misty-steps-" + SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.US).format(Date(walkId)) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val name = remember(walkId) { host.fileName(walkId) }
 
     LaunchedEffect(walkId) {
-        val walk = withContext(Dispatchers.IO) { FogStore.loadWalk(walkId) }
-        if (walk == null || walk.second.isEmpty()) {
-            failed = true
-            return@LaunchedEffect
-        }
-        card = try {
-            PostcardRenderer.render(context, walk.first, walk.second, Characters.selected.value, PinStore.forWalk(walkId))
-        } catch (e: Exception) {
-            failed = true
-            null
-        }
+        val picture = try { host.render(walkId) } catch (e: CancellationException) { throw e } catch (e: Exception) { null }
+        if (picture == null) failed = true else card = picture
     }
 
     Box(
@@ -97,7 +98,7 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                stringResource(R.string.postcard_title),
+                stringResource(Res.string.postcard_title),
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 22.sp,
@@ -108,18 +109,18 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
                 val bmp = card
                 when {
                     bmp != null -> Image(
-                        bmp.asImageBitmap(),
-                        contentDescription = stringResource(R.string.postcard_description),
+                        bmp,
+                        contentDescription = stringResource(Res.string.postcard_description),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .shadow(12.dp, RoundedCornerShape(6.dp))
                             .clip(RoundedCornerShape(6.dp)),
                     )
-                    failed -> Text(stringResource(R.string.postcard_failed), color = Color.White)
+                    failed -> Text(stringResource(Res.string.postcard_failed), color = Color.White)
                     else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = Color.White)
                         Spacer(Modifier.height(12.dp))
-                        Text(stringResource(R.string.postcard_painting), color = Color.White)
+                        Text(stringResource(Res.string.postcard_painting), color = Color.White)
                     }
                 }
             }
@@ -129,28 +130,21 @@ fun PostcardScreen(walkId: Long, onClose: () -> Unit) {
                 OutlinedButton(
                     onClick = {
                         if (bmp == null) return@OutlinedButton
-                        scope.launch {
-                            val ok = PostcardShare.saveToGallery(context, bmp, name)
-                            val msg = when {
-                                ok -> context.getString(R.string.postcard_saved)
-                                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> context.getString(R.string.postcard_use_share)
-                                else -> context.getString(R.string.postcard_save_failed)
-                            }
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                        }
+                        scope.launch { message = host.save(bmp, name) }
                     },
                     enabled = bmp != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                ) { Text(stringResource(R.string.save)) }
+                ) { Text(stringResource(Res.string.save)) }
                 Button(
-                    onClick = { if (bmp != null) scope.launch { PostcardShare.share(context, bmp, name) } },
+                    onClick = { if (bmp != null) scope.launch { host.share(bmp, name) } },
                     enabled = bmp != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Ember, contentColor = Color.White),
-                ) { Text(stringResource(R.string.share)) }
+                ) { Text(stringResource(Res.string.share)) }
             }
-            TextButton(onClick = onClose) { Text(stringResource(R.string.postcard_back), color = Color.White) }
+            message?.let { Text(it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp)) }
+            TextButton(onClick = onClose) { Text(stringResource(Res.string.postcard_back), color = Color.White) }
         }
     }
 }

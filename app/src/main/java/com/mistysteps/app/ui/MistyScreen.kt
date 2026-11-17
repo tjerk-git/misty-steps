@@ -461,7 +461,7 @@ fun MistyScreen() {
             CharacterScreen(onClose = { showCharacters = false })
         }
         postcardWalk?.let { walkId ->
-            PostcardScreen(walkId = walkId, onClose = { postcardWalk = null })
+            PostcardScreen(walkId = walkId, host = rememberPostcardHost(), onClose = { postcardWalk = null })
         }
         if (showAbout) {
             AboutScreen(versionName = BuildConfig.VERSION_NAME, feedbackDetails = feedbackDetails(), onClose = { showAbout = false })
