@@ -20,11 +20,6 @@ struct ContentView: View {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("trails.db")
     }
 
-    init() {
-        let spots = UserDefaults.standard.integer(forKey: "spots")
-        if spots > 0 { fog.addStressTrail(spots: spots) }
-    }
-
     private var packText: String { "\(packs.manager.mapFiles().count) packs" }
 
     /// "Leave a pin" while walking: at the newest good fix, if it is fresh.
@@ -118,6 +113,9 @@ struct ContentView: View {
         }
         .onAppear {
             app.pickerAvailable = true
+            // Test hook: -spots N adds a stress trail of N cleared spots.
+            let spots = UserDefaults.standard.integer(forKey: "spots")
+            if spots > 0 { fog.addStressTrail(spots: spots) }
             // Test hooks: -demopins 1 adds a few pins near Leeuwarden; -pinsheet new|open opens a sheet.
             if UserDefaults.standard.integer(forKey: "demopins") > 0 && pins.all.isEmpty {
                 for (i, key) in ["sit", "view", "crow", "cat", "path"].enumerated() {

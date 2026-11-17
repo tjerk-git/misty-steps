@@ -18,6 +18,17 @@ final class FogOverlayView: UIView {
     private var waiting: (MaskSpec, Data)?
     private let worker = DispatchQueue(label: "fog-mask", qos: .userInitiated)
     private let maskLayer = CALayer()
+
+    // Drifting swirl: two tiled textures (a shadowy one and a light one) inside the veil, so the mask cuts them as well.
+    private let swirlShadow = CALayer()
+    private let swirlLight = CALayer()
+    private let shadowPeriod: CGFloat = 640
+    private let lightPeriod: CGFloat = 360
+    private var worldOffset = CGPoint.zero // where the map is, so the swirl moves with it
+    private var driftTime = 0.0
+    private var lastTick: CFTimeInterval = 0
+    private var paletteAt: CFTimeInterval = -1000
+    private var displayLink: CADisplayLink?
     private let brush = FogOverlayView.makeBrush()
 
     /// Wall time of the last mask build in ms, for the perf readout.
@@ -35,6 +46,9 @@ final class FogOverlayView: UIView {
         layer.backgroundColor = UIColor(white: 0.96, alpha: 0.92).cgColor
         maskLayer.anchorPoint = .zero
         maskLayer.magnificationFilter = .linear
+        layer.masksToBounds = true
+        layer.addSublayer(swirlShadow)
+        layer.addSublayer(swirlLight)
         updatePalette()
         model.observe { [weak self] in self?.mapMoved() }
     }
@@ -43,10 +57,78 @@ final class FogOverlayView: UIView {
 
     override func layoutSubviews() { super.layoutSubviews(); mapMoved() }
 
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        displayLink?.invalidate()
+        displayLink = nil
+        guard window != nil else { return }
+        // About 12 frames a second: the drift is slow, more frames would only cost battery.
+        let link = CADisplayLink(target: self, selector: #selector(drift(_:)))
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 8, maximum: 15, preferred: 12)
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+        lastTick = CACurrentMediaTime()
+    }
+
+    @objc private func drift(_ link: CADisplayLink) {
+        let now = CACurrentMediaTime()
+        // The mist stands still in Low Power Mode, like Android's battery saver.
+        if !ProcessInfo.processInfo.isLowPowerModeEnabled { driftTime += now - lastTick }
+        lastTick = now
+        if now - paletteAt > 60 { updatePalette() }
+        placeSwirls()
+    }
+
+    /// Puts the two swirl layers where they belong: they follow the map, plus a slow drift of their own.
+    private func placeSwirls() {
+        guard enabled, bounds.width > 0 else { return }
+        func shift(_ v: Double, _ period: CGFloat) -> CGFloat {
+            let p = Double(period)
+            return CGFloat((v.truncatingRemainder(dividingBy: p) + p).truncatingRemainder(dividingBy: p))
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let t = driftTime
+        // Speeds in points a second, as Android's (5, 1.6) and (-3.5, 2.4) fog pixels at half resolution.
+        let sx = shift(Double(worldOffset.x) + t * 10, shadowPeriod), sy = shift(Double(worldOffset.y) + t * 3.2, shadowPeriod)
+        swirlShadow.frame = CGRect(x: sx - shadowPeriod, y: sy - shadowPeriod,
+                                   width: bounds.width + 2 * shadowPeriod, height: bounds.height + 2 * shadowPeriod)
+        let lx = shift(Double(worldOffset.x) - t * 7, lightPeriod), ly = shift(Double(worldOffset.y) + t * 4.8, lightPeriod)
+        swirlLight.frame = CGRect(x: lx - lightPeriod, y: ly - lightPeriod,
+                                  width: bounds.width + 2 * lightPeriod, height: bounds.height + 2 * lightPeriod)
+        CATransaction.commit()
+    }
+
+    /// Makes a tiled swirl colour for [layer]: the shared noise tinted by [tint] times the palette's multiplier.
+    private func tile(seed: Int32, tint: UInt32, palette: UInt32, maxAlpha: Float, contrast: Float, period: CGFloat, into layer: CALayer) {
+        func mix(_ shift: UInt32) -> UInt32 { ((tint >> shift) & 255) * ((palette >> shift) & 255) / 255 }
+        let rgb = (mix(16) << 16) | (mix(8) << 8) | mix(0)
+        DispatchQueue.global(qos: .utility).async {
+            let pixels = FogNoise.shared.pixels(size: 256, seed: seed, tint: Int32(bitPattern: rgb), maxAlpha: maxAlpha, contrast: contrast)
+            var rgba = [UInt8](repeating: 0, count: 256 * 256 * 4)
+            for i in 0..<(256 * 256) {
+                let p = UInt32(bitPattern: pixels.get(index: Int32(i)))
+                let a = p >> 24
+                rgba[4 * i] = UInt8(((p >> 16) & 255) * a / 255)
+                rgba[4 * i + 1] = UInt8(((p >> 8) & 255) * a / 255)
+                rgba[4 * i + 2] = UInt8((p & 255) * a / 255)
+                rgba[4 * i + 3] = UInt8(a)
+            }
+            guard let ctx = CGContext(data: &rgba, width: 256, height: 256, bitsPerComponent: 8, bytesPerRow: 1024,
+                                      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  let cg = ctx.makeImage() else { return }
+            let image = UIImage(cgImage: cg, scale: 256 / period, orientation: .up)
+            DispatchQueue.main.async { layer.backgroundColor = UIColor(patternImage: image).cgColor }
+        }
+    }
+
     /// Re-tints the veil by the sun's height at the map centre.
     func updatePalette() {
         guard let c = map?.centerCoordinate else { return }
         let colors = MistPalette.shared.at(epochMs: Int64(Date().timeIntervalSince1970 * 1000), lat: c.latitude, lon: c.longitude)
+        paletteAt = CACurrentMediaTime()
+        tile(seed: 7, tint: 0xB0B8CE, palette: UInt32(bitPattern: colors.shadowTint), maxAlpha: 0.55, contrast: 1.6, period: shadowPeriod, into: swirlShadow)
+        tile(seed: 23, tint: 0xFFFFFF, palette: UInt32(bitPattern: colors.lightTint), maxAlpha: 0.85, contrast: 1.8, period: lightPeriod, into: swirlLight)
         let argb = UInt32(bitPattern: colors.base)
         layer.backgroundColor = UIColor(
             red: CGFloat((argb >> 16) & 255) / 255, green: CGFloat((argb >> 8) & 255) / 255,
@@ -58,6 +140,7 @@ final class FogOverlayView: UIView {
     func mapMoved() {
         guard enabled, let map, bounds.width > 0 else { return }
         let view = currentView(map)
+        worldOffset = CGPoint(x: view.offX / resolution, y: view.offY / resolution)
         if MaskPlan.shared.needsRebuild(built: requested, now: view) { request(view) }
         place(view)
     }
