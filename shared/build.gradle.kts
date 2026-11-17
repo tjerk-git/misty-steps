@@ -5,6 +5,13 @@ plugins {
     id("org.jetbrains.compose")
 }
 
+compose.resources {
+    packageOfResClass = "com.mistysteps.app.resources"
+    publicResClass = true
+    // values/ and values-nl/ in strings/ are also an Android res directory for :app, so R.string and Res.string agree.
+    customDirectory("commonMain", provider { layout.projectDirectory.dir("strings") })
+}
+
 kotlin {
     jvmToolchain(17)
 
@@ -35,6 +42,10 @@ kotlin {
             api(compose.foundation)
             api(compose.material3)
             api(compose.ui)
+            api(compose.components.resources)
+        }
+        androidMain.dependencies {
+            implementation("androidx.activity:activity-compose:1.11.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

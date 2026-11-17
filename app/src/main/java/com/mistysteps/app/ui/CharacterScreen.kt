@@ -66,23 +66,6 @@ import com.mistysteps.app.character.Character
 import com.mistysteps.app.character.Characters
 import kotlinx.coroutines.delay
 
-/**
- * A full-screen page that scrolls. Content stops at the status bar (so it never runs under the clock)
- * but may scroll behind the navigation bar at the bottom.
- */
-@Composable
-fun Modifier.scrollingPage(): Modifier = this
-    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
-    .verticalScroll(rememberScrollState())
-    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
-
-/** Full-screen pages sit on top of the map: stop taps falling through to the buttons underneath. */
-fun Modifier.blockTouchesBelow(): Modifier = pointerInput(Unit) {
-    awaitPointerEventScope {
-        while (true) awaitPointerEvent(PointerEventPass.Final).changes.forEach { it.consume() }
-    }
-}
-
 /** Milliseconds since the composable appeared, ticking every [stepMs]. Read it in draw lambdas only. */
 @Composable
 fun rememberTicker(stepMs: Long = 70): State<Long> = produceState(0L) {

@@ -13,6 +13,11 @@ android {
     namespace = "com.mistysteps.app"
     compileSdk = 36
 
+    sourceSets {
+        // The strings live in :shared so Compose screens on every platform read the same text.
+        getByName("main").res.srcDir("../shared/strings")
+    }
+
     defaultConfig {
         // The id people install. Never change it after the first public release.
         // (The code package, `namespace` above, can stay as it is.)

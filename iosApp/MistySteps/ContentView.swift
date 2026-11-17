@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
+    @State private var showConsent = UserDefaults.standard.integer(forKey: "composeConsent") > 0
     @StateObject private var fog = FogModel(store: SQLiteTrailStore(path: ContentView.databaseURL))
 
     private static var databaseURL: URL {
@@ -62,6 +63,15 @@ struct ContentView: View {
                 .padding(.bottom, 28)
             }
             .padding(.horizontal, 8)
+        }
+        .overlay {
+            if showConsent {
+                ConsentHostView { allowed in
+                    fputs("consent answer: \(allowed)\n", stderr)
+                    showConsent = false
+                }
+                .ignoresSafeArea()
+            }
         }
         .onAppear {
             location.onFix = { fog.onLocation($0) }
