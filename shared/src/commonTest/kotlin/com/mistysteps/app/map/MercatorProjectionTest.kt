@@ -50,7 +50,7 @@ class MercatorProjectionTest {
     @Test
     fun metersToPixelsMatchesTheWebMercatorScale() {
         val lat = 53.2
-        val metersPerPixel = 156543.03392 * cos(Math.toRadians(lat)) / 32768.0
+        val metersPerPixel = 156543.03392 * cos(com.mistysteps.app.data.toRadians(lat)) / 32768.0
         assertEquals((50.0 / metersPerPixel).toFloat(), at(15.0).metersToPixels(50.0, lat), 0.05f)
     }
 }

@@ -20,7 +20,7 @@ class PointIndexSnapshotTest {
         val snap = index.snapshotIn(x - 0.001, y - 0.001, x + 0.001, y + 0.001)
 
         assertEquals(2, snap.size / 3)
-        assertTrue(spots(snap).all { Math.abs(it.first - x) < 0.001 })
+        assertTrue(spots(snap).all { kotlin.math.abs(it.first - x) < 0.001 })
     }
 
     @Test

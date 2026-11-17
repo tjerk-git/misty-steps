@@ -18,6 +18,9 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    // Runs the shared tests as native code on this Mac, no simulator needed.
+    macosArm64()
+
     sourceSets {
         commonMain.dependencies {
             // Pure logic only: no Android or JVM APIs in here.

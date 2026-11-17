@@ -33,7 +33,7 @@ class CharacterNamesTest {
         // 19 letters plus a character outside the basic plane (two UTF-16 units): the cut keeps whole characters.
         val name = "a".repeat(19) + "🐱" + "b"
         val cleaned = CharacterNames.clean(name)!!
-        assertEquals(20, cleaned.codePointCount(0, cleaned.length))
+        assertEquals(20, cleaned.length - cleaned.count { it.isLowSurrogate() })
         assertEquals("a".repeat(19) + "🐱", cleaned)
     }
 

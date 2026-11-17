@@ -43,7 +43,7 @@ class PinRulesTest {
     fun cuttingANoteNeverSplitsACharacter() {
         val note = "a".repeat(79) + "𝄞" + "b" // U+1D11E straddles the 80 limit
         val cut = PinRules.cleanNote(note)!!
-        assertFalse(Character.isHighSurrogate(cut.last()))
+        assertFalse(cut.last().isHighSurrogate())
         assertEquals("a".repeat(79), cut)
     }
 
