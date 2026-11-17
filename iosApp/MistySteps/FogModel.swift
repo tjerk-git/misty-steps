@@ -6,8 +6,14 @@ import Shared
 /// Main thread only. `onChange` tells the fog to redraw.
 final class FogModel: ObservableObject {
     let index = PointIndex()
+    /// The lines of every walk, for drawing.
+    let trails = Trails()
     private(set) var version: Int32 = 0
-    var onChange: (() -> Void)?
+    private var observers: [() -> Void] = []
+
+    /// Calls [f] whenever spots, trails or the walk change.
+    func observe(_ f: @escaping () -> Void) { observers.append(f) }
+    private func notify() { observers.forEach { $0() } }
 
     private let store: SQLiteTrailStore
     private let writer = DispatchQueue(label: "fog-store")
@@ -24,7 +30,10 @@ final class FogModel: ObservableObject {
     /// Opens the store and puts every saved spot back into the index.
     init(store: SQLiteTrailStore) {
         self.store = store
-        for p in store.loadAll() { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        for p in store.loadAll() {
+            index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
+            trails.add(p: p, newSegment: false)
+        }
         version += 1
     }
 
@@ -37,6 +46,7 @@ final class FogModel: ObservableObject {
         recorder.begin()
         session = s; distanceM = 0; sessionPoints = 0; inVehicle = false
         writer.async { [store] in store.startSession(s: s) }
+        notify()
     }
 
     /// Ends the walk and saves its log entry.
@@ -47,6 +57,8 @@ final class FogModel: ObservableObject {
                            distanceM: distanceM, points: sessionPoints, batteryStart: s.batteryStart, batteryEnd: nil, newAreaM2: nil)
         session = nil; inVehicle = false
         writer.async { [store] in store.endSession(s: done) }
+        version += 1
+        notify()
     }
 
     /// A fix from Core Location. Only walks clear fog.
@@ -60,13 +72,16 @@ final class FogModel: ObservableObject {
         let step = recorder.onFix(fix: fix, sessionId: KotlinLong(value: s.id))
         if recorder.inVehicle != inVehicle { inVehicle = recorder.inVehicle }
         guard let step else { return }
-        for p in step.points { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        for (i, p) in step.points.enumerated() {
+            index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
+            trails.add(p: p, newSegment: step.newSegment && i == 0)
+        }
         sessionPoints += Int32(step.points.count)
         distanceM += step.distanceM
         let points = step.points
         writer.async { [store] in store.insert(points: points) }
         version += 1
-        onChange?()
+        notify()
     }
 
     /// Test data: random walks of cleared spots around Leeuwarden, like a long-time user's trail.
@@ -87,6 +102,6 @@ final class FogModel: ObservableObject {
             }
         }
         version += 1
-        onChange?()
+        notify()
     }
 }

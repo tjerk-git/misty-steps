@@ -1,5 +1,6 @@
 import CoreLocation
 import MapLibre
+import Shared
 import SwiftUI
 
 /// The map, drawn from the Misty style over a downloaded province pack, with the fog on top.
@@ -22,6 +23,8 @@ struct MapView: UIViewRepresentable {
         fog.enabled = UserDefaults.standard.string(forKey: "fog") != "0"
         map.addSubview(fog)
         context.coordinator.fog = fog
+        context.coordinator.model = fogModel
+        fogModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshTrail() }
         return map
     }
 
@@ -51,6 +54,11 @@ struct MapView: UIViewRepresentable {
         var status: Binding<String>?
         var following: Binding<Bool>?
         var fog: FogOverlayView?
+        var model: FogModel?
+        private var pastSource: MLNShapeSource?
+        private var nowSource: MLNShapeSource?
+        private var lastTrailRefresh: CFTimeInterval = 0
+        private var trailRefreshQueued = false
         var perfRunning = false
         private var link: CADisplayLink?
         private var stamps: [CFTimeInterval] = []
@@ -69,6 +77,7 @@ struct MapView: UIViewRepresentable {
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
             DispatchQueue.main.async { self.status?.wrappedValue = "style ok" }
+            installTrail(style)
             fog?.mapMoved()
             if UserDefaults.standard.integer(forKey: "perf") > 0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 6) { self.runPerf(mapView) }
@@ -77,6 +86,51 @@ struct MapView: UIViewRepresentable {
 
         func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
             DispatchQueue.main.async { self.status?.wrappedValue = "map failed: \(error.localizedDescription)" }
+        }
+
+        /// Two dotted lines: bright for the walk you are on, faint for earlier walks (same look as Android).
+        private func installTrail(_ style: MLNStyle) {
+            func layer(_ id: String, _ source: MLNShapeSource, _ color: UIColor, width: Double, gap: Double, opacity: Double) -> MLNLineStyleLayer {
+                let l = MLNLineStyleLayer(identifier: id, source: source)
+                l.lineColor = NSExpression(forConstantValue: color)
+                l.lineWidth = NSExpression(forConstantValue: width)
+                l.lineOpacity = NSExpression(forConstantValue: opacity)
+                l.lineCap = NSExpression(forConstantValue: NSValue(mlnLineCap: .round))
+                l.lineJoin = NSExpression(forConstantValue: NSValue(mlnLineJoin: .round))
+                // A near-zero dash with round caps draws a row of dots; dash lengths are in line widths.
+                l.lineDashPattern = NSExpression(forConstantValue: [0.01, gap])
+                return l
+            }
+            let empty = MLNShapeCollectionFeature(shapes: [])
+            let past = MLNShapeSource(identifier: "trail-past", shape: empty, options: nil)
+            let now = MLNShapeSource(identifier: "trail-now", shape: empty, options: nil)
+            style.addSource(past); style.addSource(now)
+            style.addLayer(layer("trail-past-line", past, UIColor(red: 0x5B / 255, green: 0x6B / 255, blue: 0x8C / 255, alpha: 1), width: 3, gap: 8.0 / 3, opacity: 0.55))
+            style.addLayer(layer("trail-now-line", now, UIColor(red: 0xB4 / 255, green: 0x53 / 255, blue: 0x6A / 255, alpha: 1), width: 4.5, gap: 2, opacity: 1))
+            pastSource = past; nowSource = now
+            lastTrailRefresh = 0
+            refreshTrail()
+        }
+
+        /// Rebuilds the trail lines from the shared Trails; at most about 2.5 times a second.
+        func refreshTrail() {
+            guard pastSource != nil, let model else { return }
+            let wait = 0.4 - (CACurrentMediaTime() - lastTrailRefresh)
+            if wait > 0 {
+                if !trailRefreshQueued {
+                    trailRefreshQueued = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + wait) { self.trailRefreshQueued = false; self.refreshTrail() }
+                }
+                return
+            }
+            lastTrailRefresh = CACurrentMediaTime()
+            let segments = model.trails.segments as! [Trails.Segment]
+            let pair = TrailGeoJson.shared.build(segments: segments, currentSession: model.session.map { KotlinLong(value: $0.id) }, minStepM: 3.0)
+            func shape(_ json: String?) -> MLNShape? {
+                json.flatMap { try? MLNShape(data: Data($0.utf8), encoding: String.Encoding.utf8.rawValue) }
+            }
+            if let s = shape(pair.first as String?) { nowSource?.shape = s }
+            if let s = shape(pair.second as String?) { pastSource?.shape = s }
         }
 
         /// Pans the map in a circle (~1 km round) for 12 s and records every frame's duration.

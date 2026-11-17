@@ -36,7 +36,7 @@ final class FogOverlayView: UIView {
         maskLayer.anchorPoint = .zero
         maskLayer.magnificationFilter = .linear
         updatePalette()
-        model.onChange = { [weak self] in self?.mapMoved() }
+        model.observe { [weak self] in self?.mapMoved() }
     }
 
     required init?(coder: NSCoder) { fatalError() }
