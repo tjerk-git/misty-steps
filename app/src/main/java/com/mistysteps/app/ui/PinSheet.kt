@@ -68,11 +68,6 @@ sealed interface PinSheetState {
 /** Solid, unlike the map cards: the map mustn't show through a sheet you read and type in. */
 private val SheetColor = Frost.copy(alpha = 1f)
 
-/** The pin icons, converted for Compose once. */
-@Composable
-fun rememberPinIcons(): Map<PinLabel, ImageBitmap> =
-    remember { PinLabel.entries.associateWith { PinSprites.bitmap(it).asImageBitmap() } }
-
 /** "Leave a pin": pick a label, maybe add a note. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +110,6 @@ fun PinDetailSheet(
     var picked by remember(pin.id) { mutableStateOf<PinLabel?>(null) }
     var note by remember(pin.id) { mutableStateOf(pin.note.orEmpty()) }
     var confirmDelete by remember(pin.id) { mutableStateOf(false) }
-    val icons = rememberPinIcons()
     val day = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
 
     ModalBottomSheet(
@@ -131,7 +125,7 @@ fun PinDetailSheet(
                 },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    PinIcon(icons.getValue(pin.label), 48)
+                    PinIcon(pin.label, 48)
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(pin.label.textRes), color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
@@ -218,19 +212,18 @@ private fun SheetTitle(text: String) {
 /** The labels in their groups, three to a row, then "Something else". */
 @Composable
 private fun LabelPicker(selected: PinLabel?, onSelect: (PinLabel) -> Unit) {
-    val icons = rememberPinIcons()
     for (group in PinGroup.entries) {
         Text(stringResource(group.titleRes).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (label in PinLabel.entries.filter { it.group == group }) {
-                LabelTile(label, icons.getValue(label), label == selected, Modifier.weight(1f)) { onSelect(label) }
+                LabelTile(label, label == selected, Modifier.weight(1f)) { onSelect(label) }
             }
         }
         Spacer(Modifier.height(10.dp))
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        LabelTile(PinLabel.OTHER, icons.getValue(PinLabel.OTHER), selected == PinLabel.OTHER, Modifier.weight(1f)) {
+        LabelTile(PinLabel.OTHER, selected == PinLabel.OTHER, Modifier.weight(1f)) {
             onSelect(PinLabel.OTHER)
         }
         Spacer(Modifier.weight(2f).height(1.dp))
@@ -238,7 +231,7 @@ private fun LabelPicker(selected: PinLabel?, onSelect: (PinLabel) -> Unit) {
 }
 
 @Composable
-private fun LabelTile(label: PinLabel, icon: ImageBitmap, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun LabelTile(label: PinLabel, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val shape = RoundedCornerShape(14.dp)
     Column(
         modifier
@@ -248,7 +241,7 @@ private fun LabelTile(label: PinLabel, icon: ImageBitmap, selected: Boolean, mod
             .padding(vertical = 8.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        PinIcon(icon, 40)
+        PinIcon(label, 40)
         Spacer(Modifier.height(4.dp))
         Text(
             stringResource(label.textRes),
@@ -275,8 +268,3 @@ private fun NoteField(note: String, required: Boolean, onChange: (String) -> Uni
     )
 }
 
-/** A crisp pixel icon, [sizeDp] square. */
-@Composable
-fun PinIcon(icon: ImageBitmap, sizeDp: Int, modifier: Modifier = Modifier) {
-    Box(modifier.size(sizeDp.dp).drawBehind { drawSprite(icon) })
-}

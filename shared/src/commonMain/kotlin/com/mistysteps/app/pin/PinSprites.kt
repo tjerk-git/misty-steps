@@ -1,34 +1,31 @@
 package com.mistysteps.app.pin
 
-import android.content.Context
-import android.graphics.Bitmap
 import com.mistysteps.app.character.PixelArt
-import com.mistysteps.app.character.bitmap
 
-/** The pixel icons of the pin labels, from `assets/pins.txt`. */
+/** The pixel icons of the pin labels, from the lines of `pins.txt`. */
 object PinSprites {
     const val SIZE = PixelArt.SIZE
 
     /** "Something else" dots, like the app's Dusk. */
     private const val OTHER_DOT = 0xFF5B6B8C.toInt()
 
-    private lateinit var bitmaps: Map<PinLabel, Bitmap>
+    private lateinit var icons: Map<PinLabel, IntArray>
 
-    fun init(context: Context) {
-        val sprites = context.assets.open("pins.txt").bufferedReader().use { parse(it.readLines()) }
-        bitmaps = PinLabel.entries.associateWith { label ->
+    fun init(lines: List<String>) {
+        val sprites = parse(lines)
+        icons = PinLabel.entries.associateWith { label ->
             val px = sprites[label.key] ?: error("No icon for pin label '${label.key}'")
-            PixelArt.bitmap(PixelArt.outline(px))
+            PixelArt.outline(px)
         }
     }
 
-    /** The outlined 18x18 icon. */
-    fun bitmap(label: PinLabel): Bitmap = bitmaps.getValue(label)
+    /** The outlined 18x18 icon as ARGB pixels. */
+    fun pixels(label: PinLabel): IntArray = icons.getValue(label)
 
     fun dotColor(label: PinLabel): Int = label.group?.dotColor ?: OTHER_DOT
 
     /** Key to 16x16 ARGB pixels. Throws [IllegalArgumentException] naming the broken icon. */
-    internal fun parse(lines: List<String>): Map<String, IntArray> {
+    fun parse(lines: List<String>): Map<String, IntArray> {
         val out = LinkedHashMap<String, IntArray>()
         var key: String? = null
         var palette = ""

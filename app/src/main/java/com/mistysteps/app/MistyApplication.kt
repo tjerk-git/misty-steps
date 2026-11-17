@@ -20,7 +20,7 @@ class MistyApplication : Application() {
             assets.open("characters.txt").bufferedReader().use { it.readLines() },
             SharedPreferencesStore(getSharedPreferences("misty", MODE_PRIVATE)),
         )
-        PinSprites.init(this)
+        PinSprites.init(assets.open("pins.txt").bufferedReader().use { it.readLines() })
         BatteryLog.init(this)
         MapsGraph.init(this)
         Analytics.pingIfAllowed(this)

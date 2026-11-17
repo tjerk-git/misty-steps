@@ -38,6 +38,7 @@ import com.mistysteps.app.fog.FogTexture
 import com.mistysteps.app.fog.MistPalette
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinSprites
+import com.mistysteps.app.pin.bitmap
 import com.mistysteps.app.ui.formatArea
 import com.mistysteps.app.ui.formatDistance
 import com.mistysteps.app.ui.durationText

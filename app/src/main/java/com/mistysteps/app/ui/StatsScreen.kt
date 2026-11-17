@@ -244,7 +244,6 @@ private fun MadeBy(onClick: () -> Unit) {
 @Composable
 private fun WalkLog(walks: List<Session>, pinsByWalk: Map<Long, List<Pin>>, onOpenWalk: (Long) -> Unit) {
     val when_ = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
-    val icons = rememberPinIcons()
     val durationText = rememberDurationText()
     var showAll by remember { mutableStateOf(false) }
     val visible = if (showAll) walks else walks.take(RECENT_WALKS)
@@ -275,7 +274,7 @@ private fun WalkLog(walks: List<Session>, pinsByWalk: Map<Long, List<Pin>>, onOp
                             val (shown, more) = PinRules.walkBadge(walkPins)
                             Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                 for (label in shown) {
-                                    PinIcon(icons.getValue(label), 16)
+                                    PinIcon(label, 16)
                                     Spacer(Modifier.width(4.dp))
                                 }
                                 if (more > 0) Text("+$more", color = Dusk, fontSize = 12.sp)
@@ -307,7 +306,6 @@ internal fun walksToShow(walks: List<Session>, walksWithPins: Set<Long>): List<S
 /** Your pins, grouped by label. Tap a group to open it, tap a pin to see it on the map. */
 @Composable
 private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
-    val icons = rememberPinIcons()
     val day = remember { DateFormat.getDateInstance(DateFormat.MEDIUM) }
     val groups = remember(pins) { PinRules.groupByLabel(pins) }
     var open by remember { mutableStateOf<PinLabel?>(null) }
@@ -331,7 +329,7 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
                         .padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PinIcon(icons.getValue(label), 28)
+                    PinIcon(label, 28)
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "${stringResource(label.textRes)} (${labelPins.size})",
@@ -350,7 +348,7 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
                                 .padding(start = 40.dp, top = 6.dp, bottom = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            PinIcon(icons.getValue(pin.label), 18)
+                            PinIcon(pin.label, 18)
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 pin.note ?: stringResource(pin.label.textRes),
@@ -482,25 +480,6 @@ private fun AreaCard(stat: AreaStat, extra: @Composable ColumnScope.() -> Unit =
     }
 }
 
-/** Two significant digits, however tiny: 12%, 0.48%, 0.0000031%. */
-internal fun formatPercent(fraction: Double): String {
-    val pct = fraction * 100
-    if (pct <= 0) return "0%"
-    if (pct >= 10) return String.format(Locale.getDefault(), "%.0f%%", pct)
-    val decimals = max(1, 1 - floor(log10(pct)).toInt())
-    return String.format(Locale.getDefault(), "%.${decimals}f%%", pct)
-}
-
-internal fun formatArea(m2: Double): String = when {
-    m2 < 10_000 -> String.format(Locale.getDefault(), "%.0f m²", m2)
-    m2 < 1_000_000 -> String.format(Locale.getDefault(), "%.1f ha", m2 / 10_000)
-    m2 < 100_000_000 -> String.format(Locale.getDefault(), "%.2f km²", m2 / 1_000_000)
-    else -> String.format(Locale.getDefault(), "%,.0f km²", m2 / 1_000_000)
-}
-
-internal fun formatDistance(m: Double): String =
-    if (m < 1000) "${m.toInt()} m" else String.format(Locale.getDefault(), "%.1f km", m / 1000)
-
 /** The name shown on an area card: Earth, the country in the phone's language, or the place's own name. */
 @Composable
 private fun areaName(stat: AreaStat): String = when {
@@ -509,45 +488,4 @@ private fun areaName(stat: AreaStat): String = when {
     stat.kind == AreaKind.COUNTRY ->
         Locale.Builder().setRegion("NL").build().getDisplayCountry(Locale.getDefault()).ifBlank { stat.name }
     else -> stat.name
-}
-
-/** Below this share a percentage is unreadable (0.0000031%), so a card says "1 in 32 million" instead. */
-internal const val ONE_IN_BELOW = 1e-5
-
-/** "54,000,000": the "1 in N" for a share, rounded to two significant digits. */
-internal fun formatOneIn(fraction: Double): String {
-    val n = 1 / fraction
-    val magnitude = Math.pow(10.0, floor(log10(n)) - 1)
-    return String.format(Locale.getDefault(), "%,.0f", Math.round(n / magnitude) * magnitude)
-}
-
-/** The words in a duration, from the string resources ([EN] is for tests). */
-internal class DurationText(val underMinute: String, val min: String, val hMin: String) {
-    companion object {
-        val EN = DurationText("under a minute", "%1\$d min", "%1\$d h %2\$02d min")
-    }
-}
-
-internal fun durationText(res: android.content.res.Resources) = DurationText(
-    res.getString(R.string.duration_under_minute),
-    res.getString(R.string.duration_min),
-    res.getString(R.string.duration_h_min),
-)
-
-@Composable
-internal fun rememberDurationText(): DurationText {
-    val under = stringResource(R.string.duration_under_minute)
-    val min = stringResource(R.string.duration_min)
-    val hMin = stringResource(R.string.duration_h_min)
-    return remember(under, min, hMin) { DurationText(under, min, hMin) }
-}
-
-/** "under a minute", "12 min", "1 h 05 min". */
-internal fun formatDuration(ms: Long, words: DurationText): String {
-    val min = ms / 60_000
-    return when {
-        min < 1 -> words.underMinute
-        min < 60 -> String.format(Locale.getDefault(), words.min, min.toInt())
-        else -> String.format(Locale.getDefault(), words.hMin, (min / 60).toInt(), (min % 60).toInt())
-    }
 }
