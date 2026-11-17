@@ -69,3 +69,19 @@ struct StatsDemoHostView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
+
+/// The shared Compose province picker, full screen.
+struct PickerHostView: UIViewControllerRepresentable {
+    let provinces: [PackEntry]?
+    let packs: PackManager
+    let preselected: Set<String>
+    let existingUser: Bool
+    var onDone: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        MainViewControllerKt.provincePickerViewController(
+            provinces: provinces, packs: packs, preselected: preselected, existingUser: existingUser, onDone: { onDone() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}

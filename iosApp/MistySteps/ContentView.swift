@@ -19,23 +19,11 @@ struct ContentView: View {
         if spots > 0 { fog.addStressTrail(spots: spots) }
     }
 
-    private var styleJSON: String? {
-        if case .ready(let json) = packs.state { return json }
-        return nil
-    }
-
-    private var packText: String {
-        switch packs.state {
-        case .idle: return "idle"
-        case .downloading: return "downloading"
-        case .ready: return "ready"
-        case .failed(let why): return "failed (\(why))"
-        }
-    }
+    private var packText: String { "\(packs.manager.mapFiles().count) packs" }
 
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(coordinate: location.coordinate, styleJSON: styleJSON, fogModel: fog, status: $mapStatus, following: $following)
+            MapView(coordinate: location.coordinate, styleJSON: packs.styleJSON, fogModel: fog, status: $mapStatus, following: $following)
                 .ignoresSafeArea()
             VStack(spacing: 6) {
                 Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
@@ -73,7 +61,10 @@ struct ContentView: View {
             case .consent:
                 ConsentHostView { allowed in app.answerConsent(allowed, hasTrailPoints: fog.count > 0) }.ignoresSafeArea()
             case .picker:
-                EmptyView() // the province picker comes with the iOS pack manager
+                PickerHostView(provinces: packs.provinces, packs: packs.manager, preselected: [], existingUser: fog.count > 0,
+                               onDone: { app.finishPicker(hasTrailPoints: fog.count > 0) })
+                    .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
+                    .ignoresSafeArea()
             case .stats:
                 StatsDemoHostView(onClose: { app.close() }).ignoresSafeArea()
             case .about:
@@ -85,6 +76,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            app.pickerAvailable = true
             app.start(hasTrailPoints: fog.count > 0)
             location.onFix = { fog.onLocation($0) }
             location.start()
@@ -93,6 +85,12 @@ struct ContentView: View {
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
         }
-        .task { await packs.prepare() }
+        .task {
+            await packs.prepare()
+            // Test hook: -autopick <id> downloads that province.
+            if let id = UserDefaults.standard.string(forKey: "autopick"), let entry = packs.provinces?.first(where: { $0.id == id }) {
+                packs.manager.download(entry: entry, unmeteredOnly: false)
+            }
+        }
     }
 }
