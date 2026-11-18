@@ -1,0 +1,6 @@
+- Download offline maps per province, so the map works without a connection
+- New map look, drawn on the phone: smoother and sharper
+- Choose your first province when you start the app
+- Characters have names, and there are more of them
+- Optional, anonymous count of app opens, only if you allow it (off by default)
+- The app is now in English and Dutch
