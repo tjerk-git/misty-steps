@@ -35,3 +35,7 @@ tools/maps/bin/
 iosApp/MistySteps.xcodeproj/
 iosApp/build/
 xcuserdata/
+
+# cf CLI cache and map build input
+.cloudflare/
+data/
