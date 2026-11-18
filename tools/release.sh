@@ -81,7 +81,7 @@ sed -i '' -e "s/^versionCode=.*/versionCode=$NEWCODE/" -e "s/^versionName=.*/ver
 
 # ---- 3. tests and build -------------------------------------------------------------------
 say "Tests, lint and release build"
-./gradlew -q clean testDebugUnitTest lintRelease assembleRelease
+./gradlew -q -PfdroidAbi=arm64-v8a clean testDebugUnitTest lintRelease assembleRelease
 APK=app/build/outputs/apk/release/app-release.apk
 
 # ---- 4. verify the APK --------------------------------------------------------------------

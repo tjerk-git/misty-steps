@@ -26,6 +26,11 @@ android {
         targetSdk = 36
         versionCode = version.getProperty("versionCode").toInt()
         versionName = version.getProperty("versionName")
+
+        // The F-Droid repo is a Cloudflare Worker with a 25 MiB limit per file, and the MapLibre native
+        // library is 8-12 MB per CPU type. tools/release.sh passes -PfdroidAbi=arm64-v8a so that APK carries
+        // only 64-bit ARM. Other builds (Play Store, debug, emulators) keep every CPU type.
+        (findProperty("fdroidAbi") as String?)?.let { abi -> ndk { abiFilters += abi } }
     }
 
     // Release signing reads ../keystore.properties (kept out of git). Without it, release
