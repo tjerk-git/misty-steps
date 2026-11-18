@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var backupHost: IosBackupHost?
     @State private var hint: String?
     @State private var showPinTip = false
+    @State private var pickerPreselect: Set<String> = []
+    @State private var offerDismissed = Set(UserDefaults.standard.stringArray(forKey: "offer_dismissed") ?? [])
     @State private var dialog: LocationDialog?
     @State private var afterGrant: AfterGrant = .wander
     /// The pin tip shows once, after the first real walk (same as Android).
@@ -45,6 +47,17 @@ struct ContentView: View {
         } else {
             showHint(IosTextsKt.pinLookingHint())
         }
+    }
+
+    /// "No map of <province> yet": once per province, while the app is open inside it and not walking (same rules as Android).
+    private var offer: (province: Province, entry: PackEntry)? {
+        guard app.route == nil, fog.session == nil, let index = packs.provinceIndex,
+              let place = location.coordinate ?? fog.lastKnown,
+              let province = index.provinceAt(lat: place.latitude, lon: place.longitude),
+              let entry = packs.provinces?.first(where: { $0.id == province.id }),
+              OfferRules.shared.shouldOffer(here: province, state: packs.manager.state(entry: entry), dismissed: offerDismissed)
+        else { return nil }
+        return (province, entry)
     }
 
     private func dismissPinTip() { showPinTip = false; pinTipSeen = true }
@@ -93,6 +106,26 @@ struct ContentView: View {
             HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
                     onStats: { app.route = .stats }, onCharacters: { app.route = .characters },
                     onLocate: locate, onPin: dropPin, onRecord: record)
+            if let offer {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(IosTextsKt.offerCardText(province: offer.province.name, bytes: offer.entry.map.bytes))
+                        .font(.system(size: 15)).foregroundStyle(Misty.ink)
+                    HStack(spacing: 4) {
+                        Spacer()
+                        Button(IosTextsKt.notNowText()) {
+                            offerDismissed.insert(offer.province.id)
+                            UserDefaults.standard.set(Array(offerDismissed), forKey: "offer_dismissed")
+                        }.foregroundStyle(Misty.dusk)
+                        Button(IosTextsKt.dataDownloadText()) { pickerPreselect = [offer.province.id]; app.route = .picker }
+                            .foregroundStyle(Misty.ember)
+                    }.font(.system(size: 14, weight: .medium)).padding(.horizontal, 4)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .background(Misty.frost, in: RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .padding(.horizontal, 84).padding(.bottom, 112)
+            }
             if let hint {
                 Text(hint).font(.system(size: 13)).foregroundStyle(Misty.ink).padding(.horizontal, 16).padding(.vertical, 10)
                     .background(Misty.frost, in: Capsule()).shadow(color: .black.opacity(0.15), radius: 4, y: 2)
@@ -113,13 +146,13 @@ struct ContentView: View {
             case .consent:
                 ConsentHostView { allowed in app.answerConsent(allowed, hasTrailPoints: fog.count > 0) }.ignoresSafeArea()
             case .picker:
-                PickerHostView(provinces: packs.provinces, packs: packs.manager, preselected: [], existingUser: fog.count > 0,
+                PickerHostView(provinces: packs.provinces, packs: packs.manager, preselected: pickerPreselect, existingUser: fog.count > 0,
                                onDone: { app.finishPicker(hasTrailPoints: fog.count > 0) })
                     .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
                     .ignoresSafeArea()
             case .stats where backupHost != nil:
                 StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, backup: backupHost!, packs: packs.manager, provinces: packs.provinces,
-                              onOpenPicker: { app.route = .picker }, onOpenAbout: { app.route = .about },
+                              onOpenPicker: { pickerPreselect = []; app.route = .picker }, onOpenAbout: { app.route = .about },
                               onOpenWalk: { id in app.close(); postcardWalk = id },
                               onClose: { app.close() })
                     .id(packs.provinces?.count ?? -1)

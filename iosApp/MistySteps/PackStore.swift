@@ -13,6 +13,13 @@ final class PackStore: ObservableObject {
 
     let manager: ApplePackManager
 
+    /// Which province a coordinate is in (the same asset as Android), for the "No map of ... yet" offer.
+    let provinceIndex: ProvinceIndex? = {
+        guard let url = Bundle.main.url(forResource: "nl-provinces", withExtension: "json"),
+              let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        return try? ProvinceIndex.Companion.shared.parse(text: text)
+    }()
+
     private let base = "https://maps.potloodgum.com/"
     private let userAgent: String
     private let root: URL

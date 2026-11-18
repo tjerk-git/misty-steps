@@ -1,6 +1,9 @@
 package com.mistysteps.app.ui
 
+import com.mistysteps.app.maps.formatSize
 import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.data_download
+import com.mistysteps.app.resources.offer_card
 import com.mistysteps.app.resources.start_wandering
 import com.mistysteps.app.resources.stop_wandering
 import com.mistysteps.app.resources.show_my_location
@@ -65,3 +68,8 @@ fun mistClearedText(distanceM: Double): String = runBlocking { getString(Res.str
 
 /** "55,3 km" in the phone's language, same as the Android hub. */
 fun formatDistanceText(distanceM: Double): String = formatDistance(distanceM)
+
+/** "No map of Friesland yet. Download (62 MB)". */
+fun offerCardText(province: String, bytes: Long): String = runBlocking { getString(Res.string.offer_card, province, formatSize(bytes)) }
+
+fun dataDownloadText(): String = runBlocking { getString(Res.string.data_download) }

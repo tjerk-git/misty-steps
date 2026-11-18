@@ -1,10 +1,14 @@
 package com.mistysteps.app.maps
 
-import android.content.Context
 import com.mistysteps.app.data.TrailPoint
 import com.mistysteps.app.stats.Boundary
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * The twelve Dutch provinces, from `assets/nl-provinces.json`: which one a coordinate is in, all on the
@@ -21,28 +25,25 @@ class ProvinceIndex(val provinces: List<Province>) {
 
     companion object {
         private const val FORMAT = 1
-        private const val ASSET = "nl-provinces.json"
-
-        fun load(context: Context, asset: String = ASSET): ProvinceIndex =
-            context.assets.open(asset).use { parse(it.bufferedReader().readText()) }
+        const val ASSET = "nl-provinces.json"
 
         fun parse(text: String): ProvinceIndex {
-            val json = JSONObject(text)
-            val format = json.getInt("format")
+            val json = Json.parseToJsonElement(text).jsonObject
+            val format = json.getValue("format").jsonPrimitive.int
             require(format <= FORMAT) { "Province index format $format is newer than this app understands ($FORMAT)" }
-            val list = json.getJSONArray("provinces")
-            return ProvinceIndex((0 until list.length()).map { i ->
-                val o = list.getJSONObject(i)
-                Province(o.getString("id"), o.getString("name"), Boundary(o.getString("name"), polygons(o.getJSONArray("polygons"))))
+            val list = json.getValue("provinces").jsonArray
+            return ProvinceIndex(list.map { el ->
+                val o = el.jsonObject
+                val name = o.getValue("name").jsonPrimitive.content
+                Province(o.getValue("id").jsonPrimitive.content, name, Boundary(name, polygons(o.getValue("polygons").jsonArray)))
             })
         }
 
         /** [[ring, hole, ...], ...] where a ring is a flat [lon, lat, lon, lat, ...] array. */
-        private fun polygons(arr: JSONArray): List<List<DoubleArray>> = (0 until arr.length()).map { p ->
-            val rings = arr.getJSONArray(p)
-            (0 until rings.length()).map { r ->
-                val ring = rings.getJSONArray(r)
-                DoubleArray(ring.length()) { ring.getDouble(it) }
+        private fun polygons(arr: JsonArray): List<List<DoubleArray>> = arr.map { p ->
+            p.jsonArray.map { ring ->
+                val values = ring.jsonArray
+                DoubleArray(values.size) { values[it].jsonPrimitive.double }
             }
         }
     }

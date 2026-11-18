@@ -33,6 +33,8 @@ targets:
         buildPhase: resources
       - path: ../app/src/main/assets/pins.txt
         buildPhase: resources
+      - path: ../app/src/main/assets/nl-provinces.json
+        buildPhase: resources
     dependencies:
       - package: MapLibre
         product: MapLibre
