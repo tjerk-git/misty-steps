@@ -61,7 +61,7 @@ struct MapView: UIViewRepresentable {
         guard let coordinate, !context.coordinator.perfRunning else { return }
         if !context.coordinator.centered {
             context.coordinator.centered = true
-            map.setCenter(coordinate, zoomLevel: 16, animated: false)
+            map.setCenter(coordinate, zoomLevel: 15.5, animated: false)
         } else if following {
             map.setCenter(coordinate, animated: true)
         }

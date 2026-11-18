@@ -22,6 +22,9 @@ final class FogModel: ObservableObject {
     /// The walk being recorded, or nil.
     @Published private(set) var session: Session?
     @Published private(set) var distanceM = 0.0
+    /// Distance of all finished walks, so the title can say how much mist you have cleared in total.
+    @Published private(set) var baseDistanceM = 0.0
+    var totalDistanceM: Double { baseDistanceM + distanceM }
     @Published private(set) var inVehicle = false
     /// The walk that just ended, for the postcard.
     @Published private(set) var finished: Session?
@@ -44,6 +47,11 @@ final class FogModel: ObservableObject {
             lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
         }
         version += 1
+        baseDistanceM = FogModel.sumDistance(store)
+    }
+
+    private static func sumDistance(_ store: SQLiteTrailStore) -> Double {
+        (store.loadSessions(limit: nil) as? [Session] ?? []).reduce(0) { $0 + $1.distanceM }
     }
 
     /// Reads every spot from the store again (after an import).
@@ -56,6 +64,7 @@ final class FogModel: ObservableObject {
             lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
         }
         version += 1
+        baseDistanceM = FogModel.sumDistance(store)
         notify()
     }
 
@@ -78,6 +87,7 @@ final class FogModel: ObservableObject {
         let done = Session(id: s.id, startTime: s.startTime, endTime: KotlinLong(value: Int64(Date().timeIntervalSince1970 * 1000)),
                            distanceM: distanceM, points: sessionPoints, batteryStart: s.batteryStart, batteryEnd: nil, newAreaM2: nil)
         session = nil; inVehicle = false
+        baseDistanceM += distanceM; distanceM = 0
         writer.async { [store] in
             store.endSession(s: done)
             // Count the ground nobody had cleared before this walk, like Android does; then the postcard can say so.

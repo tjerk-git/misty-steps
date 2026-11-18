@@ -15,6 +15,19 @@ struct ContentView: View {
     @State private var postcardWalk: Int64?
     @State private var backupHost: IosBackupHost?
     @State private var hint: String?
+    @State private var showPinTip = false
+    @State private var dialog: LocationDialog?
+    @State private var afterGrant: AfterGrant = .wander
+    /// The pin tip shows once, after the first real walk (same as Android).
+    @AppStorage("pinTipSeen") private var pinTipSeen = false
+    /// The old status strip (pack count, spots, map state) is for testing: launch with -debugstrip 1.
+    private let debugStrip = UserDefaults.standard.integer(forKey: "debugstrip") > 0
+
+    enum LocationDialog: Identifiable {
+        case rationale, settings
+        var id: Int { self == .rationale ? 0 : 1 }
+    }
+    enum AfterGrant { case wander, locate }
 
     /// One database file for the spots, walks and pins.
     private static let store = SQLiteTrailStore(path: ContentView.databaseURL)
@@ -34,6 +47,30 @@ struct ContentView: View {
         }
     }
 
+    private func dismissPinTip() { showPinTip = false; pinTipSeen = true }
+
+    /// Start or stop wandering. Starting asks for the location first, with the reason, like Android.
+    private func record() {
+        if fog.session != nil { fog.endWalk(); return }
+        askThen(.wander)
+    }
+
+    /// The locate button: fly back to where you are.
+    private func locate() {
+        askThen(.locate)
+    }
+
+    private func askThen(_ what: AfterGrant) {
+        afterGrant = what
+        if location.isAllowed { grantedAction(what) } else if location.needsAsking { dialog = .rationale } else { dialog = .settings }
+    }
+
+    private func grantedAction(_ what: AfterGrant) {
+        location.start()
+        following = true
+        if what == .wander { fog.beginWalk() } else if location.coordinate == nil { showHint(IosTextsKt.pinLookingHint()) }
+    }
+
     private func showHint(_ text: String) {
         hint = text
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { if hint == text { hint = nil } }
@@ -47,43 +84,20 @@ struct ContentView: View {
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },
                     status: $mapStatus, following: $following)
                 .ignoresSafeArea()
-            VStack(spacing: 6) {
+            if debugStrip {
                 Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
                     .font(.system(size: 10)).padding(6)
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                if fog.session != nil {
-                    Text(fog.inVehicle ? "In a vehicle: the fog stays" : String(format: "%.0f m walked", fog.distanceM))
-                        .font(.headline).padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(.thinMaterial, in: Capsule())
-                }
-                if let hint {
-                    Text(hint).font(.footnote).padding(10)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                }
-                Spacer()
-                HStack(spacing: 12) {
-                    Button { app.route = .characters } label: { Image(systemName: "pawprint.fill") }
-                        .buttonStyle(.bordered).controlSize(.large)
-                    if fog.session != nil {
-                        Button { dropPin() } label: { Image(systemName: "mappin.and.ellipse") }
-                            .buttonStyle(.bordered).controlSize(.large)
-                    }
-                    Button(fog.session == nil ? "Start wandering" : "Stop") {
-                        if fog.session == nil { fog.beginWalk(); following = true } else { fog.endWalk() }
-                    }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
-                    if !following {
-                        Button { following = true } label: { Image(systemName: "location.fill") }
-                            .buttonStyle(.bordered).controlSize(.large)
-                    }
-                    Button { app.route = .stats } label: { Image(systemName: "chart.bar.fill") }
-                        .buttonStyle(.bordered).controlSize(.large)
-                    Button { app.route = .about } label: { Image(systemName: "info.circle") }
-                        .buttonStyle(.bordered).controlSize(.large)
-                }
-                .padding(.bottom, 28)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom).padding(.bottom, 90).allowsHitTesting(false)
             }
-            .padding(.horizontal, 8)
+            HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
+                    onStats: { app.route = .stats }, onCharacters: { app.route = .characters },
+                    onLocate: locate, onPin: dropPin, onRecord: record)
+            if let hint {
+                Text(hint).font(.system(size: 13)).foregroundStyle(Misty.ink).padding(.horizontal, 16).padding(.vertical, 10)
+                    .background(Misty.frost, in: Capsule()).shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom).padding(.bottom, 100).allowsHitTesting(false)
+            }
         }
         .overlay {
             if let id = postcardWalk {
@@ -168,16 +182,36 @@ struct ContentView: View {
             }
             app.start(hasTrailPoints: fog.count > 0)
             location.onFix = { fog.onLocation($0) }
+            location.onAnswer = { allowed in
+                if allowed { grantedAction(afterGrant) } else { dialog = .settings }
+            }
             location.start()
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
         }
+        .alert(item: $dialog) { d in
+            switch d {
+            case .rationale:
+                return Alert(title: Text(IosTextsKt.dialogRationaleTitleText()), message: Text(IosTextsKt.dialogRationaleTextText()),
+                             primaryButton: .default(Text(IosTextsKt.dialogContinueText())) { location.ask() },
+                             secondaryButton: .cancel(Text(IosTextsKt.notNowText())))
+            case .settings:
+                return Alert(title: Text(IosTextsKt.dialogSettingsTitleText()), message: Text(IosTextsKt.iosDialogSettingsTextText()),
+                             primaryButton: .default(Text(IosTextsKt.openSettingsText())) {
+                                 if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                             },
+                             secondaryButton: .cancel(Text(IosTextsKt.notNowText())))
+            }
+        }
         .onChange(of: fog.session?.id) { _, _ in backupHost?.setRecording(value: fog.session != nil) }
         .onChange(of: fog.finished?.id) { _, id in
             // A postcard when a walk ends (not for tiny ones, like a start-stop by mistake).
-            if let walk = fog.finished, let id, walk.distanceM >= StatsScreenKt.MIN_WALK_M { postcardWalk = id }
+            if let walk = fog.finished, let id, walk.distanceM >= StatsScreenKt.MIN_WALK_M {
+                postcardWalk = id
+                if !pinTipSeen { showPinTip = true }
+            }
         }
         .task {
             await packs.prepare()
