@@ -7,11 +7,13 @@ private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.sel
 
 final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     private var db: OpaquePointer?
+    /// Every call takes this: the recorder, the stats and the postcards use one connection from several threads.
+    private let lock = NSRecursiveLock()
 
     init(path: URL) {
         super.init()
         try? FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
-        guard sqlite3_open(path.path, &db) == SQLITE_OK else { fatalError("cannot open \(path.path)") }
+        guard sqlite3_open_v2(path.path, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK else { fatalError("cannot open \(path.path)") }
         exec("""
             CREATE TABLE IF NOT EXISTS points (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,6 +38,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     deinit { sqlite3_close(db) }
 
     func insert(points: [TrailPoint]) {
+        lock.lock(); defer { lock.unlock() }
         exec("BEGIN")
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id) VALUES (?, ?, ?, ?, ?)", -1, &stmt, nil)
@@ -53,6 +56,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func loadAll() -> [TrailPoint] {
+        lock.lock(); defer { lock.unlock() }
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id FROM points ORDER BY id", -1, &stmt, nil)
@@ -66,6 +70,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func startSession(s: Session) {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "INSERT INTO sessions (id, start_time, battery_start) VALUES (?, ?, ?)", -1, &stmt, nil)
         sqlite3_bind_int64(stmt, 1, s.id)
@@ -76,6 +81,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func endSession(s: Session) {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "UPDATE sessions SET end_time = ?, distance_m = ?, points = ?, battery_end = ?, new_area_m2 = ? WHERE id = ?", -1, &stmt, nil)
         if let e = s.endTime { sqlite3_bind_int64(stmt, 1, e.int64Value) } else { sqlite3_bind_null(stmt, 1) }
@@ -89,6 +95,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func loadSessions(limit: KotlinInt?) -> [Session] {
+        lock.lock(); defer { lock.unlock() }
         var out: [Session] = []
         var stmt: OpaquePointer?
         let sql = "SELECT id, start_time, end_time, distance_m, points, battery_start, battery_end, new_area_m2 FROM sessions ORDER BY start_time DESC"
@@ -111,6 +118,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     // MARK: pins (same table as Android's)
 
     func insertPin(p: Pin) -> Int64 {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "INSERT INTO pins (lat, lon, time, label, note, session_id) VALUES (?, ?, ?, ?, ?, ?)", -1, &stmt, nil)
         sqlite3_bind_double(stmt, 1, p.lat)
@@ -125,6 +133,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func updatePin(id: Int64, labelKey: String, note: String?) {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "UPDATE pins SET label = ?, note = ? WHERE id = ?", -1, &stmt, nil)
         sqlite3_bind_text(stmt, 1, labelKey, -1, SQLITE_TRANSIENT)
@@ -135,6 +144,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func deletePin(id: Int64) {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "DELETE FROM pins WHERE id = ?", -1, &stmt, nil)
         sqlite3_bind_int64(stmt, 1, id)
@@ -143,6 +153,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     }
 
     func loadPins() -> [Pin] {
+        lock.lock(); defer { lock.unlock() }
         var out: [Pin] = []
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT id, lat, lon, time, label, note, session_id FROM pins ORDER BY time DESC, id DESC", -1, &stmt, nil)
@@ -164,6 +175,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
 
     /// The spots of one walk, in order.
     func loadSessionPoints(id: Int64) -> [TrailPoint] {
+        lock.lock(); defer { lock.unlock() }
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id FROM points WHERE session_id = ? ORDER BY id", -1, &stmt, nil)
@@ -179,6 +191,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
 
     /// The spots of other walks (and of before walks were logged) inside a box, for working out what a walk cleared that was new.
     func loadOtherPointsIn(id: Int64, minLat: Double, minLon: Double, maxLat: Double, maxLon: Double) -> [TrailPoint] {
+        lock.lock(); defer { lock.unlock() }
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, """
@@ -200,6 +213,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     /// Adds a backup's walks and spots. Only adds: spots already here (same place and time) and walks already here (same id) are
     /// skipped, nothing is changed or deleted. Returns how many spots and walks were added.
     func importData(points: [TrailPoint], sessions: [Session]) -> BackupCounts {
+        lock.lock(); defer { lock.unlock() }
         var have = Set<String>()
         var read: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT lat, lon, time FROM points", -1, &read, nil)
@@ -244,6 +258,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
 
     /// Adds a backup's pins, skipping ones already here (same time and place). Returns how many were added.
     func importPins(_ incoming: [Pin]) -> Int32 {
+        lock.lock(); defer { lock.unlock() }
         let fresh = PinRules.shared.doNewPins(existing: loadPins(), incoming: incoming) as? [Pin] ?? []
         for pin in fresh { _ = insertPin(p: pin) }
         return Int32(fresh.count)
@@ -252,6 +267,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
     func isEmpty() -> Bool { countPoints() == 0 }
 
     func countPoints() -> Int64 {
+        lock.lock(); defer { lock.unlock() }
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM points", -1, &stmt, nil)
         defer { sqlite3_finalize(stmt) }
