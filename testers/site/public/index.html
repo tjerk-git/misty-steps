@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Misty Steps</title>
+<meta name="description" content="Help test Misty Steps, a calm walking app that lifts the mist from the map of where you live.">
+<link rel="icon" href="poster.jpg">
+<style>
+  :root { --ink:#2E3550; --dusk:#5B6B8C; --ember:#B4536A; --frost:#FAFBFF; --mist:#F6E9E8; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink);
+         background:linear-gradient(180deg,var(--mist),#E8E4EE 70%); min-height:100vh; }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font:600 34px/1.2 Georgia,"Times New Roman",serif; letter-spacing:1.5px; margin:0 0 8px; }
+  h2 { font:600 22px/1.3 Georgia,serif; margin:0 0 12px; }
+  .lead { color:var(--dusk); font-size:19px; margin:0 0 28px; max-width:34em; }
+  .lang { float:right; font-size:14px; }
+  .lang button { background:none; border:0; color:var(--dusk); cursor:pointer; font:inherit; padding:2px 6px; }
+  .lang button[aria-pressed=true] { color:var(--ink); font-weight:600; text-decoration:underline; }
+  .grid { display:grid; grid-template-columns:minmax(0,300px) 1fr; gap:36px; align-items:start; }
+  @media (max-width:720px){ .grid { grid-template-columns:1fr; } video { max-width:300px; margin:0 auto; display:block; } }
+  video { width:100%; border-radius:28px; background:#000; box-shadow:0 8px 28px rgba(46,53,80,.25); }
+  .card { background:var(--frost); border-radius:24px; padding:28px; box-shadow:0 4px 18px rgba(46,53,80,.12); }
+  ul.facts { padding-left:1.2em; margin:0 0 24px; } ul.facts li { margin:4px 0; }
+  fieldset { border:0; padding:0; margin:0 0 18px; }
+  legend, label.t { font-weight:600; display:block; margin-bottom:6px; }
+  .choices { display:flex; gap:12px; flex-wrap:wrap; }
+  .choices label { flex:1 1 140px; border:2px solid #CBD0DF; border-radius:16px; padding:12px 16px; cursor:pointer; text-align:center; }
+  .choices input { position:absolute; opacity:0; }
+  .choices label:has(input:checked) { border-color:var(--ink); background:#EEF0F8; font-weight:600; }
+  .choices label:has(input:focus-visible) { outline:3px solid var(--dusk); outline-offset:2px; }
+  input[type=email] { width:100%; font:inherit; padding:12px 14px; border:2px solid #CBD0DF; border-radius:14px; background:#fff; color:var(--ink); }
+  input[type=email]:focus { outline:3px solid var(--dusk); outline-offset:1px; border-color:var(--ink); }
+  .hint { font-size:14px; color:var(--dusk); margin:6px 0 0; }
+  .check { display:flex; gap:10px; align-items:flex-start; font-size:15px; margin:10px 0; line-height:1.45; }
+  .check input { margin-top:4px; width:18px; height:18px; flex:none; accent-color:var(--ink); }
+  button.go { width:100%; margin-top:14px; font:600 17px inherit; font-family:inherit; color:#fff; background:var(--ink); border:0; border-radius:999px; padding:16px; cursor:pointer; }
+  button.go:disabled { opacity:.6; cursor:wait; }
+  .msg { margin-top:14px; font-size:15px; min-height:1.4em; } .msg.err { color:var(--ember); }
+  .done { display:none; text-align:center; padding:12px 0; } .done h2 { margin-bottom:8px; }
+  .hp { position:absolute; left:-9999px; }
+  footer { margin-top:28px; font-size:13px; color:var(--dusk); max-width:44em; }
+  main [lang=nl] { display:none; }
+  html[data-l=nl] main [lang=nl] { display:revert; }
+  html[data-l=nl] main [lang=en] { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-set="en" aria-pressed="true">English</button>|<button type="button" data-set="nl" aria-pressed="false">Nederlands</button>
+  </div>
+  <h1>Misty Steps</h1>
+  <p class="lead" lang="en">A calm walking app. Your neighbourhood starts hidden in mist; the mist lifts wherever you walk. No accounts, no scores, no friends. Help me test it before it reaches the app stores.</p>
+  <p class="lead" lang="nl">Een rustige wandel-app. Je buurt begint verborgen in de mist; de mist trekt weg waar je loopt. Geen accounts, geen scores, geen vrienden. Help me testen voordat de app in de app stores komt.</p>
+
+  <div class="grid">
+    <video id="demo" controls playsinline muted preload="metadata" poster="poster.jpg" aria-label="30 second demo of Misty Steps">
+      <source src="demo.mp4" type="video/mp4">
+      <track kind="captions" src="demo.en.vtt" srclang="en" label="English" default>
+      <track kind="captions" src="demo.nl.vtt" srclang="nl" label="Nederlands">
+    </video>
+
+    <div class="card">
+      <div id="formbox">
+        <h2 lang="en">Join the testers</h2><h2 lang="nl">Word tester</h2>
+        <ul class="facts" lang="en">
+          <li>Free, and it stays free.</li>
+          <li>Netherlands only, on iPhone and Android.</li>
+          <li>You walk, the app stays on your phone. Tell me what feels wrong.</li>
+        </ul>
+        <ul class="facts" lang="nl">
+          <li>Gratis, en dat blijft zo.</li>
+          <li>Alleen Nederland, op iPhone en Android.</li>
+          <li>Jij wandelt, de app blijft op je telefoon. Vertel me wat niet goed voelt.</li>
+        </ul>
+        <form id="f" novalidate>
+          <fieldset>
+            <legend lang="en">Your phone</legend><legend lang="nl">Jouw telefoon</legend>
+            <div class="choices">
+              <label><input type="radio" name="platform" value="android" required> Android</label>
+              <label><input type="radio" name="platform" value="ios"> iPhone</label>
+            </div>
+          </fieldset>
+          <label class="t" for="email"><span lang="en">Email address</span><span lang="nl">E-mailadres</span></label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+          <p class="hint" lang="en">Use the address of your Google account (Android) or Apple ID (iPhone). The invite goes there.</p>
+          <p class="hint" lang="nl">Gebruik het adres van je Google-account (Android) of Apple ID (iPhone). De uitnodiging gaat daarheen.</p>
+          <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <div style="height:14px"></div>
+          <label class="check"><input type="checkbox" name="consent_testing" required>
+            <span lang="en">I agree that my email address is used to add me to the Misty Steps tester group and to send me test invites and test updates.</span>
+            <span lang="nl">Ik ga ermee akkoord dat mijn e-mailadres wordt gebruikt om mij aan de testgroep van Misty Steps toe te voegen en mij testuitnodigingen en testupdates te sturen.</span></label>
+          <label class="check"><input type="checkbox" name="consent_newsletter">
+            <span lang="en">Optional: also send me the occasional Misty Steps newsletter.</span>
+            <span lang="nl">Optioneel: stuur mij ook af en toe de Misty Steps-nieuwsbrief.</span></label>
+          <button class="go" type="submit"><span lang="en">Sign up</span><span lang="nl">Aanmelden</span></button>
+          <div class="msg" id="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+      <div class="done" id="done" role="status">
+        <h2 lang="en">Thank you</h2><h2 lang="nl">Bedankt</h2>
+        <p lang="en">You are on the list. I will send an invite to your address as soon as a test build is ready for your phone.</p>
+        <p lang="nl">Je staat op de lijst. Zodra er een testversie voor jouw telefoon klaar is, stuur ik een uitnodiging naar je adres.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p lang="en">What I keep: your email address, your phone type, your choices above, and the date you agreed. Nothing else, no tracking and no cookies on this page. I use it only for the test group and, if you ticked it, a rare newsletter. You can ask me to delete it at any time by replying to any message I send you. Your address is stored in a database at Cloudflare restricted to the EU and is never sold or shared, except with Apple or Google to send the test invite.</p>
+    <p lang="nl">Wat ik bewaar: je e-mailadres, je type telefoon, je keuzes hierboven en de datum van je akkoord. Verder niets, geen tracking en geen cookies op deze pagina. Ik gebruik het alleen voor de testgroep en, als je dat aanvinkte, een zeldzame nieuwsbrief. Je kunt me op elk moment vragen het te verwijderen door te antwoorden op een bericht van mij. Je adres staat in een database bij Cloudflare die tot de EU beperkt is en wordt nooit verkocht of gedeeld, behalve met Apple of Google om de testuitnodiging te sturen.</p>
+  </footer>
+</main>
+<script>
+(function () {
+  var html = document.documentElement;
+  function setLang(l) {
+    html.dataset.l = l; html.lang = l;
+    document.querySelectorAll(".lang button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.set === l); });
+    var tracks = document.getElementById("demo").textTracks;
+    for (var i = 0; i < tracks.length; i++) tracks[i].mode = tracks[i].language === l ? "showing" : "disabled";
+    try { localStorage.setItem("l", l); } catch (e) {}
+  }
+  document.querySelectorAll(".lang button").forEach(function (b) { b.addEventListener("click", function () { setLang(b.dataset.set); }); });
+  var saved; try { saved = localStorage.getItem("l"); } catch (e) {}
+  setLang(saved || ((navigator.language || "en").slice(0, 2) === "nl" ? "nl" : "en"));
+
+  var f = document.getElementById("f"), msg = document.getElementById("msg");
+  var text = {
+    email: { en: "Please enter a valid email address.", nl: "Vul een geldig e-mailadres in." },
+    platform: { en: "Choose Android or iPhone.", nl: "Kies Android of iPhone." },
+    consent: { en: "Please tick the first box so I may use your address for the test group.", nl: "Vink het eerste vakje aan zodat ik je adres voor de testgroep mag gebruiken." },
+    fail: { en: "That did not work. Please try again in a moment.", nl: "Dat is niet gelukt. Probeer het zo nog eens." }
+  };
+  function say(key) { msg.className = "msg err"; msg.textContent = text[key][html.dataset.l]; }
+  f.addEventListener("submit", function (e) {
+    e.preventDefault(); msg.textContent = ""; msg.className = "msg";
+    var d = new FormData(f), email = String(d.get("email") || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("email"); f.email.focus(); return; }
+    if (!d.get("platform")) { say("platform"); return; }
+    if (!d.get("consent_testing")) { say("consent"); return; }
+    var btn = f.querySelector("button.go"); btn.disabled = true;
+    fetch("/api/signup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(Object.fromEntries(d)) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); document.getElementById("formbox").style.display = "none"; document.getElementById("done").style.display = "block"; })
+      .catch(function () { say("fail"); btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

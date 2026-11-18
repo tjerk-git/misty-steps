@@ -1,0 +1,8 @@
+{
+  "name": "misty-testers",
+  "private": true,
+  "type": "module",
+  "description": "Tester sign-up for Misty Steps: testers.potloodgum.com",
+  "scripts": { "test": "node --test test/" },
+  "devDependencies": { "cf": "^1.0.0-beta.28", "wrangler": "^4.163.0" }
+}
