@@ -88,8 +88,11 @@ backup export and import, first run (onboarding, consent, province picker), Abou
 
 Not done, and needing a real iPhone: **background GPS and battery** (the question that decides whether iOS is viable),
 and the release plumbing (signing with the Apple account, notarization, the AltStore PAL source). Small gaps: pin
-bounce, Dutch text for the few Swift-only hints, the distance walked before walks were logged is not carried over from an
-Android backup, neighbourhoods and streets in stats (they need data Android downloads separately).
+the distance walked before walks were logged is not carried over from an Android backup, neighbourhoods and streets in
+stats (they need data Android downloads separately). Since 2026-11-18 (branch ios-parity) the map screen matches Android:
+title pill with total distance, character, stats, locate and pin buttons, the Start/Stop pill, banners (vehicle, pin tip,
+welcome), the location rationale and settings dialogs, the "No map of <province> yet" offer, the pin drop animation, and
+all texts from the shared English and Dutch strings.
 
 Numbers from the simulator (Mac, 60 Hz): pan benchmark with 100,000 cleared spots and the mist drifting shows no slow
 frames; mask build 118 ms off the main thread. A real iPhone will be slower.

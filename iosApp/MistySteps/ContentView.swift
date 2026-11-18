@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftUI
 import Shared
 
@@ -206,6 +207,13 @@ struct ContentView: View {
                 for (i, key) in ["sit", "view", "crow", "cat", "path"].enumerated() {
                     _ = pins.book.add(lat: 53.2012 + 0.0004 * Double(i), lon: 5.7936 + 0.0006 * Double(i), labelKey: key, note: i == 2 ? "Loud one" : nil,
                                       sessionId: nil, nowMs: Int64(Date().timeIntervalSince1970 * 1000))
+                }
+            }
+            // Test hook: -droppin 1 places a pin five seconds after launch, to watch it drop in.
+            if UserDefaults.standard.integer(forKey: "droppin") > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    let c = location.coordinate ?? CLLocationCoordinate2D(latitude: 53.2012, longitude: 5.7936)
+                    _ = pins.book.add(lat: c.latitude + 0.0008, lon: c.longitude, labelKey: "cat", note: nil, sessionId: nil, nowMs: Int64(Date().timeIntervalSince1970 * 1000))
                 }
             }
             switch UserDefaults.standard.string(forKey: "pinsheet") {

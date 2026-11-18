@@ -191,12 +191,55 @@ struct MapView: UIViewRepresentable {
             icons.iconScale = NSExpression(forConstantValue: 0.87)
             icons.minimumZoomLevel = 14
             style.addLayer(icons)
+            // The pin that was just placed drops in from above (12 pt, 400 ms, with a little overshoot, like Android). While it
+            // moves it is drawn by this layer and left out of the main one.
+            let drop = MLNSymbolStyleLayer(identifier: "pins-drop", source: source)
+            drop.iconImageName = NSExpression(forKeyPath: "icon")
+            drop.iconAnchor = NSExpression(forConstantValue: NSValue(mlnIconAnchor: .bottom))
+            drop.iconAllowsOverlap = NSExpression(forConstantValue: true)
+            drop.iconScale = NSExpression(forConstantValue: 0.87)
+            drop.minimumZoomLevel = 14
+            drop.predicate = NSPredicate(format: "id == -1")
+            style.addLayer(drop)
             pinSource = source
+            pinStyle = style
+            knownPins = nil
             refreshPins()
+        }
+
+        private var knownPins: Set<Int64>?
+        private var pinStyle: MLNStyle?
+        private var dropTimer: Timer?
+
+        /// Starts the drop of pin [id]: a 60 Hz timer moves the one-pin layer from 12 pt up to its place.
+        private func startDrop(_ id: Int64, in style: MLNStyle) {
+            guard let main = style.layer(withIdentifier: "pins-icons") as? MLNSymbolStyleLayer,
+                  let drop = style.layer(withIdentifier: "pins-drop") as? MLNSymbolStyleLayer else { return }
+            dropTimer?.invalidate()
+            main.predicate = NSPredicate(format: "id != %lld", id)
+            drop.predicate = NSPredicate(format: "id == %lld", id)
+            let start = CACurrentMediaTime()
+            dropTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60, repeats: true) { [weak self] timer in
+                let t = min(1, (CACurrentMediaTime() - start) / 0.4)
+                let k = 2.5, u = t - 1
+                let overshoot = u * u * ((k + 1) * u + k) + 1 // Android's OvershootInterpolator(2.5)
+                drop.iconTranslation = NSExpression(forConstantValue: NSValue(cgVector: CGVector(dx: 0, dy: -12 * (1 - overshoot))))
+                if t >= 1 {
+                    timer.invalidate()
+                    main.predicate = nil
+                    drop.predicate = NSPredicate(format: "id == -1")
+                    self?.dropTimer = nil
+                }
+            }
         }
 
         func refreshPins() {
             guard let pinSource, let pinsModel else { return }
+            let ids = Set(pinsModel.all.map { $0.id })
+            defer { knownPins = ids }
+            if let known = knownPins, ids.count == known.count + 1, let added = ids.subtracting(known).first, let style = pinStyle {
+                startDrop(added, in: style)
+            }
             let features: [MLNPointFeature] = pinsModel.all.map { pin in
                 let f = MLNPointFeature()
                 f.coordinate = CLLocationCoordinate2D(latitude: pin.lat, longitude: pin.lon)
