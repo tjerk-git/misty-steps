@@ -4,7 +4,8 @@ import android.content.Context
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
-import com.mistysteps.app.record.SpeedGate
+import com.mistysteps.app.record.RecordedFix
+import com.mistysteps.app.record.WalkRecorder
 import com.mistysteps.app.stats.ClearedCells
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.Executors
-import kotlin.math.ceil
 
 /**
  * Single source of truth for where the fog has been lifted.
@@ -21,22 +21,13 @@ import kotlin.math.ceil
  */
 object FogStore {
     /** Radius of fog cleared around every recorded spot. */
-    const val CLEAR_RADIUS_M = 50.0
+    const val CLEAR_RADIUS_M = FogConstants.CLEAR_RADIUS_M
 
     /** The spot where a walk starts gets a bigger clearing. */
-    const val START_CLEAR_RADIUS_M = 100.0
-
-    /** Don't store a new spot until we've moved at least this far. */
-    private const val MIN_STEP_M = 10f
-
-    /** Fill gaps between fixes with a spot every this many metres... */
-    private const val FILL_STEP_M = 20f
-
-    /** ...but only if the gap is walkable; bigger jumps (GPS loss, a train) are not filled. */
-    private const val MAX_FILL_GAP_M = 300f
+    const val START_CLEAR_RADIUS_M = FogConstants.START_CLEAR_RADIUS_M
 
     /** Ignore fixes worse than this. */
-    const val MAX_ACCURACY_M = 35f
+    const val MAX_ACCURACY_M = WalkRecorder.MAX_ACCURACY_M
 
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -58,9 +49,7 @@ object FogStore {
     private var sessionPoints = 0
     private var lastFixTime = 0L
 
-    private val gate = SpeedGate()
-    /** Set after a stretch in a vehicle, so the next spot isn't treated as a walk's start. */
-    private var resumingAfterVehicle = false
+    private val recorder = WalkRecorder()
 
     private val _inVehicle = MutableStateFlow(false)
     /** True while you seem to be in a car, train or bus; the fog then doesn't clear. */
@@ -79,8 +68,6 @@ object FogStore {
 
     private val _loaded = MutableStateFlow(false)
     val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
-
-    private var last: Location? = null
 
     /** The latest GPS fix good enough to record, while wandering. For dropping pins. */
     @Volatile
@@ -180,7 +167,7 @@ object FogStore {
      * and a new session is logged. Main thread.
      */
     fun beginWalk(batteryPct: Int?): Session {
-        last = null
+        recorder.begin()
         val now = System.currentTimeMillis()
         // The id is the start time; nudge it if two walks somehow start in the same millisecond.
         val id = maxOf(now, (session?.id ?: 0L) + 1)
@@ -189,9 +176,7 @@ object FogStore {
         sessionDistance = 0.0
         sessionPoints = 0
         lastFixTime = now
-        gate.reset()
         _inVehicle.value = false
-        resumingAfterVehicle = false
         io.execute { db.startSession(s) }
         return s
     }
@@ -200,8 +185,7 @@ object FogStore {
     fun endWalk(batteryPct: Int?): Session? {
         val s = snapshot(batteryPct) ?: return null
         session = null
-        last = null
-        gate.reset()
+        recorder.end()
         _inVehicle.value = false
         flush()
         io.execute {
@@ -259,50 +243,18 @@ object FogStore {
         if (loc.hasAccuracy() && loc.accuracy > MAX_ACCURACY_M) return
         lastKnown = loc.latitude to loc.longitude
         lastGoodFix = loc
-        if (session != null) {
-            val vehicle = gate.update(loc.elapsedRealtimeNanos / 1_000_000, loc.latitude, loc.longitude)
-            if (vehicle != _inVehicle.value) _inVehicle.value = vehicle
-            if (vehicle) {
-                // Don't clear, and don't join the trail across the ride.
-                last = null
-                resumingAfterVehicle = true
-                return
-            }
-        }
-        val prev = last
+        val fix = RecordedFix(
+            loc.latitude, loc.longitude,
+            if (loc.hasAccuracy()) loc.accuracy else null,
+            loc.time, loc.elapsedRealtimeNanos / 1_000_000,
+        )
         val sid = session?.id
-        val newPoints = ArrayList<TrailPoint>()
-        var newSegment = false
-        if (prev == null) {
-            val radius = if (resumingAfterVehicle) CLEAR_RADIUS_M else START_CLEAR_RADIUS_M
-            resumingAfterVehicle = false
-            newPoints += TrailPoint(loc.latitude, loc.longitude, loc.time, radius, sid)
-            newSegment = true
-        } else {
-            val d = prev.distanceTo(loc)
-            if (d < MIN_STEP_M) return
-            if (d <= MAX_FILL_GAP_M) {
-                val steps = ceil(d / FILL_STEP_M).toInt()
-                // Go the short way round when stepping across the 180° meridian.
-                var dLon = loc.longitude - prev.longitude
-                if (dLon > 180) dLon -= 360
-                if (dLon < -180) dLon += 360
-                for (i in 1 until steps) {
-                    val f = i.toDouble() / steps
-                    newPoints += TrailPoint(
-                        prev.latitude + (loc.latitude - prev.latitude) * f,
-                        wrapLon(prev.longitude + dLon * f),
-                        prev.time + ((loc.time - prev.time) * f).toLong(),
-                        sessionId = sid,
-                    )
-                }
-                addDistance(d.toDouble())
-            } else {
-                newSegment = true // too far to have walked: don't draw a line across the jump
-            }
-            newPoints += TrailPoint(loc.latitude, loc.longitude, loc.time, sessionId = sid)
-        }
-        last = loc
+        val step = recorder.onFix(fix, sid)
+        if (sid != null && recorder.inVehicle != _inVehicle.value) _inVehicle.value = recorder.inVehicle
+        if (step == null) return
+        val newPoints = step.points
+        val newSegment = step.newSegment
+        if (step.distanceM > 0) addDistance(step.distanceM)
         lastFixTime = System.currentTimeMillis()
         sessionPoints += newPoints.size
 
@@ -336,9 +288,4 @@ object FogStore {
         snapshot()?.let { io.execute { db.endSession(it) } }
     }
 
-    private fun wrapLon(lon: Double): Double = when {
-        lon >= 180 -> lon - 360
-        lon < -180 -> lon + 360
-        else -> lon
-    }
 }

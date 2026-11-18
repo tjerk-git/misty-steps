@@ -13,6 +13,11 @@ android {
     namespace = "com.mistysteps.app"
     compileSdk = 36
 
+    sourceSets {
+        // The strings live in :shared so Compose screens on every platform read the same text.
+        getByName("main").res.srcDir("../shared/strings")
+    }
+
     defaultConfig {
         // The id people install. Never change it after the first public release.
         // (The code package, `namespace` above, can stay as it is.)
@@ -73,12 +78,15 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    // The map: MapLibre Native, drawing the downloaded province packs.
+    implementation(project(":shared"))
+    implementation("org.maplibre.gl:android-sdk:11.8.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.collection:collection:1.5.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     implementation(platform("androidx.compose:compose-bom:2025.09.00"))
     implementation("androidx.compose.ui:ui")

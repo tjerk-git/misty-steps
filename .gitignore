@@ -28,3 +28,10 @@ fdroid/site/.cloudflare/
 fdroid/site/public/
 # Map data downloaded from Geofabrik (large, rebuildable).
 tools/maps/data/
+tools/maps/out/
+tools/maps/bin/
+
+# iOS app: the Xcode project is generated from iosApp/project.yml (xcodegen).
+iosApp/MistySteps.xcodeproj/
+iosApp/build/
+xcuserdata/

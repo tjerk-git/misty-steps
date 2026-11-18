@@ -18,22 +18,35 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.mistysteps.app.character.Character
+import com.mistysteps.app.R
+import com.mistysteps.app.character.Characters
+import com.mistysteps.app.character.standingBitmap
+import com.mistysteps.app.maps.MapStyle
+import com.mistysteps.app.maps.MapsGraph
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.Style
+import org.maplibre.android.snapshotter.MapSnapshotter
+import kotlin.coroutines.resume
+import kotlin.math.ln
 import com.mistysteps.app.data.Mercator
 import com.mistysteps.app.data.Session
+import com.mistysteps.app.postcard.PostcardView as View
 import com.mistysteps.app.data.TrailPoint
 import com.mistysteps.app.fog.FogTexture
 import com.mistysteps.app.fog.MistPalette
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.pin.PinSprites
+import com.mistysteps.app.pin.bitmap
 import com.mistysteps.app.ui.formatArea
 import com.mistysteps.app.ui.formatDistance
+import com.mistysteps.app.ui.durationText
 import com.mistysteps.app.ui.formatDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.osmdroid.tileprovider.MapTileProviderBasic
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.MapTileIndex
 import java.text.DateFormat
 import java.util.Date
 import kotlin.math.floor
@@ -52,15 +65,13 @@ object PostcardRenderer {
     private const val MARGIN = 54
     private const val MAP_H = 1010
     private const val BORDER = 8f
-    /** Room kept free at the map's edges: about the size of the drawn character (18 px × 6). */
-    private const val CHARACTER_MARGIN_PX = 120
 
     private val PAPER = Color.rgb(246, 243, 236)
     private val INK = Color.rgb(46, 53, 80)
     private val DUSK = Color.rgb(91, 107, 140)
     private val EMBER = Color.rgb(180, 83, 106)
 
-    /** Must be called on the main thread (tiles come from osmdroid's tile provider). */
+    /** Must be called on the main thread (the map is drawn by MapLibre's snapshotter). */
     suspend fun render(
         context: Context, walk: Session, points: List<TrailPoint>, character: Character?, pins: List<Pin> = emptyList(),
     ): Bitmap {
@@ -68,78 +79,53 @@ object PostcardRenderer {
         val view = View.fit(points, mapRect.width(), mapRect.height())
         val map = Bitmap.createBitmap(mapRect.width(), mapRect.height(), Bitmap.Config.ARGB_8888)
         drawTiles(context, Canvas(map), view)
-        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins) }
-    }
-
-    /** Which part of the world the map shows: mercator centre and pixels per mercator unit. */
-    private class View(val cx: Double, val cy: Double, val scale: Double, val w: Int, val h: Int) {
-        fun x(lon: Double) = (w / 2.0 + (Mercator.x(lon) - cx) * scale).toFloat()
-        fun y(lat: Double) = (h / 2.0 + (Mercator.y(lat) - cy) * scale).toFloat()
-        val zoom get() = ln(scale / 256) / ln(2.0)
-
-        companion object {
-            fun fit(points: List<TrailPoint>, w: Int, h: Int): View {
-                val lat0 = points.firstOrNull()?.lat ?: 0.0
-                val minX = points.minOfOrNull { Mercator.x(it.lon) } ?: 0.5
-                val maxX = points.maxOfOrNull { Mercator.x(it.lon) } ?: 0.5
-                val minY = points.minOfOrNull { Mercator.y(it.lat) } ?: 0.5
-                val maxY = points.maxOfOrNull { Mercator.y(it.lat) } ?: 0.5
-                // At least ~400 m across, plus room for the clearing around the trail.
-                val minSpan = Mercator.metersToUnits(400.0, lat0)
-                val pad = Mercator.metersToUnits(120.0, lat0)
-                val cx = (minX + maxX) / 2
-                val cy = (minY + maxY) / 2
-                val spanX = max(maxX - minX + 2 * pad, minSpan)
-                val spanY = max(maxY - minY + 2 * pad, minSpan)
-                // Keep the character (drawn above and beside the last spot) inside the frame.
-                val usableW = (w - 2 * CHARACTER_MARGIN_PX).coerceAtLeast(w / 2)
-                val usableH = (h - 2 * CHARACTER_MARGIN_PX).coerceAtLeast(h / 2)
-                var scale = min(usableW / spanX, usableH / spanY)
-                // Keep to zoom levels the tiles exist for.
-                scale = scale.coerceIn(256 * 2.0.pow(3), 256 * 2.0.pow(17.5))
-                return View(cx, cy, scale, w, h)
-            }
+        val words = durationText(context.resources)
+        val parts = buildList {
+            add(formatDistance(walk.distanceM))
+            walk.endTime?.let { add(formatDuration(it - walk.startTime, words)) }
+            walk.newAreaM2?.let { add(context.getString(R.string.walk_new_mist, formatArea(it))) }
         }
+        val credit = context.getString(R.string.osm_credit)
+        // Only a name you gave: the species name would just say what the picture already shows.
+        val withLine = character?.let { Characters.customName(it.id) }?.let { context.getString(R.string.postcard_with, it) }
+        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit, withLine) }
     }
 
+    /**
+     * The map under the postcard: a MapLibre snapshot of the installed packs at exactly the scale [view] uses, so the trail,
+     * the clearing and the pins land on the right streets. With no pack installed, or none covering the walk, it stays the
+     * plain paper colour.
+     */
     private suspend fun drawTiles(context: Context, canvas: Canvas, view: View) {
         canvas.drawColor(Color.rgb(242, 239, 233))
-        val z = floor(view.zoom).toInt().coerceIn(0, 19)
-        val n = 1 shl z
-        val tilePx = view.scale / n // on-screen size of one tile
-        val left = view.cx - view.w / 2.0 / view.scale
-        val top = view.cy - view.h / 2.0 / view.scale
-        val tx0 = floor(left * n).toInt().coerceAtLeast(0)
-        val tx1 = floor((left + view.w / view.scale) * n).toInt().coerceAtMost(n - 1)
-        val ty0 = floor(top * n).toInt().coerceAtLeast(0)
-        val ty1 = floor((top + view.h / view.scale) * n).toInt().coerceAtMost(n - 1)
-        val wanted = ArrayList<Long>()
-        for (tx in tx0..tx1) for (ty in ty0..ty1) wanted += MapTileIndex.getTileIndex(z, tx, ty)
-
-        val provider = MapTileProviderBasic(context.applicationContext, TileSourceFactory.MAPNIK)
-        try {
-            provider.ensureCapacity(wanted.size + 4)
-            val got = HashMap<Long, Drawable>()
-            // Tiles come from the phone's cache or are downloaded; wait a little for the rest.
-            for (attempt in 0 until 40) {
-                for (t in wanted) if (t !in got) provider.getMapTile(t)?.let { got[t] = it }
-                if (got.size == wanted.size) break
-                delay(250)
-            }
-            for ((t, d) in got) {
-                val x = ((MapTileIndex.getX(t).toDouble() / n - left) * view.scale)
-                val y = ((MapTileIndex.getY(t).toDouble() / n - top) * view.scale)
-                d.setBounds(floor(x).toInt(), floor(y).toInt(), floor(x + tilePx).toInt() + 1, floor(y + tilePx).toInt() + 1)
-                d.draw(canvas)
-            }
-        } finally {
-            provider.detach()
-        }
+        val files = MapsGraph.packs.mapFiles()
+        if (files.isEmpty()) return
+        val template = context.assets.open("maps/misty-style.json").bufferedReader().use { it.readText() }
+        // MapLibre counts 512-pixel tiles: the world is 512 * 2^zoom pixels wide at pixel ratio 1.
+        val zoom = ln(view.scale / 512.0) / ln(2.0)
+        val center = LatLng(Mercator.lat(view.cy), Mercator.lon(view.cx))
+        val bitmap = snapshot(context, MapStyle.build(template, files), center, zoom, view.w, view.h) ?: return
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
     }
+
+    private suspend fun snapshot(context: Context, style: String, center: LatLng, zoom: Double, w: Int, h: Int): Bitmap? =
+        withContext(Dispatchers.Main) {
+            MapLibre.getInstance(context.applicationContext)
+            suspendCancellableCoroutine { cont ->
+                val options = MapSnapshotter.Options(w, h)
+                    .withStyleBuilder(Style.Builder().fromJson(style))
+                    .withCameraPosition(CameraPosition.Builder().target(center).zoom(zoom).build())
+                    .withPixelRatio(1f)
+                    .withLogo(false)
+                val snapshotter = MapSnapshotter(context.applicationContext, options)
+                snapshotter.start({ snap -> if (cont.isActive) cont.resume(snap.bitmap) }, { if (cont.isActive) cont.resume(null) })
+                cont.invokeOnCancellation { snapshotter.cancel() }
+            }
+        }
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,
-        pins: List<Pin>,
+        pins: List<Pin>, parts: List<String>, credit: String, withLine: String?,
     ): Bitmap {
         val last = points.lastOrNull()
         val palette = MistPalette.at(walk.endTime ?: walk.startTime, last?.lat ?: 52.0, last?.lon ?: 5.0)
@@ -202,7 +188,7 @@ object PostcardRenderer {
             val y = view.y(last.lat)
             mc.drawOval(x - size * 0.28f, y - size * 0.07f, x + size * 0.28f, y + size * 0.07f,
                 Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x40000000 })
-            mc.drawBitmap(character.idle[0], null, RectF(x - size / 2, y - size * 0.92f, x + size / 2, y + size * 0.08f), pixelPaint())
+            mc.drawBitmap(character.standingBitmap(), null, RectF(x - size / 2, y - size * 0.92f, x + size / 2, y + size * 0.08f), pixelPaint())
         }
 
         // The card.
@@ -218,6 +204,18 @@ object PostcardRenderer {
         text.textSize = 64f
         text.letterSpacing = 0.06f
         c.drawText("Misty Steps", MARGIN.toFloat(), y0, text)
+        withLine?.let { line ->
+            // Right-aligned on the title's line, smaller and in the quieter colour.
+            val title = text.textSize
+            text.typeface = Typeface.MONOSPACE
+            text.letterSpacing = 0f
+            text.textSize = 34f
+            text.color = DUSK
+            text.textAlign = Paint.Align.RIGHT
+            c.drawText(line, (W - MARGIN).toFloat(), y0, text)
+            text.textAlign = Paint.Align.LEFT
+            text.textSize = title
+        }
 
         text.typeface = Typeface.MONOSPACE
         text.letterSpacing = 0f
@@ -226,11 +224,6 @@ object PostcardRenderer {
         val date = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(Date(walk.startTime))
         c.drawText(date, MARGIN.toFloat(), y0 + 56, text)
 
-        val parts = buildList {
-            add(formatDistance(walk.distanceM))
-            walk.endTime?.let { add(formatDuration(it - walk.startTime)) }
-            walk.newAreaM2?.let { add("${formatArea(it)} new mist") }
-        }
         text.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         text.textSize = 44f
         text.color = EMBER
@@ -240,7 +233,7 @@ object PostcardRenderer {
         text.textSize = 22f
         text.color = DUSK
         text.textAlign = Paint.Align.RIGHT
-        c.drawText("© OpenStreetMap contributors", (W - MARGIN).toFloat(), H - 30f, text)
+        c.drawText(credit, (W - MARGIN).toFloat(), H - 30f, text)
         return out
     }
 

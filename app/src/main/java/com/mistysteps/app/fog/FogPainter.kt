@@ -1,0 +1,307 @@
+package com.mistysteps.app.fog
+
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LightingColorFilter
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RadialGradient
+import android.graphics.Point
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Shader
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
+import android.os.SystemClock
+import androidx.collection.MutableLongSet
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import com.mistysteps.app.data.FogStore
+import com.mistysteps.app.data.Mercator
+import android.view.View
+import com.mistysteps.app.map.MapProjection
+import kotlin.math.ceil
+import kotlin.math.max
+
+/**
+ * Covers the whole map in drifting white mist, with soft holes punched out wherever
+ * you've walked.
+ *
+ * Drawing is kept cheap, because it runs many times a second while the map is open:
+ *  1. a half-resolution "cleared" alpha mask is rebuilt on a worker thread (see [MaskPlan]) when
+ *     the view or the trail changes enough; until the new one is ready the last one is moved and
+ *     scaled to fit, so panning never waits for it;
+ *  2. each frame, the veil and two drifting swirl layers are drawn straight onto the map's
+ *     (GPU) canvas in an offscreen layer, and the mask is cut out of them, stretched to full size.
+ * The mist drifts at [FRAME_MS] and stands still while battery saver is on.
+ */
+class FogPainter {
+
+    private val resolution = 0.5f
+
+    // Main thread only, except what a job carries to the worker.
+    private var front: Bitmap? = null          // last finished mask, never written again
+    private var frontSpec: MaskSpec? = null
+    private var requested: MaskSpec? = null    // what the newest build request was made for
+    private var jobs = MaskJobs<MaskJob>()
+    private var generation = 0                 // bumped on detach so late results are dropped
+    private var worker: ExecutorService? = null
+    private val main = Handler(Looper.getMainLooper())
+    private var lastHost: View? = null
+
+    private class MaskJob(val spec: MaskSpec, val spots: DoubleArray, val generation: Int)
+
+    private val basePaint = Paint().apply { color = Color.argb(236, 244, 245, 250) }
+
+    /** The two swirl layers. Generating them takes a moment, so it happens off the main thread. */
+    private class Swirl(val shadow: Paint, val light: Paint)
+    private var swirl: Swirl? = null // main thread only
+    private val shadowScale = 3.0f
+    private val lightScale = 1.7f
+    private val shadowMatrix = Matrix()
+    private val lightMatrix = Matrix()
+
+    init {
+        val main = Handler(Looper.getMainLooper())
+        Thread({
+            fun paint(b: Bitmap) = Paint(Paint.FILTER_BITMAP_FLAG).apply {
+                shader = BitmapShader(b, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
+            }
+            val s = Swirl(
+                shadow = paint(FogTexture.generate(SWIRL_TILE, seed = 7, tint = Color.rgb(176, 184, 206), maxAlpha = 0.55f, contrast = 1.6f)),
+                light = paint(FogTexture.generate(SWIRL_TILE, seed = 23, tint = Color.WHITE, maxAlpha = 0.85f, contrast = 1.8f)),
+            )
+            main.post {
+                swirl = s
+                animatedView?.invalidate()
+            }
+        }, "fog-texture").start()
+    }
+
+    /** Soft round brush: fully clear in the middle, feathering out to the edge. */
+    private val brushSize = 128
+    private val brush: Bitmap = Bitmap.createBitmap(brushSize, brushSize, Bitmap.Config.ARGB_8888).also {
+        val c = brushSize / 2f
+        Canvas(it).drawCircle(c, c, c, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                c, c, c,
+                intArrayOf(Color.BLACK, Color.BLACK, Color.argb(160, 0, 0, 0), Color.TRANSPARENT),
+                floatArrayOf(0f, 0.72f, 0.88f, 1f),
+                Shader.TileMode.CLAMP,
+            )
+        })
+    }
+    private val brushPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
+    private val cutPaint = Paint(Paint.FILTER_BITMAP_FLAG).apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
+    private val rect = RectF()
+    private val layerRect = RectF()
+    private val clip = Rect()
+
+    /** Draws the mist onto [canvas], which covers the view [host]; [proj] says where coordinates are on it. */
+    fun draw(canvas: Canvas, proj: MapProjection, host: View) {
+        if (proj.width == 0 || proj.height == 0) return
+
+        // The canvas may carry a matrix, so work in canvas
+        // coordinates: cover whatever part of the canvas is visible, and anchor to the
+        // map through the projection's own toPixels().
+        if (!canvas.getClipBounds(clip)) return
+        val fw = ceil(clip.width() * resolution).toInt()
+        val fh = ceil(clip.height() * resolution).toInt()
+        if (fw <= 0 || fh <= 0) return
+        lastHost = host
+
+        val ref = proj.fromScreen(proj.width / 2f, proj.height / 2f)
+        val refPx = proj.toScreen(ref.lat, ref.lon)
+        // Fog pixels per mercator unit, and the fog-pixel position of mercator (0, 0).
+        val k = proj.worldSizePx * resolution
+        val offX = (refPx.x - clip.left) * resolution.toDouble() - Mercator.x(ref.lon) * k
+        val offY = (refPx.y - clip.top) * resolution.toDouble() - Mercator.y(ref.lat) * k
+
+        val view = MaskView(offX, offY, k, fw, fh, FogStore.version.value)
+        if (MaskPlan.needsRebuild(requested, view)) requestMask(view)
+
+        updatePalette(proj)
+
+        // Mist: an even veil plus two swirling layers that follow the map and drift slowly.
+        // Everything below runs on the GPU; the layer keeps the cut-out from touching the map.
+        if (drifting) driftTime = SystemClock.uptimeMillis() / 1000.0
+        val t = driftTime
+        layerRect.set(clip)
+        val save = canvas.saveLayer(layerRect, null)
+        canvas.drawPaint(basePaint)
+        swirl?.let {
+            layer(canvas, it.shadow, shadowMatrix, shadowScale, offX + t * 5.0, offY + t * 1.6)
+            layer(canvas, it.light, lightMatrix, lightScale, offX - t * 3.5, offY + t * 2.4)
+        }
+        val mask = front
+        val spec = frontSpec
+        if (mask != null && spec != null) {
+            // The finished mask may be a little behind the view: move and scale it to fit.
+            val p = MaskPlan.place(spec, view)
+            rect.set(
+                clip.left + (p.tx / resolution).toFloat(),
+                clip.top + (p.ty / resolution).toFloat(),
+                clip.left + ((p.tx + spec.w * p.scale) / resolution).toFloat(),
+                clip.top + ((p.ty + spec.h * p.scale) / resolution).toFloat(),
+            )
+            canvas.drawBitmap(mask, null, rect, cutPaint)
+        }
+        canvas.restoreToCount(save)
+    }
+
+    /** Seconds of drift shown; frozen while the mist stands still (battery saver). */
+    private var driftTime = SystemClock.uptimeMillis() / 1000.0
+    private var drifting = true
+
+    // ---- colour through the day -----------------------------------------------------------
+
+    private var paletteAt = Long.MIN_VALUE
+    private var shadowFilter: LightingColorFilter? = null
+    private var lightFilter: LightingColorFilter? = null
+
+    /** Re-tints the mist once a minute, following the sun. */
+    private fun updatePalette(proj: MapProjection) {
+        val now = System.currentTimeMillis()
+        if (now - paletteAt < 60_000) {
+            applyFilters()
+            return
+        }
+        paletteAt = now
+        val (lat, lon) = FogStore.lastKnown ?: proj.fromScreen(proj.width / 2f, proj.height / 2f).let { it.lat to it.lon }
+        val colors = MistPalette.at(now, lat, lon)
+        basePaint.color = colors.base
+        shadowFilter = LightingColorFilter(colors.shadowTint, 0)
+        lightFilter = LightingColorFilter(colors.lightTint, 0)
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        val s = swirl ?: return
+        if (s.shadow.colorFilter !== shadowFilter) s.shadow.colorFilter = shadowFilter
+        if (s.light.colorFilter !== lightFilter) s.light.colorFilter = lightFilter
+    }
+
+    /** One swirl layer. [tx]/[ty] are in half-resolution fog pixels; drawn at full size in canvas pixels. */
+    private fun layer(c: Canvas, paint: Paint, m: Matrix, scale: Float, tx: Double, ty: Double) {
+        val period = SWIRL_TILE * scale.toDouble()
+        val s = scale / resolution
+        m.setScale(s, s)
+        m.postTranslate(
+            clip.left + (tx.mod(period) / resolution).toFloat(),
+            clip.top + (ty.mod(period) / resolution).toFloat(),
+        )
+        paint.shader.setLocalMatrix(m)
+        c.drawPaint(paint)
+    }
+
+    /** Main thread: copies the spots the mask will need and hands the painting to the worker. */
+    private fun requestMask(view: MaskView) {
+        val spec = MaskPlan.specFor(view)
+        requested = spec
+        // Pad the lookup so spots just off-screen still bleed in.
+        val pad = Mercator.metersToUnits(FogStore.START_CLEAR_RADIUS_M, 80.0) + 4 / spec.k
+        val spots = FogStore.index.snapshotIn(
+            -spec.offX / spec.k - pad, -spec.offY / spec.k - pad,
+            (spec.w - spec.offX) / spec.k + pad, (spec.h - spec.offY) / spec.k + pad,
+        )
+        jobs.request(MaskJob(spec, spots, generation))?.let(::startJob)
+    }
+
+    private fun startJob(job: MaskJob) {
+        val pool = worker ?: Executors.newSingleThreadExecutor { Thread(it, "fog-mask") }.also { worker = it }
+        pool.execute {
+            val bitmap = try { paintMask(job.spec, job.spots) } catch (e: Throwable) { null }
+            main.post { jobDone(job, bitmap) }
+        }
+    }
+
+    private fun jobDone(job: MaskJob, bitmap: Bitmap?) {
+        if (job.generation != generation) return // detached meanwhile
+        if (bitmap != null) {
+            front = bitmap
+            frontSpec = job.spec
+            lastHost?.invalidate()
+        }
+        jobs.finished()?.let(::startJob)
+    }
+
+    /** Worker thread. Paints every spot into a fresh mask. Fog pixel = mercator * k + off. */
+    private fun paintMask(spec: MaskSpec, spots: DoubleArray): Bitmap {
+        val bitmap = Bitmap.createBitmap(spec.w, spec.h, Bitmap.Config.ALPHA_8)
+        val canvas = Canvas(bitmap)
+        val rect = RectF()
+        val seen = MutableLongSet()
+        val k = spec.k
+
+        // When zoomed out, spots shrink below a pixel; keep them visible as faint specks
+        // and skip ones landing on an already-drawn pixel.
+        val minRadiusPx = 1.2f
+        for (i in 0 until spots.size / 3) {
+            val j = 3 * i
+            val px = (spots[j] * k + spec.offX).toFloat()
+            val py = (spots[j + 1] * k + spec.offY).toFloat()
+            val r = max((spots[j + 2] * k).toFloat(), minRadiusPx)
+            if (px + r < 0 || py + r < 0 || px - r > spec.w || py - r > spec.h) continue
+            if (r < 3f) {
+                val key = (px.toInt().toLong() shl 32) or (py.toInt().toLong() and 0xffffffffL)
+                if (!seen.add(key)) continue
+                canvas.drawCircle(px, py, r, dotPaint)
+            } else {
+                rect.set(px - r, py - r, px + r, py + r)
+                canvas.drawBitmap(brush, null, rect, brushPaint)
+            }
+        }
+        return bitmap
+    }
+
+    // ---- gentle animation -------------------------------------------------------------
+
+    private var animatedView: View? = null
+    private val tick = object : Runnable {
+        override fun run() {
+            val v = animatedView ?: return
+            // Battery saver on: let the mist stand still; check again now and then.
+            val saver = v.context.getSystemService(PowerManager::class.java)?.isPowerSaveMode == true
+            drifting = !saver
+            if (drifting) {
+                v.invalidate()
+                v.postDelayed(this, FRAME_MS)
+            } else {
+                v.postDelayed(this, 5_000)
+            }
+        }
+    }
+
+    /** Keep the mist drifting while [host] is visible. */
+    fun startDrifting(host: View) {
+        stopDrifting()
+        animatedView = host
+        host.postDelayed(tick, FRAME_MS)
+    }
+
+    fun stopDrifting() {
+        animatedView?.removeCallbacks(tick)
+        animatedView = null
+    }
+
+    /** Stops everything: the drift, the worker and the masks. */
+    fun detach() {
+        stopDrifting()
+        generation++
+        worker?.shutdown(); worker = null
+        jobs = MaskJobs()
+        requested = null; front = null; frontSpec = null; lastHost = null
+    }
+
+    private companion object {
+        /** ~12 frames a second: the drift is slow enough that more frames only cost battery. */
+        const val FRAME_MS = 80L
+        const val SWIRL_TILE = 256
+    }
+}

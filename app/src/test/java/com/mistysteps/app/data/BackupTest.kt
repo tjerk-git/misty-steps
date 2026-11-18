@@ -1,6 +1,7 @@
 package com.mistysteps.app.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -85,5 +86,30 @@ class BackupTest {
             Backup.fromJson(withPin("""{"lat":53,"lon":5,"time":1}"""))
         }
         assertEquals("This backup has a broken pin in it.", noLabel.message)
+    }
+
+    @Test
+    fun characterNamesSurviveARoundTrip() {
+        val backup = Backup(0L, "1.4.0", 0.0, "cat", emptyList(), emptyList(), characterNames = mapOf("cat" to "Mika", "dog" to "Bram"))
+        val back = Backup.fromJson(backup.toJson())
+        assertEquals(mapOf("cat" to "Mika", "dog" to "Bram"), back.characterNames)
+    }
+
+    @Test
+    fun anOlderFileWithoutNamesHasNone() {
+        val old = Backup(0L, "1.1.0", 0.0, null, emptyList(), emptyList())
+        assertTrue(Backup.fromJson(old.toJson()).characterNames.isEmpty())
+        assertFalse(old.toJson().contains("characterNames"))
+    }
+
+    @Test
+    fun importedNamesAreCleanedAndBlankOnesDropped() {
+        val json = """{"format":"misty-steps-backup","version":1,"exportedAt":0,"app":"1.4.0","distanceM":0,
+            "sessions":[],"points":[],"characterNames":{"cat":"  Mika  ","dog":"   ","cow":"${"x".repeat(40)}","horse":5}}"""
+        val names = Backup.fromJson(json).characterNames
+        assertEquals("Mika", names["cat"])
+        assertFalse(names.containsKey("dog"))
+        assertEquals(20, names["cow"]!!.length)
+        assertFalse(names.containsKey("horse"))
     }
 }

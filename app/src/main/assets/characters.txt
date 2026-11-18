@@ -1,16 +1,16 @@
-# Misty Steps characters: cute animals out for a walk, always in hiking gear.
+# Misty Steps characters: cute animals out for a walk, no gear — just fur, paws and whiskers.
 #
 # Each sprite is 16x16, seen from the side, facing right ('.' = transparent).
 # `body` is drawn first; one of the four `legs` frames (3 rows) is then drawn over
 # rows 13-15. On frames 2 and 4 the body bobs one pixel down. A 1 px dark outline is
 # added automatically around the whole sprite.
 # Palette letters are per character: `X:rrggbb`.
-# Legs: `s`/`f` = near/far sock, `l` = near boot laces, `B`/`d` = near/far boot. Every animal wears four boots.
+# Legs: `s`/`f` = near/far paw, `l` = near paw highlight, `B`/`d` = near/far paw. Bare paws, no boots.
 
 [cat]
 name = Trail Cat
-blurb = Nine lives, one pair of very good boots.
-palette = G:8a8aa6 g:62627e w:dcdcea E:23232f P:f4a3bd H:4f8a4a h:73b064 R:c8473f r:93302a s:d94b4b f:a83a3a B:a8642f l:e0a868 d:6b3b1c
+blurb = Nine lives, zero regrets.
+palette = G:8a8aa6 g:62627e w:dcdcea E:23232f P:f4a3bd H:62627e h:8a8aa6 R:8a8aa6 r:62627e s:8a8aa6 f:62627e B:8a8aa6 l:8a8aa6 d:62627e W:ffffff b:e695b3
 body =
 ................
 ................
@@ -18,8 +18,8 @@ body =
 .........GghHHh.
 .........GHHHHHH
 .........GGGGGG.
-..g......GgGEGw.
-.g.......GGGwwwP
+..g......GgGEWw.
+.g.......GbGwwwP
 .g...RRR..GGww..
 .g..RRrRGGGGG...
 ..gGRrrRGGGGG...
@@ -48,7 +48,7 @@ legs =
 [dog]
 name = Scout Dog
 blurb = Has sniffed every lamppost. Wants to sniff more.
-palette = D:d39a52 e:a8723a w:f3dcb4 E:23232f N:3a2a24 K:2f6fd0 k:24529e R:4b8a3a r:356a28 s:3a7fe0 f:2a5fae B:a8642f l:e0a868 d:6b3b1c
+palette = D:d39a52 e:a8723a w:f3dcb4 E:23232f N:3a2a24 K:d39a52 k:a8723a R:d39a52 r:a8723a s:d39a52 f:a8723a B:d39a52 l:d39a52 d:a8723a
 body =
 ................
 ................
@@ -85,8 +85,8 @@ legs =
 
 [otter]
 name = Sea Otter
-blurb = Left the sea for a stroll. Brought the raincoat anyway.
-palette = O:8a5a3a o:6a4028 w:e6d2b8 E:1e1e28 N:2a1e1a Y:f2c230 y:c99a18 s:f2c230 f:c99a18 B:f2c230 l:fff07a d:c99a18
+blurb = Left the sea for a stroll. Isn't going back.
+palette = O:8a5a3a o:6a4028 w:e6d2b8 E:1e1e28 N:2a1e1a Y:8a5a3a y:6a4028 s:8a5a3a f:6a4028 B:8a5a3a l:8a5a3a d:6a4028
 body =
 ................
 ................
@@ -123,8 +123,8 @@ legs =
 
 [capybara]
 name = Capybara
-blurb = Unbothered. Moisturised. Wearing a mandarin.
-palette = C:a8784a c:86592f E:1e1e28 N:4a3020 M:f59a23 m:4f8a3a K:5b6f8a k:3f4f66 s:e8e2d0 f:b8b2a0 B:8f5a30 l:d9a066 d:5a361a
+blurb = Unbothered. Moisturised. Zero cares given.
+palette = C:a8784a c:86592f E:1e1e28 N:4a3020 M:a8784a m:86592f K:a8784a k:86592f s:a8784a f:86592f B:a8784a l:a8784a d:86592f
 body =
 ................
 ................
@@ -162,7 +162,7 @@ legs =
 [cow]
 name = Wander Cow
 blurb = Mooved out to see the world.
-palette = W:f6f6f6 k:2a2a33 E:1e1e28 P:f4a3bd p:d97f9a T:e8d8b0 S:d23a3a z:a82828 s:d23a3a f:a82828 B:a8642f l:e0a868 d:6b3b1c
+palette = W:f6f6f6 k:2a2a33 E:1e1e28 P:f4a3bd p:d97f9a T:e8d8b0 S:f6f6f6 z:2a2a33 s:f6f6f6 f:2a2a33 B:f6f6f6 l:f6f6f6 d:2a2a33
 body =
 ................
 ................
@@ -199,8 +199,8 @@ legs =
 
 [horse]
 name = Trek Horse
-blurb = Carries its own saddlebags. Refuses to carry you.
-palette = H:b0663a h:8a4c26 M:4a2e1e E:1e1e28 N:3a2620 Q:3f7a8a q:2c5866 Y:e0b84a s:f0f0f0 f:c0c0c0 B:8f5a30 l:d9a066 d:5a361a
+blurb = Walks everywhere. Refuses to carry you.
+palette = H:b0663a h:8a4c26 M:4a2e1e E:1e1e28 N:3a2620 Q:b0663a q:8a4c26 Y:8a4c26 s:b0663a f:8a4c26 B:b0663a l:b0663a d:8a4c26
 body =
 ...........MM...
 ..........MHHH..
@@ -215,6 +215,82 @@ body =
 ...HQqqqHHHH....
 ...HHHHHHHHH....
 ...HHhHHHHHH....
+................
+................
+................
+legs =
+...f.s....f.s...
+...d..l...d..l..
+..dd..BB.dd..BB.
+legs =
+....fs.....fs...
+....dl.....dl...
+....dBB....dBB..
+legs =
+...s.f....s.f...
+...l..d...l..d..
+..BB..dd.BB..dd.
+legs =
+....sf.....sf...
+....ld.....ld...
+....BBd....BBd..
+
+[blackcat]
+name = Black Cat
+blurb = Bad luck not included.
+palette = G:2b2b35 g:1a1a21 w:45454f E:e8c84a P:f4a3bd H:1a1a21 h:2b2b35 R:2b2b35 r:1a1a21 s:2b2b35 f:1a1a21 B:2b2b35 l:2b2b35 d:1a1a21 W:ffffff b:e695b3
+body =
+................
+................
+.........g..hh..
+.........GghHHh.
+.........GHHHHHH
+.........GGGGGG.
+..g......GgGEWw.
+.g.......GbGwwwP
+.g...RRR..GGww..
+.g..RRrRGGGGG...
+..gGRrrRGGGGG...
+..GGGGGGGGGGG...
+...GgGgGGGGGG...
+................
+................
+................
+legs =
+...f.s....f.s...
+...d..l...d..l..
+..dd..BB.dd..BB.
+legs =
+....fs.....fs...
+....dl.....dl...
+....dBB....dBB..
+legs =
+...s.f....s.f...
+...l..d...l..d..
+..BB..dd.BB..dd.
+legs =
+....sf.....sf...
+....ld.....ld...
+....BBd....BBd..
+
+[fox]
+name = Fox
+blurb = Raids bins at midnight. No shame about it.
+palette = F:c9703c o:9a4f25 W:f6ece0 E:1c1c22 N:14100e K:201d22 k:111116 s:201d22 f:111116 B:201d22 l:201d22 d:111116
+body =
+................
+................
+.........KK.KK..
+.........KFFFKF.
+.........FFFFFFF
+........FFFFFFF.
+..W......FoFFEW.
+.oW......FFFWWWN
+.oo...WWWFFFWWF.
+.o...WWWWFFFFF..
+..oFWWWWFFFFFF..
+..FFFFFFFFFFFF..
+...FoFoFFFFFFF..
 ................
 ................
 ................

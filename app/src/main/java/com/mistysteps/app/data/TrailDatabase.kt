@@ -5,11 +5,12 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.mistysteps.app.pin.Pin
+import com.mistysteps.app.pin.PinStorage
 import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 5) {
+    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore, SessionStore, PinStorage {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
@@ -71,9 +72,9 @@ class TrailDatabase(context: Context) :
     // ---- pins ------------------------------------------------------------------------------
 
     /** Returns the new pin's id. */
-    fun insertPin(p: Pin): Long = writableDatabase.insert("pins", null, pinValues(p))
+    override fun insertPin(p: Pin): Long = writableDatabase.insert("pins", null, pinValues(p))
 
-    fun updatePin(id: Long, labelKey: String, note: String?) {
+    override fun updatePin(id: Long, labelKey: String, note: String?) {
         writableDatabase.update(
             "pins",
             ContentValues(2).apply {
@@ -84,12 +85,12 @@ class TrailDatabase(context: Context) :
         )
     }
 
-    fun deletePin(id: Long) {
+    override fun deletePin(id: Long) {
         writableDatabase.delete("pins", "id = ?", arrayOf(id.toString()))
     }
 
     /** Newest first. */
-    fun loadPins(): List<Pin> {
+    override fun loadPins(): List<Pin> {
         val out = ArrayList<Pin>()
         readableDatabase.rawQuery(
             "SELECT id, lat, lon, time, label, note, session_id FROM pins ORDER BY time DESC, id DESC", null,
@@ -151,7 +152,7 @@ class TrailDatabase(context: Context) :
         )
     }
 
-    fun insert(points: List<TrailPoint>) {
+    override fun insert(points: List<TrailPoint>) {
         val db = writableDatabase
         db.beginTransaction()
         try {
@@ -170,7 +171,7 @@ class TrailDatabase(context: Context) :
         }
     }
 
-    fun loadAll(): List<TrailPoint> {
+    override fun loadAll(): List<TrailPoint> {
         val out = ArrayList<TrailPoint>()
         readableDatabase.rawQuery("SELECT lat, lon, time, radius, session_id FROM points ORDER BY id", null).use { c ->
             while (c.moveToNext()) {
@@ -183,7 +184,7 @@ class TrailDatabase(context: Context) :
         return out
     }
 
-    fun startSession(s: Session) {
+    override fun startSession(s: Session) {
         writableDatabase.insert("sessions", null, ContentValues(3).apply {
             put("id", s.id)
             put("start_time", s.startTime)
@@ -191,7 +192,7 @@ class TrailDatabase(context: Context) :
         })
     }
 
-    fun endSession(s: Session) {
+    override fun endSession(s: Session) {
         writableDatabase.update(
             "sessions",
             ContentValues(5).apply {
@@ -251,7 +252,7 @@ class TrailDatabase(context: Context) :
         return addedPoints to addedSessions
     }
 
-    fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
+    override fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
         c.moveToFirst(); c.getLong(0)
     }
 
@@ -270,7 +271,7 @@ class TrailDatabase(context: Context) :
     }
 
     /** Newest first. [limit] null = all. */
-    fun loadSessions(limit: Int?): List<Session> {
+    override fun loadSessions(limit: Int?): List<Session> {
         val out = ArrayList<Session>()
         readableDatabase.rawQuery(
             "$SESSION_COLUMNS FROM sessions ORDER BY start_time DESC" + (limit?.let { " LIMIT $it" } ?: ""), null,
@@ -325,25 +326,3 @@ class TrailDatabase(context: Context) :
     }
 }
 
-data class TrailPoint(
-    val lat: Double,
-    val lon: Double,
-    val time: Long,
-    val radius: Double = FogStore.CLEAR_RADIUS_M,
-    /** The walk this spot belongs to; null for spots from before walks were logged. */
-    val sessionId: Long? = null,
-)
-
-/** One walk: from "Start wandering" to stop. */
-data class Session(
-    val id: Long,
-    val startTime: Long,
-    val endTime: Long? = null,
-    val distanceM: Double = 0.0,
-    val points: Int = 0,
-    /** Battery percentage when the walk started and ended. */
-    val batteryStart: Int? = null,
-    val batteryEnd: Int? = null,
-    /** Ground this walk cleared that no earlier walk had, in m². Null until the walk has ended. */
-    val newAreaM2: Double? = null,
-)

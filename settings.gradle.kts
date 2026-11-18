@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "MistySteps"
 include(":app")
+include(":shared")

@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import com.mistysteps.app.R
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -51,6 +52,6 @@ object PostcardShare {
             .setType("image/png")
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        context.startActivity(Intent.createChooser(send, "Share your walk"))
+        context.startActivity(Intent.createChooser(send, context.getString(R.string.postcard_share_chooser)))
     }
 }

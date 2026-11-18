@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Throwaway probe screen for the offline map work. Debug builds only. -->
+        <activity
+            android:name="com.mistysteps.app.spike.MapSpikeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MistySteps" />
+        <activity
+            android:name="com.mistysteps.app.spike.MistyMapActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MistySteps" />
+    </application>
+</manifest>

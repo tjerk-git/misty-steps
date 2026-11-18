@@ -35,6 +35,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.mistysteps.app.BuildConfig
 import com.mistysteps.app.R
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
@@ -57,6 +59,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.mistysteps.app.maps.FirstRun
+import com.mistysteps.app.maps.FirstRunStage
+import com.mistysteps.app.stats.Analytics
+import com.mistysteps.app.maps.MapsGraph
+import com.mistysteps.app.maps.OfferRules
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -81,6 +90,9 @@ private enum class PermissionDialog { RATIONALE, SETTINGS }
 
 /** Set once the long-press pin tip has been closed. */
 private const val PIN_TIP_SEEN = "pin_tip_seen"
+private const val ONBOARDING_DONE = "onboarding_done"
+private const val PICKER_SEEN = "picker_seen"
+private const val OFFER_DISMISSED = "offer_dismissed"
 
 /** What to do once location has been granted. */
 private enum class AfterGrant { WANDER, LOCATE }
@@ -102,6 +114,16 @@ fun MistyScreen() {
     var showCharacters by rememberSaveable { mutableStateOf(false) }
     var postcardWalk by rememberSaveable { mutableStateOf<Long?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    // First launch: the stage shown on top of the map (a FirstRunStage name): onboarding, the consent question, the province picker.
+    var firstRun by rememberSaveable { mutableStateOf<String?>(null) }
+    var existingUser by rememberSaveable { mutableStateOf(false) }
+    // Steps finished in this run: they count as done at once, even for the debug `fresh` start that ignores the saved flags.
+    var doneSteps by rememberSaveable { mutableStateOf(listOf<String>()) }
+    val fresh = BuildConfig.DEBUG && activity?.intent?.getBooleanExtra("fresh", false) == true
+    var showPicker by rememberSaveable { mutableStateOf(false) }
+    var pickerPreselect by rememberSaveable { mutableStateOf(listOf<String>()) }
+    val catalog by rememberCatalog()
+    val packManager = rememberPackManager()
     val inVehicle by FogStore.inVehicle.collectAsState()
     var dialog by remember { mutableStateOf<PermissionDialog?>(null) }
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
@@ -109,7 +131,7 @@ fun MistyScreen() {
     var pinSheet by remember { mutableStateOf<PinSheetState?>(null) }
 
     fun currentPlace(): Pair<Double, Double>? =
-        map.me.myLocation?.let { it.latitude to it.longitude } ?: FogStore.lastKnown
+        map.myLocation()?.let { it.lat to it.lon } ?: FogStore.lastKnown
 
     // Redraw the fog whenever new ground is uncovered.
     LaunchedEffect(map) {
@@ -121,7 +143,7 @@ fun MistyScreen() {
         map.setPinCallbacks(
             onTap = { pinSheet = PinSheetState.Open(it.id) },
             onCleared = { lat, lon -> pinSheet = PinSheetState.New(lat, lon, null) },
-            onFog = { Toast.makeText(context, "Walk here first to leave a pin", Toast.LENGTH_SHORT).show() },
+            onFog = { Toast.makeText(context, context.getString(R.string.toast_pin_fog), Toast.LENGTH_SHORT).show() },
         )
     }
     LaunchedEffect(map) { PinStore.pins.collect { map.refresh() } }
@@ -131,12 +153,12 @@ fun MistyScreen() {
         // Recording only hears from GPS every 5 m, so when you stand still use the map's fix too.
         val now = SystemClock.elapsedRealtimeNanos()
         val fix = PinRules.freshestFix(
-            listOfNotNull(FogStore.lastGoodFix, map.me.lastFix),
+            listOfNotNull(FogStore.lastGoodFix, map.lastFix()),
             ageMs = { (now - it.elapsedRealtimeNanos) / 1_000_000 },
             accuracyM = { if (it.hasAccuracy()) it.accuracy else null },
         )
         if (fix == null) {
-            Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
         } else {
             pinSheet = PinSheetState.New(fix.latitude, fix.longitude, FogStore.session?.id)
         }
@@ -148,6 +170,29 @@ fun MistyScreen() {
     fun dismissPinTip() {
         showPinTip = false
         hints.edit().putBoolean(PIN_TIP_SEEN, true).apply()
+    }
+
+    fun stageNow(): String = FirstRun.stage(
+        onboardingDone = "ONBOARDING" in doneSteps || (!fresh && hints.getBoolean(ONBOARDING_DONE, false)),
+        consentAsked = "CONSENT" in doneSteps || (!fresh && Analytics.wasAsked(context)),
+        pickerSeen = "PICKER" in doneSteps || (!fresh && hints.getBoolean(PICKER_SEEN, false)),
+        hasTrailPoints = existingUser,
+    ).name
+
+    fun finishStep(step: FirstRunStage) {
+        doneSteps = doneSteps + step.name
+        firstRun = stageNow()
+    }
+
+    // First launch: onboarding for a new install, the picker for everyone who hasn't seen it. Existing users
+    // (with trail points) skip the onboarding and get the province they walked most ticked.
+    LaunchedEffect(Unit) {
+        if (firstRun != null) return@LaunchedEffect
+        // Debug builds: `am start ... --ez fresh true` shows the new-install flow without touching the trail data.
+        val points = withContext(Dispatchers.IO) { FogStore.loadAllPoints() }
+        existingUser = !fresh && points.isNotEmpty()
+        pickerPreselect = if (existingUser) listOfNotNull(MapsGraph.provinces.mostWalked(points)?.id) else emptyList()
+        firstRun = stageNow()
     }
 
     // A postcard when a walk ends (skip tiny ones, like a start-stop by mistake).
@@ -190,14 +235,14 @@ fun MistyScreen() {
                 when (afterGrant) {
                     AfterGrant.WANDER -> startWandering(context)
                     AfterGrant.LOCATE -> if (!map.flyToMe()) {
-                        Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             // Denied for good (or only approximate allowed with "don't ask again"):
             // the system won't show its prompt any more, so offer the settings page.
             !canAskAgain() -> dialog = PermissionDialog.SETTINGS
-            else -> Toast.makeText(context, "Precise location is needed to clear the fog", Toast.LENGTH_LONG).show()
+            else -> Toast.makeText(context, context.getString(R.string.toast_precise), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -215,7 +260,9 @@ fun MistyScreen() {
         }
     }
 
-    SideEffect { map.setCovered(showStats || showCharacters || showAbout || postcardWalk != null) }
+    SideEffect {
+        map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
+    }
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { map.mapView }, modifier = Modifier.fillMaxSize())
@@ -244,7 +291,7 @@ fun MistyScreen() {
                         letterSpacing = 1.5.sp,
                     )
                     Text(
-                        "${formatDistance(distance)} of mist cleared",
+                        stringResource(R.string.mist_cleared, formatDistance(distance)),
                         fontSize = 12.sp,
                         color = Dusk,
                     )
@@ -278,7 +325,7 @@ fun MistyScreen() {
                     if (!RecordingService.hasLocationPermission(context)) {
                         askForLocation(AfterGrant.LOCATE)
                     } else if (!map.flyToMe()) {
-                        Toast.makeText(context, "Looking for you in the mist…", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -288,7 +335,7 @@ fun MistyScreen() {
                 contentColor = Ink,
                 shape = CircleShape,
             ) {
-                Icon(painterResource(R.drawable.ic_my_location), contentDescription = "Show my location")
+                Icon(painterResource(R.drawable.ic_my_location), contentDescription = stringResource(R.string.show_my_location))
             }
 
             // Drop a pin where you stand (only while wandering).
@@ -302,16 +349,16 @@ fun MistyScreen() {
                     contentColor = Ink,
                     shape = CircleShape,
                 ) {
-                    Icon(Icons.Filled.Place, contentDescription = "Drop a pin")
+                    Icon(Icons.Filled.Place, contentDescription = stringResource(R.string.drop_a_pin))
                 }
             }
 
             // One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
             val banner: Pair<String, (() -> Unit)?>? = when {
                 // In a car, train or bus: clearing is paused until you're moving under your own power again.
-                recording && inVehicle -> "Too fast for the mist: it only clears under your own steam" to null
-                showPinTip && !recording -> "Tip: long-press ground you've cleared to leave a pin there. Tap to close." to ::dismissPinTip
-                !recording && distance == 0.0 -> "Tap Start wandering and go outside. The mist lifts wherever you walk." to null
+                recording && inVehicle -> stringResource(R.string.notif_text_vehicle) to null
+                showPinTip && !recording -> stringResource(R.string.banner_pin_tip) to ::dismissPinTip
+                !recording && distance == 0.0 -> stringResource(R.string.banner_start) to null
                 else -> null
             }
             banner?.let { (text, onTap) ->
@@ -350,11 +397,11 @@ fun MistyScreen() {
                     if (recording) {
                         PulsingDot()
                         Spacer(Modifier.width(12.dp))
-                        Text("Stop wandering", fontSize = 16.sp)
+                        Text(stringResource(R.string.stop_wandering), fontSize = 16.sp)
                     } else {
                         Icon(Icons.Filled.PlayArrow, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Start wandering", fontSize = 16.sp)
+                        Text(stringResource(R.string.start_wandering), fontSize = 16.sp)
                     }
                 }
             }
@@ -370,8 +417,29 @@ fun MistyScreen() {
             )
         }
 
+        // "No map of <province> yet": offered once per province while the app is open inside it.
+        val packVersion = MapsGraph.packs.version.collectAsState().value
+        var dismissed by remember { mutableStateOf(hints.getStringSet(OFFER_DISMISSED, emptySet()).orEmpty().toSet()) }
+        val place = remember(firstRun, packVersion, catalog) { currentPlace() }
+        val province = place?.let { MapsGraph.provinces.provinceAt(it.first, it.second) }
+        val offered = province?.let { catalog?.entry(it.id) }
+        if (firstRun == FirstRunStage.DONE.name && !recording && province != null && offered != null &&
+            OfferRules.shouldOffer(province, MapsGraph.packs.state(offered), dismissed)
+        ) {
+            OfferCard(
+                province, offered,
+                onDownload = { pickerPreselect = listOf(province.id); showPicker = true },
+                onNotNow = {
+                    dismissed = dismissed + province.id
+                    hints.edit().putStringSet(OFFER_DISMISSED, dismissed).apply()
+                },
+                // Clear of the buttons at both sides and of the Start button.
+                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 84.dp, end = 84.dp, bottom = 112.dp),
+            )
+        }
+
         if (showStats) {
-            StatsScreen(
+            AndroidStatsScreen(
                 here = remember { currentPlace() },
                 onClose = { showStats = false },
                 onOpenWalk = { id ->
@@ -379,6 +447,7 @@ fun MistyScreen() {
                     postcardWalk = id
                 },
                 onOpenAbout = { showAbout = true },
+                onOpenPicker = { pickerPreselect = emptyList(); showPicker = true },
                 onOpenPin = { id ->
                     PinStore.byId(id)?.let {
                         showStats = false
@@ -391,11 +460,34 @@ fun MistyScreen() {
         if (showCharacters) {
             CharacterScreen(onClose = { showCharacters = false })
         }
-        if (showAbout) {
-            AboutScreen(onClose = { showAbout = false })
+        postcardWalk?.let { walkId ->
+            PostcardScreen(walkId = walkId, host = rememberPostcardHost(), onClose = { postcardWalk = null })
         }
-        postcardWalk?.let { id ->
-            PostcardScreen(walkId = id, onClose = { postcardWalk = null })
+        if (showAbout) {
+            AboutScreen(versionName = BuildConfig.VERSION_NAME, feedbackDetails = feedbackDetails(), onClose = { showAbout = false })
+        }
+        if (showPicker) {
+            ProvincePickerScreen(catalog?.provinces, packManager, pickerPreselect.toSet(), existingUser = false, onDone = { showPicker = false })
+        }
+        if (firstRun == FirstRunStage.ONBOARDING.name) {
+            val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); finishStep(FirstRunStage.ONBOARDING) }
+            OnboardingScreen(onDone = next, onSkip = next)
+        }
+        if (firstRun == FirstRunStage.CONSENT.name) {
+            ConsentScreen(onAnswer = { allowed ->
+                Analytics.setOptedIn(context, allowed)
+                Analytics.markAsked(context)
+                finishStep(FirstRunStage.CONSENT)
+            })
+        }
+        if (firstRun == FirstRunStage.PICKER.name) {
+            ProvincePickerScreen(
+                catalog?.provinces, packManager, pickerPreselect.toSet(), existingUser,
+                onDone = {
+                    hints.edit().putBoolean(ONBOARDING_DONE, true).putBoolean(PICKER_SEEN, true).apply()
+                    finishStep(FirstRunStage.PICKER)
+                },
+            )
         }
     }
 
@@ -433,37 +525,31 @@ fun MistyScreen() {
     when (dialog) {
         PermissionDialog.RATIONALE -> AlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text("Your steps clear the fog") },
+            title = { Text(stringResource(R.string.dialog_rationale_title)) },
             text = {
-                Text(
-                    "Misty Steps needs your precise location while you wander, so it can lift the fog " +
-                        "50 m around you. Your trail is only stored on this phone."
-                )
+                Text(stringResource(R.string.dialog_rationale_text))
             },
             confirmButton = {
                 TextButton(onClick = {
                     dialog = null
                     permissionLauncher.launch(locationPermissions)
-                }) { Text("Continue") }
+                }) { Text(stringResource(R.string.dialog_continue)) }
             },
-            dismissButton = { TextButton(onClick = { dialog = null }) { Text("Not now") } },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.not_now)) } },
         )
         PermissionDialog.SETTINGS -> AlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text("Location is switched off") },
+            title = { Text(stringResource(R.string.dialog_settings_title)) },
             text = {
-                Text(
-                    "To clear the fog, allow Misty Steps to use your precise location in Settings " +
-                        "(Permissions → Location → Allow only while using the app, with \"Use precise location\" on)."
-                )
+                Text(stringResource(R.string.dialog_settings_text))
             },
             confirmButton = {
                 TextButton(onClick = {
                     dialog = null
                     openAppSettings(context)
-                }) { Text("Open settings") }
+                }) { Text(stringResource(R.string.open_settings)) }
             },
-            dismissButton = { TextButton(onClick = { dialog = null }) { Text("Not now") } },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.not_now)) } },
         )
         null -> Unit
     }
@@ -510,7 +596,7 @@ private fun PulsingDot() {
 private fun startWandering(context: Context) {
     val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-        Toast.makeText(context, "Turn on location to clear the fog", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.toast_location_off), Toast.LENGTH_LONG).show()
         context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
     }
     RecordingService.start(context)
