@@ -28,7 +28,12 @@ const BATCH = 50;
 
 /** True only when Todododo answered 200. Never throws: a down server, a timeout or a missing setting is just false. */
 export async function pushSignup(f: typeof fetch, env: PushEnv, row: PushRow): Promise<boolean> {
-  if (!env.TODODODO_URL || !env.TODODODO_TOKEN) return false;
+  return (await pushResult(f, env, row)).ok;
+}
+
+/** Like pushSignup, with a short reason when it did not go through (kept in `sync_note`, so a failing push can be diagnosed). */
+export async function pushResult(f: typeof fetch, env: PushEnv, row: PushRow): Promise<{ ok: boolean; why?: string }> {
+  if (!env.TODODODO_URL || !env.TODODODO_TOKEN) return { ok: false, why: "not configured" };
   try {
     const res = await f(`${env.TODODODO_URL.replace(/\/$/, "")}/testers/signup`, {
       method: "POST",
@@ -40,23 +45,29 @@ export async function pushSignup(f: typeof fetch, env: PushEnv, row: PushRow): P
         consent_version: row.consent_version,
         signed_up_at: row.created_at,
       }),
+      redirect: "manual", // a redirect is a failure to look at, not to follow: the token must not travel to another address
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    return res.status === 200;
-  } catch {
-    return false;
+    return res.status === 200 ? { ok: true } : { ok: false, why: `HTTP ${res.status}${res.headers.get("location") ? ` -> ${res.headers.get("location")}` : ""}` };
+  } catch (e) {
+    return { ok: false, why: String(e instanceof Error ? `${e.name}: ${e.message}` : e).slice(0, 200) };
   }
 }
 
 async function markSynced(db: Db, email: string): Promise<void> {
-  await db.prepare("UPDATE signups SET synced_at = ? WHERE email = ?").bind(new Date().toISOString(), email).run();
+  await db.prepare("UPDATE signups SET synced_at = ?, sync_note = NULL WHERE email = ?").bind(new Date().toISOString(), email).run();
+}
+
+async function noteFailure(db: Db, email: string, why: string): Promise<void> {
+  await db.prepare("UPDATE signups SET sync_note = ? WHERE email = ?").bind(why, email).run();
 }
 
 /** Push one fresh sign-up and, if it went through, mark it. */
 export async function pushAndMark(f: typeof fetch, env: PushEnv, db: Db, row: PushRow): Promise<boolean> {
-  const ok = await pushSignup(f, env, row);
-  if (ok) await markSynced(db, row.email);
-  return ok;
+  const r = await pushResult(f, env, row);
+  if (r.ok) await markSynced(db, row.email);
+  else await noteFailure(db, row.email, r.why ?? "unknown");
+  return r.ok;
 }
 
 /** Re-pushes up to 50 sign-ups Todododo has not confirmed yet; returns how many went through. */

@@ -48,7 +48,7 @@ function fakeDb(pending: Record<string, unknown>[]) {
       let args: unknown[] = [];
       const stmt = {
         bind(...v: unknown[]) { args = v; return stmt; },
-        async run() { assert.match(sql, /UPDATE signups SET synced_at/); updates.push(args); return {}; },
+        async run() { assert.match(sql, /UPDATE signups SET (synced_at|sync_note)/); updates.push([sql, ...args]); return {}; },
         async all() { assert.match(sql, /synced_at IS NULL/); return { results: pending }; },
       };
       return stmt;
@@ -67,8 +67,11 @@ test("syncPending marks only the rows that went through and returns how many", a
   const f = (async (_u: string, init: RequestInit) => new Response("{}", { status: JSON.parse(init.body as string).email === "a@example.nl" ? 200 : 500 })) as unknown as typeof fetch;
   void n;
   assert.equal(await syncPending(f, env, db), 1);
-  assert.equal(updates.length, 1);
-  assert.equal(updates[0][1], "a@example.nl");
+  const synced = updates.filter((u) => /synced_at/.test(String(u[0])));
+  assert.equal(synced.length, 1);
+  assert.equal(synced[0][2], "a@example.nl");
+  const noted = updates.filter((u) => /sync_note = \?/.test(String(u[0])) && !/synced_at/.test(String(u[0])));
+  assert.deepEqual(noted.map((u) => [u[1], u[2]]), [["HTTP 500", "b@example.nl"]]);
 });
 
 test("a retry sends the same payload, so Todododo upserts instead of duplicating", async () => {
