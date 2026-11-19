@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS signups (
   newsletter INTEGER NOT NULL,
   consent_version TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  invited_at TEXT
+  invited_at TEXT,
+  synced_at TEXT -- set once Todododo has confirmed the row; empty rows are re-pushed hourly
 );
