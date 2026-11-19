@@ -42,7 +42,9 @@ import com.mistysteps.app.resources.data_download
 import com.mistysteps.app.resources.data_wait_wifi
 import com.mistysteps.app.resources.data_warning
 import com.mistysteps.app.resources.maps_data_year
-import com.mistysteps.app.resources.maps_downloading
+import com.mistysteps.app.resources.maps_failed
+import com.mistysteps.app.resources.picker_continue
+import com.mistysteps.app.resources.picker_keep_going
 import com.mistysteps.app.resources.picker_existing
 import com.mistysteps.app.resources.picker_later
 import com.mistysteps.app.resources.picker_offline
@@ -54,7 +56,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import com.mistysteps.app.maps.DownloadPolicy
 import com.mistysteps.app.maps.PackManager
-import com.mistysteps.app.maps.percent
 import com.mistysteps.app.maps.PackEntry
 import com.mistysteps.app.maps.PackState
 import com.mistysteps.app.maps.PickerState
@@ -82,9 +83,13 @@ fun ProvincePickerScreen(
     val toDownload = if (provinces != null) state.toDownload(packs::state) else emptyList()
     val downloadBytes = toDownload.sumOf { it.map.bytes }
 
+    // After Download the page stays, showing each province's progress; Continue then leaves it while the downloads go on.
+    var started by rememberSaveable { mutableStateOf(false) }
+    val inProgress = started || state.options.any { packs.state(it) is PackState.Downloading }
+
     fun start(unmeteredOnly: Boolean) {
         toDownload.forEach { packs.download(it, unmeteredOnly) }
-        onDone()
+        started = true
     }
 
     Box(
@@ -145,12 +150,12 @@ fun ProvincePickerScreen(
                                 )
                                 Column(Modifier.weight(1f)) {
                                     Text(entry.name, color = Ink, fontSize = 16.sp)
-                                    val note = when (packState) {
-                                        is PackState.Ready -> stringResource(Res.string.maps_data_year, packState.year)
-                                        is PackState.Downloading -> stringResource(Res.string.maps_downloading, "${percent(packState)}%")
-                                        else -> null
+                                    when (packState) {
+                                        is PackState.Ready -> Text(stringResource(Res.string.maps_data_year, packState.year), color = Dusk, fontSize = 12.sp)
+                                        is PackState.Downloading -> DownloadProgress(entry.id, packState, Modifier.padding(end = 12.dp))
+                                        is PackState.Failed -> Text(stringResource(Res.string.maps_failed), color = Ember, fontSize = 12.sp)
+                                        else -> {}
                                     }
-                                    if (note != null) Text(note, color = Dusk, fontSize = 12.sp)
                                 }
                                 Text(formatSize(entry.map.bytes), color = Dusk, fontSize = 14.sp)
                             }
@@ -168,19 +173,38 @@ fun ProvincePickerScreen(
                     modifier = Modifier.padding(start = 4.dp),
                 )
                 Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        if (DownloadPolicy.needsDataWarning(packs.isMetered(), downloadBytes)) askAboutData = true else start(unmeteredOnly = false)
-                    },
-                    enabled = toDownload.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
-                ) {
-                    Text(pluralStringResource(Res.plurals.picker_download, toDownload.size, toDownload.size), fontSize = 16.sp)
+                if (inProgress) {
+                    Button(
+                        onClick = onDone,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
+                    ) {
+                        Text(stringResource(Res.string.picker_continue), fontSize = 16.sp)
+                    }
+                    Text(
+                        stringResource(Res.string.picker_keep_going),
+                        color = Dusk,
+                        fontSize = 12.sp,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                } else {
+                    Button(
+                        onClick = {
+                            if (DownloadPolicy.needsDataWarning(packs.isMetered(), downloadBytes)) askAboutData = true else start(unmeteredOnly = false)
+                        },
+                        enabled = toDownload.isNotEmpty(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
+                    ) {
+                        Text(pluralStringResource(Res.plurals.picker_download, toDownload.size, toDownload.size), fontSize = 16.sp)
+                    }
                 }
             }
-            TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(Res.string.picker_skip), color = Dusk)
+            if (!inProgress) {
+                TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(Res.string.picker_skip), color = Dusk)
+                }
             }
             Text(
                 stringResource(Res.string.picker_later),

@@ -11,7 +11,18 @@ final class PackStore: ObservableObject {
     /// The map style for the installed packs (just the mist-coloured background when there are none).
     @Published var styleJSON: String?
 
+    /// The province downloading now, for the progress card over the map; nil when none is.
+    @Published var active: ActiveDownload?
+
+    struct ActiveDownload: Equatable {
+        let id: String
+        let name: String
+        let fraction: Double
+        let detail: String
+    }
+
     let manager: ApplePackManager
+    private var meters: [String: DownloadMeter] = [:]
 
     /// Which province a coordinate is in (the same asset as Android), for the "No map of ... yet" offer.
     let provinceIndex: ProvinceIndex? = {
@@ -40,7 +51,7 @@ final class PackStore: ObservableObject {
     /// Loads the cached catalog at once, refreshes it from the network once a week, and keeps the style current.
     func prepare() async {
         rebuildStyle()
-        ticker = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect().sink { [weak self] _ in self?.rebuildStyleIfPacksChanged() }
+        ticker = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect().sink { [weak self] _ in self?.rebuildStyleIfPacksChanged(); self?.updateActive() }
         if let cached = try? Data(contentsOf: catalogFile) { apply(cached) }
         let age = (try? catalogFile.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
             .map { Date().timeIntervalSince($0) } ?? .infinity
@@ -76,6 +87,25 @@ final class PackStore: ObservableObject {
         guard let o, let url = o["url"] as? String, let bytes = o["bytes"] as? Int64 ?? (o["bytes"] as? Int).map(Int64.init),
               let sha = o["sha256"] as? String, bytes >= 0, sha.count == 64 else { return nil }
         return FileRef(url: url.hasPrefix("https://") ? url : base + url.drop(while: { $0 == "/" }), bytes: bytes, sha256: sha)
+    }
+
+    /// Reads the download progress twice a second: the card shows the percentage, speed and time left.
+    private func updateActive() {
+        var found: ActiveDownload?
+        for entry in provinces ?? [] {
+            guard let d = manager.state(entry: entry) as? PackState.Downloading else { continue }
+            let meter = meters[entry.id] ?? DownloadMeter()
+            meters[entry.id] = meter
+            meter.update(nowMs: Int64(ProcessInfo.processInfo.systemUptime * 1000), bytes: d.bytes)
+            let left = meter.secondsLeft(bytes: d.bytes, total: d.total)?.int32Value ?? -1
+            found = ActiveDownload(
+                id: entry.id, name: entry.name,
+                fraction: d.total > 0 ? min(1, Double(d.bytes) / Double(d.total)) : 0,
+                detail: IosTextsKt.downloadDetailText(bytes: d.bytes, total: d.total, bytesPerSecond: meter.bytesPerSecond, secondsLeft: left))
+            break
+        }
+        if found != active { active = found }
+        if found == nil { meters.removeAll() }
     }
 
     private func rebuildStyleIfPacksChanged() {

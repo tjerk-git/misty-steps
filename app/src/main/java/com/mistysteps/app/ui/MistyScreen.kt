@@ -438,6 +438,13 @@ fun MistyScreen() {
             )
         }
 
+        // While a province downloads: what is happening, how fast and how long is left. Tap opens the maps list.
+        DownloadPill(
+            catalog?.provinces, packManager,
+            onClick = { pickerPreselect = emptyList(); showPicker = true },
+            modifier = Modifier.align(Alignment.BottomCenter).padding(start = 84.dp, end = 84.dp, bottom = 112.dp),
+        )
+
         if (showStats) {
             AndroidStatsScreen(
                 here = remember { currentPlace() },

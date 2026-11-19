@@ -215,6 +215,14 @@
     <string name="maps_failed">Download mislukt. Probeer het opnieuw.</string>
     <string name="maps_no_space">Niet genoeg ruimte op deze telefoon.</string>
     <string name="maps_update_app">Werk de app bij om nieuwe kaarten te gebruiken.</string>
+    <string name="picker_continue">Verder</string>
+    <string name="picker_keep_going">De download gaat op de achtergrond door. Je kunt deze pagina verlaten.</string>
+    <string name="download_starting">Starten…</string>
+    <string name="download_detail">%1$s van %2$s · %3$s</string>
+    <string name="download_speed">%1$s/s</string>
+    <string name="download_eta_sec">nog ongeveer %1$d s</string>
+    <string name="download_eta_min">nog ongeveer %1$d min</string>
+    <string name="download_pill">%1$s wordt gedownload</string>
     <plurals name="picker_download">
         <item quantity="one">Download %1$d provincie</item>
         <item quantity="other">Download %1$d provincies</item>

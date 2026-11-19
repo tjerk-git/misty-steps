@@ -216,6 +216,14 @@
     <string name="maps_failed">Download failed. Try again.</string>
     <string name="maps_no_space">Not enough space on this phone.</string>
     <string name="maps_update_app">Update the app to use new maps.</string>
+    <string name="picker_continue">Continue</string>
+    <string name="picker_keep_going">Downloads continue in the background. You can leave this page.</string>
+    <string name="download_starting">Starting…</string>
+    <string name="download_detail">%1$s of %2$s · %3$s</string>
+    <string name="download_speed">%1$s/s</string>
+    <string name="download_eta_sec">about %1$d s left</string>
+    <string name="download_eta_min">about %1$d min left</string>
+    <string name="download_pill">Downloading %1$s</string>
     <plurals name="picker_download">
         <item quantity="one">Download %1$d province</item>
         <item quantity="other">Download %1$d provinces</item>

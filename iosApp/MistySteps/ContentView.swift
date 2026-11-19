@@ -107,6 +107,22 @@ struct ContentView: View {
             HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
                     onStats: { app.route = .stats }, onCharacters: { app.route = .characters },
                     onLocate: locate, onPin: dropPin, onRecord: record)
+            if let d = packs.active {
+                Button { pickerPreselect = []; app.route = .picker } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(IosTextsKt.downloadPillText(name: d.name)).font(.system(size: 14)).foregroundStyle(Misty.ink)
+                        ProgressView(value: d.fraction).tint(Misty.ink)
+                        Text(d.detail).font(.system(size: 12)).foregroundStyle(Misty.dusk)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(Misty.frost, in: RoundedRectangle(cornerRadius: 20))
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .padding(.horizontal, 84).padding(.bottom, 112)
+            }
             if let offer {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(IosTextsKt.offerCardText(province: offer.province.name, bytes: offer.entry.map.bytes))

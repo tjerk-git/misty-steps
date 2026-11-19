@@ -1,8 +1,15 @@
 package com.mistysteps.app.ui
 
 import com.mistysteps.app.maps.formatSize
+import com.mistysteps.app.maps.formatSpeed
 import com.mistysteps.app.resources.Res
 import com.mistysteps.app.resources.data_download
+import com.mistysteps.app.resources.download_detail
+import com.mistysteps.app.resources.download_eta_min
+import com.mistysteps.app.resources.download_eta_sec
+import com.mistysteps.app.resources.download_pill
+import com.mistysteps.app.resources.download_speed
+import com.mistysteps.app.resources.download_starting
 import com.mistysteps.app.resources.offer_card
 import com.mistysteps.app.resources.start_wandering
 import com.mistysteps.app.resources.stop_wandering
@@ -73,3 +80,19 @@ fun formatDistanceText(distanceM: Double): String = formatDistance(distanceM)
 fun offerCardText(province: String, bytes: Long): String = runBlocking { getString(Res.string.offer_card, province, formatSize(bytes)) }
 
 fun dataDownloadText(): String = runBlocking { getString(Res.string.data_download) }
+
+/** "Downloading Friesland". */
+fun downloadPillText(name: String): String = runBlocking { getString(Res.string.download_pill, name) }
+
+/** "34% · 20 MB of 58 MB · 3.2 MB/s · about 15 s left"; [secondsLeft] is -1 while the speed is unknown. */
+fun downloadDetailText(bytes: Long, total: Long, bytesPerSecond: Long, secondsLeft: Int): String = runBlocking {
+    val percent = if (total > 0) (bytes * 100 / total).toInt().coerceIn(0, 100) else 0
+    if (bytesPerSecond <= 0) return@runBlocking "$percent% · " + getString(Res.string.download_starting)
+    val speed = getString(Res.string.download_speed, formatSpeed(bytesPerSecond))
+    val eta = when {
+        secondsLeft < 0 -> ""
+        secondsLeft < 90 -> " · " + getString(Res.string.download_eta_sec, secondsLeft)
+        else -> " · " + getString(Res.string.download_eta_min, (secondsLeft + 59) / 60)
+    }
+    "$percent% · " + getString(Res.string.download_detail, formatSize(bytes), formatSize(total), speed) + eta
+}
