@@ -47,9 +47,9 @@ Misty Steps is made by one person in Leeuwarden. Maps come from OpenStreetMap co
 **What's New in this version (4000)**
 First version of Misty Steps for iPhone.
 
-**Support URL:** https://potloodgum.com/misty-steps/
+**Support URL:** https://www.potloodgum.com/misty-steps/
 **Marketing URL (optional):** https://testers.potloodgum.com (change to a landing page later)
-**Privacy Policy URL:** https://potloodgum.com/misty-steps/privacy/ (live once the `misty-steps-pages` branch of pgum_11ty is merged and deployed)
+**Privacy Policy URL:** https://www.potloodgum.com/misty-steps/privacy/ (live)
 **Copyright:** `2026 Tjerk Dijkstra` (your legal name or trading name)
 
 ## Nederlands (Netherlands)
