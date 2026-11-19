@@ -10,5 +10,11 @@
             android:name="com.mistysteps.app.spike.MistyMapActivity"
             android:exported="true"
             android:theme="@style/Theme.MistySteps" />
+        <!-- Moves the phone for testing: see MockLocationReceiver. Debug builds only. -->
+        <receiver android:name="com.mistysteps.app.debug.MockLocationReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="com.potloodgum.mistysteps.debug.MOCK" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
