@@ -39,3 +39,4 @@ xcuserdata/
 # cf CLI cache and map build input
 .cloudflare/
 data/
+node_modules/
