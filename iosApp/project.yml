@@ -40,10 +40,13 @@ targets:
         product: MapLibre
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.potloodgum.mistysteps.ios
-        MARKETING_VERSION: "0.1.0"
+        PRODUCT_BUNDLE_IDENTIFIER: com.potloodgum.mistysteps
+        DEVELOPMENT_TEAM: P9KK68PA63
+        CODE_SIGN_STYLE: Automatic
+        MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         PRODUCT_NAME: Misty Steps
+        TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO

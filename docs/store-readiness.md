@@ -37,11 +37,12 @@ Declarations to prepare:
 
 Done in the repo: app icon (1024, from the Android icon), privacy manifest (`PrivacyInfo.xcprivacy`, no tracking, no collected data, UserDefaults and file timestamp reasons), export compliance flag (no non-exempt encryption), location usage string, photo add usage string, category.
 
+Done 2026-11-19: Apple Developer Program bought; team id set in `iosApp/project.yml` (automatic signing); bundle id `com.potloodgum.mistysteps`; `tools/ios-testflight.sh` archives and exports a signed build (`--upload` sends it to App Store Connect). Xcode must be signed in to the developer account.
+
 User must:
-1. Give the Apple team id; set `DEVELOPMENT_TEAM` in `iosApp/project.yml`.
-2. Create the app in App Store Connect with bundle id `com.potloodgum.mistysteps.ios` (change in project.yml if another id is wanted; Apple ids cannot be reused).
-3. Real iPhone test first (background GPS and battery are untested).
-4. Archive and upload (`xcodebuild archive` then Xcode Organizer or `xcrun altool`), add internal testers.
+1. Create the app in App Store Connect (My Apps > +): name Misty Steps, bundle id `com.potloodgum.mistysteps`, primary language English (Netherlands), SKU anything.
+2. Real iPhone test (background GPS and battery are untested).
+3. Run `tools/ios-testflight.sh --upload`, then add internal testers in TestFlight. External testers (the sign-up list) need a short Beta App Review and the testers' emails added in App Store Connect.
 
 Open points before App Review (not TestFlight internal testing):
 - Background location: the app uses When In Use only. While the screen is off a walk stops recording unless `UIBackgroundModes: location` and `allowsBackgroundLocationUpdates` are added. Decide after the real iPhone test. If added, App Review wants a clear reason (walk recording with a visible indicator).
