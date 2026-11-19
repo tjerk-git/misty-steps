@@ -43,3 +43,15 @@ the sign-ups should land there, be readable on a page, exportable for the mailin
 
 ## Left to the builder
 Nav placement, exact page layout, retry cadence details, migration name.
+
+## Amendment 2026-11-19: pull instead of push
+Shipping the push showed that a Worker cannot POST to `todo.potloodgum.com`: the name is DNS-only (grey cloud) in the
+same Cloudflare zone, the Worker's request reaches nginx over plain HTTP and gets a 301 to itself. The owner chose
+not to change DNS, so Todododo now **pulls**:
+- Worker: `GET /api/pending` (bearer `TESTERS_EXPORT_TOKEN`, 404 otherwise) returns up to 100 rows with `synced_at IS NULL`;
+  `POST /api/ack {emails:[...]}` sets `synced_at`. A changed re-sign-up clears `synced_at` again.
+- Todododo: `php artisan testers:pull`, scheduled every five minutes (the Ploi scheduler already runs `schedule:run`),
+  fetches pending rows, upserts them by email (keeps `added_at`), then acks. A failed ack only means the same rows
+  are pulled again; upsert makes that harmless. The same `TESTERS_TOKEN` value is the Worker secret.
+- Removed: the public `POST /testers/signup` door (smaller attack surface), the Worker's push and its hourly cron.
+- Unchanged: `tester_signups` table, owner API, Testers page, CSV.
