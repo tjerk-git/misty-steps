@@ -39,6 +39,10 @@
   button.go:disabled { opacity:.6; cursor:wait; }
   .msg { margin-top:14px; font-size:15px; min-height:1.4em; } .msg.err { color:var(--ember); }
   .done { display:none; text-align:center; padding:12px 0; } .done h2 { margin-bottom:8px; }
+  .ios-link { display:none; margin-top:14px; padding:14px 16px; border-radius:16px; background:#EEF0F8; font-size:15px; line-height:1.45; }
+  fieldset:has(input[value=ios]:checked) .ios-link { display:block; }
+  a.btn { display:inline-block; margin-top:10px; font-weight:600; color:#fff; background:var(--ink); border-radius:999px; padding:12px 22px; text-decoration:none; }
+  #done[data-p=ios] .a, #done[data-p=android] .i { display:none; }
   .hp { position:absolute; left:-9999px; }
   footer { margin-top:28px; font-size:13px; color:var(--dusk); max-width:44em; }
   main [lang=nl] { display:none; }
@@ -82,6 +86,11 @@
               <label><input type="radio" name="platform" value="android" required> Android</label>
               <label><input type="radio" name="platform" value="ios"> iPhone</label>
             </div>
+            <div class="ios-link">
+              <span lang="en">On iPhone you can start right now: install TestFlight from the App Store, then open the test link. Signing up below is still useful, so I can tell you about updates.</span>
+              <span lang="nl">Op iPhone kun je meteen beginnen: installeer TestFlight uit de App Store en open dan de testlink. Aanmelden hieronder blijft handig, dan kan ik je op de hoogte houden van updates.</span><br>
+              <a class="btn" href="https://testflight.apple.com/join/41G4aYVA" rel="noopener"><span lang="en">Open the test link</span><span lang="nl">Open de testlink</span></a>
+            </div>
           </fieldset>
           <label class="t" for="email"><span lang="en">Email address</span><span lang="nl">E-mailadres</span></label>
           <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
@@ -101,8 +110,11 @@
       </div>
       <div class="done" id="done" role="status">
         <h2 lang="en">Thank you</h2><h2 lang="nl">Bedankt</h2>
-        <p lang="en">You are on the list. I will send an invite to your address as soon as a test build is ready for your phone.</p>
-        <p lang="nl">Je staat op de lijst. Zodra er een testversie voor jouw telefoon klaar is, stuur ik een uitnodiging naar je adres.</p>
+        <p class="a" lang="en">You are on the list. I will send an invite to your address as soon as a test build is ready for your phone.</p>
+        <p class="a" lang="nl">Je staat op de lijst. Zodra er een testversie voor jouw telefoon klaar is, stuur ik een uitnodiging naar je adres.</p>
+        <p class="i" lang="en">You are on the list for updates. You can start now: install TestFlight from the App Store, then open the test link.</p>
+        <p class="i" lang="nl">Je staat op de lijst voor updates. Je kunt nu al beginnen: installeer TestFlight uit de App Store en open dan de testlink.</p>
+        <a class="btn i" href="https://testflight.apple.com/join/41G4aYVA" rel="noopener"><span lang="en">Open the test link</span><span lang="nl">Open de testlink</span></a>
       </div>
     </div>
   </div>
@@ -142,7 +154,7 @@
     if (!d.get("consent_testing")) { say("consent"); return; }
     var btn = f.querySelector("button.go"); btn.disabled = true;
     fetch("/api/signup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(Object.fromEntries(d)) })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); document.getElementById("formbox").style.display = "none"; document.getElementById("done").style.display = "block"; })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); document.getElementById("formbox").style.display = "none"; var dn = document.getElementById("done"); dn.dataset.p = d.get("platform"); dn.style.display = "block"; })
       .catch(function () { say("fail"); btn.disabled = false; });
   });
 })();
