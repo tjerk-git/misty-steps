@@ -50,7 +50,7 @@
     <string name="feedback_row_title">Stuur feedback</string>
     <string name="feedback_row_sub">Een bug, een idee, een straat die niet klopt: ik lees alles</string>
     <string name="made_by_title">Gemaakt door Potloodgum</string>
-    <string name="made_by_sub">Wie dit maakte, en waarom · trakteer me op koffie</string>
+    <string name="made_by_sub">Wie dit maakte, en waarom</string>
     <string name="version_app">Misty Steps %1$s</string>
     <string name="version_plain">Versie %1$s</string>
     <string name="walk_now">nu onderweg</string>
@@ -156,8 +156,6 @@
     <string name="about_maker">Gemaakt door Tjerk bij Potloodgum, een eenmansstudio in Leeuwarden. De wereld repareren in kleine stapjes.</string>
     <string name="about_why">Ik wilde een reden om door straten te lopen waar ik nog nooit was. Misty Steps verandert je eigen buurt in een kaart om te ontdekken, stap voor stap (of trap voor trap).</string>
     <string name="about_promise">Geen advertenties, geen accounts. Je routes verlaten je telefoon nooit. Als je dat toestaat, telt de app hoe vaak hij wordt geopend, zonder iets dat zegt wie je bent.</string>
-    <string name="about_donate_text">Als het je de deur uit krijgt, mag je een kop koffie voor me kopen. Dan blijft de mist drijven.</string>
-    <string name="about_donate_button">Trakteer me op koffie</string>
     <string name="about_feedback_text">Een bug gevonden, of een idee? Laat het me weten. Ik lees alles.</string>
     <string name="about_feedback_button">Stuur feedback</string>
     <string name="about_credits">Kaartgegevens © OpenStreetMap-bijdragers (ODbL), kaartontwerp © OpenMapTiles. De grenzen van steden en landen zijn gemaakt uit een OpenStreetMap-dump en zitten in de app.</string>

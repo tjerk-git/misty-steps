@@ -47,9 +47,9 @@ Misty Steps is made by one person in Leeuwarden. Maps come from OpenStreetMap co
 **What's New in this version (4000)**
 First version of Misty Steps for iPhone.
 
-**Support URL:** https://potloodgum.com (needs a page with a way to contact you; see "Needed from you")
+**Support URL:** https://potloodgum.com/misty-steps/
 **Marketing URL (optional):** https://testers.potloodgum.com (change to a landing page later)
-**Privacy Policy URL:** the policy text in `docs/store-readiness.md` published on a page (see below)
+**Privacy Policy URL:** https://potloodgum.com/misty-steps/privacy/ (live once the `misty-steps-pages` branch of pgum_11ty is merged and deployed)
 **Copyright:** `2026 Tjerk Dijkstra` (your legal name or trading name)
 
 ## Nederlands (Netherlands)
@@ -102,7 +102,7 @@ De eerste versie van Misty Steps voor iPhone.
 - Tracking: No.
 
 ## Before submitting for review (not needed for TestFlight)
-- The About page has a "Buy me a coffee" card. Apple's guideline 3.1.1 requires digital tips and donations inside an iOS app to use In-App Purchase; a link to an outside payment page can be rejected. Plan: remove the card on iOS for 1.0, or build the tip jar as In-App Purchase.
+- The "Buy me a coffee" card was removed from the About page on 2026-11-19 (Apple guideline 3.1.1: in-app tips must use In-App Purchase). A tip jar can come back later as In-App Purchase.
 - Privacy policy and support pages must be live URLs.
 - Screenshots (see below), App Review contact details, export compliance (the app sets "no non-exempt encryption").
 
@@ -110,6 +110,6 @@ De eerste versie van Misty Steps voor iPhone.
 Apple needs 1 to 10 for the largest iPhone size: 6.9-inch, 1320 x 2868 px, PNG or JPEG, no alpha. Smaller sizes are scaled from these. Files are in `docs/store-assets/ios-6.9/` (5 screens: map while walking, stats, characters, postcard, province maps).
 
 ## Needed from you
-- A contact email shown on the support page (and in the review contact fields)
+- Phone number and email for the App Review contact fields (not public)
 - Your decision on the privacy label (above) and on the coffee card
 - A privacy policy page and a support page URL

@@ -39,8 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mistysteps.app.resources.Res
 import com.mistysteps.app.resources.about_credits
-import com.mistysteps.app.resources.about_donate_button
-import com.mistysteps.app.resources.about_donate_text
 import com.mistysteps.app.resources.about_feedback_button
 import com.mistysteps.app.resources.about_feedback_text
 import com.mistysteps.app.resources.no_mail_app
@@ -53,12 +51,11 @@ import com.mistysteps.app.resources.version_plain
 import org.jetbrains.compose.resources.stringResource
 import com.mistysteps.app.character.Characters
 
-const val DONATE_URL = "https://buymeacoffee.com/tjerk"
 const val STUDIO_URL = "https://potloodgum.com"
 const val FEEDBACK_EMAIL = "debug@potloodgum.com"
 
 /**
- * Who made the app and why, with a way to support it. The platform says which [versionName] this is and what to
+ * Who made the app and why. The platform says which [versionName] this is and what to
  * put below the message of a feedback email ([feedbackDetails]: version, phone model; shown, so people can remove it).
  */
 @Composable
@@ -119,18 +116,6 @@ fun AboutScreen(versionName: String, feedbackDetails: String, onClose: () -> Uni
             }
             Spacer(Modifier.height(16.dp))
 
-            Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
-                Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(Res.string.about_donate_text), color = Ink, fontSize = 16.sp, lineHeight = 22.sp)
-                    Spacer(Modifier.height(14.dp))
-                    Button(
-                        onClick = { open(DONATE_URL) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Ember, contentColor = Color.White),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(Res.string.about_donate_button), fontSize = 16.sp) }
-                }
-            }
-            Spacer(Modifier.height(16.dp))
 
             Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
                 Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
