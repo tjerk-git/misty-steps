@@ -98,7 +98,7 @@ De eerste versie van Misty Steps voor iPhone.
 - Demo account: none.
 
 ## App Privacy (nutrition label)
-- Data collection: choose "Data Not Collected"... with one decision to make: the optional anonymous open count sends app version, platform and a day count to stats.potloodgum.com only if the user says yes, with no identifier. Apple's rule counts anything sent off the device and kept as collected. Safest honest answer: declare Usage Data > Other Usage Data, "Not linked to the user", "Not used for tracking", purpose Analytics. If you declare it, add the same to `iosApp/MistySteps/PrivacyInfo.xcprivacy` (NSPrivacyCollectedDataTypes) in the next build so the two match.
+- DECIDED 2026-11-19: declare the optional open count. (Earlier note: the optional anonymous open count sends app version, platform and a day count to stats.potloodgum.com only if the user says yes, with no identifier. Apple's rule counts anything sent off the device and kept as collected. Safest honest answer: declare Usage Data > Other Usage Data, "Not linked to the user", "Not used for tracking", purpose Analytics. If you declare it, add the same to `iosApp/MistySteps/PrivacyInfo.xcprivacy` (NSPrivacyCollectedDataTypes) in the next build so the two match. Done in the manifest.)
 - Tracking: No.
 
 ## Before submitting for review (not needed for TestFlight)
@@ -110,6 +110,6 @@ De eerste versie van Misty Steps voor iPhone.
 Apple needs 1 to 10 for the largest iPhone size: 6.9-inch, 1320 x 2868 px, PNG or JPEG, no alpha. Smaller sizes are scaled from these. Files are in `docs/store-assets/ios-6.9/` (5 screens: map while walking, stats, characters, postcard, province maps).
 
 ## Needed from you
-- Phone number and email for the App Review contact fields (not public)
+- App Review contact: enter your phone number and hello@potloodgum.com in App Store Connect (not public; not stored in this repo)
 - Your decision on the privacy label (above) and on the coffee card
 - A privacy policy page and a support page URL
