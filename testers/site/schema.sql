@@ -6,6 +6,5 @@ CREATE TABLE IF NOT EXISTS signups (
   consent_version TEXT NOT NULL,
   created_at TEXT NOT NULL,
   invited_at TEXT,
-  synced_at TEXT -- set once Todododo has confirmed the row; empty rows are re-pushed hourly
-  ,sync_note TEXT -- why the last push failed, if it did
+  synced_at TEXT -- set once Todododo has pulled and confirmed the row
 );
