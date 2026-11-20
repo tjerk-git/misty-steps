@@ -1,0 +1,2 @@
+- Fixed the app feeling stuck while a map downloads: buttons and scrolling respond again
+- Map downloads show progress, speed and time left, and keep going when you leave the page
