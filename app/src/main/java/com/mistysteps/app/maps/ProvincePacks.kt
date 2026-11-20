@@ -8,12 +8,19 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * The map packs on this phone, in `<root>/<year>/<province id>/map.pmtiles` (root is `filesDir/maps/nl`).
  * What is installed comes from the files; "downloading" and "failed" are remembered while the app runs.
- * [version] ticks on every change so screens and the map can reload.
+ * [version] ticks on every change so screens can reload; [installedVersion] only when the files change, for the map.
  */
 class ProvincePacks(private val root: File) {
     private val transient = ConcurrentHashMap<String, PackState>()
     private val _version = MutableStateFlow(0)
     val version: StateFlow<Int> = _version
+
+    /**
+     * Ticks only when the map files on disk change (a pack installed, removed or replaced), not on download progress.
+     * The map reloads its whole style on this, so it must stay quiet while a download reports every 250 ms.
+     */
+    private val _installedVersion = MutableStateFlow(0)
+    val installedVersion: StateFlow<Int> = _installedVersion
 
     fun packDir(year: Int, id: String) = File(root, "$year/$id")
 
@@ -48,6 +55,7 @@ class ProvincePacks(private val root: File) {
     fun clearTransient(id: String) {
         transient.remove(id)
         _version.value++
+        _installedVersion.value++
     }
 
     /** Deletes every year of [id]'s pack, partial downloads included. */
@@ -55,6 +63,7 @@ class ProvincePacks(private val root: File) {
         transient.remove(id)
         root.listFiles().orEmpty().filter { it.name.toIntOrNull() != null }.forEach { File(it, id).deleteRecursively() }
         _version.value++
+        _installedVersion.value++
     }
 
     /** After a new year's pack is in place: delete the older ones. Does nothing until [year]'s file exists. */
@@ -62,6 +71,7 @@ class ProvincePacks(private val root: File) {
         if (!mapPath(year, id).isFile) return
         years(id).filter { it < year }.forEach { packDir(it, id).deleteRecursively() }
         _version.value++
+        _installedVersion.value++
     }
 
     private fun setTransient(id: String, state: PackState) {

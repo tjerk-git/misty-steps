@@ -98,7 +98,7 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
             m.addOnMapLongClickListener { at -> m.projection.toScreenLocation(at).let { onLongPress?.invoke(it.x, it.y) } ?: false }
             restoreCamera(m)
             applyStyle()
-            packWatcher = scope.launch { packs.version.collect { applyStyle() } }
+            packWatcher = scope.launch { packs.installedVersion.collect { applyStyle() } }
             if (resumed) startFollowing()
         }
     }

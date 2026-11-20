@@ -118,4 +118,25 @@ class ProvincePacksTest {
     fun mapFilesIsEmptyWithNothingInstalled() {
         assertTrue(packs.mapFiles().isEmpty())
     }
+
+    // The map reloads its whole style when this changes, so download progress must not move it.
+    @Test
+    fun downloadProgressDoesNotChangeInstalledVersion() {
+        val before = packs.installedVersion.value
+        repeat(20) { packs.markDownloading("fr", it * 10L, 1000) }
+        packs.markFailed("fr", Reason.NETWORK)
+        assertEquals(before, packs.installedVersion.value)
+        assertTrue(packs.version.value >= 21)
+    }
+
+    @Test
+    fun installedVersionMovesWhenPacksComeAndGo() {
+        val v0 = packs.installedVersion.value
+        install(2026)
+        packs.clearTransient("fr")
+        val v1 = packs.installedVersion.value
+        assertTrue(v1 > v0)
+        packs.remove("fr")
+        assertTrue(packs.installedVersion.value > v1)
+    }
 }
