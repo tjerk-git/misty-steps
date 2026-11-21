@@ -1,0 +1,1 @@
+- Smoother on slower phones and with battery saver on: the mist gets simpler when the phone can't keep up, so buttons and scrolling respond better
