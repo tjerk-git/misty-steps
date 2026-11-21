@@ -36,7 +36,7 @@ import org.jetbrains.compose.resources.StringResource
  *   "format": "misty-steps-backup", "version": 1, "exportedAt": <ms>, "app": "1.1.0",
  *   "distanceM": 21700.0, "character": "horse",
  *   "sessions": [ { "id", "start", "end", "distanceM", "points", "batteryStart", "batteryEnd", "newAreaM2" } ],
- *   "points": [ [lat, lon, time, radius, sessionId or null], ... ],
+ *   "points": [ [lat, lon, time, radius, sessionId or null, eraseStroke (only for magic-eraser spots)], ... ],
  *   "pins": [ { "lat", "lon", "time", "label", "note" or null, "sessionId" or null } ]
  * }
  * "pins" was added later without a version bump: older files simply don't have it.
@@ -76,6 +76,8 @@ data class Backup(
             for (p in points) add(buildJsonArray {
                 add(JsonPrimitive(p.lat)); add(JsonPrimitive(p.lon)); add(JsonPrimitive(p.time)); add(JsonPrimitive(p.radius))
                 add(p.sessionId?.let { JsonPrimitive(it) } ?: JsonNull)
+                // Only spots the magic eraser cleared have a sixth value; older files and walked spots stop at five.
+                p.eraseStroke?.let { add(JsonPrimitive(it)) }
             })
         })
         put("pins", buildJsonArray {
@@ -171,7 +173,8 @@ data class Backup(
                     if (!(lat in -90.0..90.0 && lon in -180.0..180.0)) {
                         throw BackupException(BackupProblem.BROKEN_POINT, "This backup has a broken spot in it.")
                     }
-                    TrailPoint(lat, lon, p[2].jsonPrimitive.long, p[3].jsonPrimitive.double, p.getOrNull(4)?.takeIf { it !is JsonNull }?.jsonPrimitive?.long)
+                    TrailPoint(lat, lon, p[2].jsonPrimitive.long, p[3].jsonPrimitive.double, p.getOrNull(4)?.takeIf { it !is JsonNull }?.jsonPrimitive?.long,
+                        p.getOrNull(5)?.takeIf { it !is JsonNull }?.jsonPrimitive?.long)
                 },
                 pins = pins.map { el -> readPin(el as? JsonObject) },
             )

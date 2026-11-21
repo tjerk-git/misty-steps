@@ -112,4 +112,25 @@ class BackupTest {
         assertEquals(20, names["cow"]!!.length)
         assertFalse(names.containsKey("horse"))
     }
+
+    @Test
+    fun erasedSpotsRoundTripWithTheirStroke() {
+        val erased = sample.copy(points = sample.points + TrailPoint(52.371, 4.881, 1_794_160_000_000, 60.0, null, 1_794_160_000_000))
+        val back = Backup.fromJson(erased.toJson())
+        assertEquals(1_794_160_000_000, back.points.last().eraseStroke)
+        assertNull(back.points[0].eraseStroke)
+        assertEquals(erased, back)
+    }
+
+    @Test
+    fun pointsFromAnOldFileHaveNoEraseStroke() {
+        val old = """{"format":"misty-steps-backup","version":1,"exportedAt":1,"appVersion":"1.0.0","distanceM":0,"sessions":[],"points":[[52.0,5.0,1,50.0,null]],"pins":[]}"""
+        assertNull(Backup.fromJson(old).points.single().eraseStroke)
+    }
+
+    @Test
+    fun aWalkedSpotIsWrittenWithoutASixthValue() {
+        val json = org.json.JSONObject(sample.toJson())
+        assertEquals(5, json.getJSONArray("points").getJSONArray(0).length())
+    }
 }
