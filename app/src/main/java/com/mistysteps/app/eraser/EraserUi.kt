@@ -81,14 +81,16 @@ fun EraserSheet(priceText: String?, tasteUsed: Boolean, onBuy: () -> Unit, onNot
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.eraser_sheet_body), fontSize = 15.sp, lineHeight = 21.sp, color = Ink)
+                if (priceText == null) {
+                    // No price yet: Play is out of reach (or this build has no store). Say so quietly instead of offering a dead button.
+                    Spacer(Modifier.height(12.dp))
+                    Text(stringResource(R.string.eraser_unavailable), fontSize = 13.sp, color = Dusk)
+                }
                 Spacer(Modifier.height(20.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onNotNow) { Text(stringResource(R.string.eraser_sheet_not_now), color = Dusk) }
-                    TextButton(onClick = onBuy, enabled = priceText != null) {
-                        Text(
-                            priceText?.let { stringResource(R.string.eraser_sheet_buy, it) } ?: stringResource(R.string.eraser_unavailable),
-                            color = Ember,
-                        )
+                    if (priceText != null) {
+                        TextButton(onClick = onBuy) { Text(stringResource(R.string.eraser_sheet_buy, priceText), color = Ember) }
                     }
                 }
             }
