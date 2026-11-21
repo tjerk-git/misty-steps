@@ -7,6 +7,8 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.debug.BatteryLog
 import com.mistysteps.app.fog.FogView
 import com.mistysteps.app.map.LatLon
+import com.mistysteps.app.eraser.EraserController
+import com.mistysteps.app.eraser.FogErasedStore
 import com.mistysteps.app.map.LocationFeed
 import com.mistysteps.app.map.MarkersView
 import com.mistysteps.app.map.MistyMap
@@ -35,6 +37,9 @@ class MapController(context: Context) {
     private val markers = MarkersView(context, map.projection) { feed.fix.value }
     private val trail = TrailLayer()
 
+    /** The magic eraser: its touch handling sits on the map; the screen decides when it is active and what it may do. */
+    val eraser = EraserController(map.projection, FogErasedStore, context.resources.displayMetrics.density, map::setOneFingerGestures)
+
     /** The map with the mist and the markers stacked on it. */
     val mapView = FrameLayout(context).apply {
         addView(map.mapView)
@@ -53,11 +58,14 @@ class MapController(context: Context) {
         map.onCameraMove = { fog.moved(); markers.moved() }
         map.addStyleListener { trail.install(it) }
         trail.watch(scope)
-        map.onTap = { x, y -> markers.pinAt(x, y)?.let { onPinTap?.invoke(it); true } ?: false }
+        map.onTouch = { eraser.onTouch(it) }
+        map.onTap = { x, y -> if (eraser.active) true else markers.pinAt(x, y)?.let { onPinTap?.invoke(it); true } ?: false }
         map.onLongPress = { x, y ->
+          if (eraser.active) true else {
             val at = map.projection.fromScreen(x, y)
             if (PinRules.isCleared(FogStore.index, at.lat, at.lon)) onClearedLongPress?.invoke(at.lat, at.lon) else onFogLongPress?.invoke()
             true
+          }
         }
         map.onCreate(null)
     }

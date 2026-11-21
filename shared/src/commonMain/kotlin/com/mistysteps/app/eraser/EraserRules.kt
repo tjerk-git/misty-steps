@@ -34,18 +34,10 @@ object EraserRules {
      * [SPACING_FACTOR] times [radiusM] of travel, and the end of the path if it is more than half a spacing further on.
      */
     fun spotsAlong(path: List<LatLon>, radiusM: Double): List<LatLon> {
-        if (path.isEmpty()) return emptyList()
-        val spacing = SPACING_FACTOR * radiusM
-        val out = arrayListOf(path.first())
-        var travelled = 0.0
-        for (i in 1 until path.size) {
-            travelled += distance(path[i - 1], path[i])
-            if (travelled >= spacing) {
-                out += path[i]
-                travelled = 0.0
-            }
-        }
-        if (travelled > spacing / 2) out += path.last()
+        val walker = SpotWalker(radiusM)
+        val out = arrayListOf<LatLon>()
+        for (p in path) out += walker.add(p)
+        out += walker.finish()
         return out
     }
 
@@ -57,11 +49,7 @@ object EraserRules {
         for (i in 1 until path.size) {
             val step = distance(path[i - 1], path[i])
             if (step >= left) {
-                val t = if (step == 0.0) 0.0 else left / step
-                out += LatLon(
-                    path[i - 1].lat + (path[i].lat - path[i - 1].lat) * t,
-                    path[i - 1].lon + (path[i].lon - path[i - 1].lon) * t,
-                )
+                out += interpolate(path[i - 1], path[i], if (step == 0.0) 0.0 else left / step)
                 return out
             }
             out += path[i]
@@ -70,5 +58,44 @@ object EraserRules {
         return out
     }
 
-    private fun distance(a: LatLon, b: LatLon) = Trails.approxDistanceM(a.lat, a.lon, b.lat, b.lon)
+    /** The point [t] (0 to 1) of the way from [a] to [b]. */
+    fun interpolate(a: LatLon, b: LatLon, t: Double) = LatLon(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t)
+
+    /** Metres between two points (flat-earth is plenty over a drag). */
+    fun distance(a: LatLon, b: LatLon) = Trails.approxDistanceM(a.lat, a.lon, b.lat, b.lon)
+}
+
+/**
+ * [EraserRules.spotsAlong] one point at a time, so the mist can come off while the finger is still moving.
+ * Feed every point of the drag to [add]; call [finish] when the finger lifts.
+ */
+class SpotWalker(radiusM: Double) {
+    private val spacing = EraserRules.SPACING_FACTOR * radiusM
+    private var last: LatLon? = null
+    private var travelled = 0.0
+
+    /** Length of the drag so far, in metres. */
+    var dragM = 0.0
+        private set
+
+    /** The spots this point adds: the first point always, later ones once the finger has gone far enough. */
+    fun add(p: LatLon): List<LatLon> {
+        val previous = last
+        last = p
+        if (previous == null) return listOf(p)
+        val step = EraserRules.distance(previous, p)
+        dragM += step
+        travelled += step
+        if (travelled < spacing) return emptyList()
+        travelled = 0.0
+        return listOf(p)
+    }
+
+    /** The end of the drag, if it is more than half a spacing past the last spot. */
+    fun finish(): List<LatLon> {
+        val end = last ?: return emptyList()
+        if (travelled <= spacing / 2) return emptyList()
+        travelled = 0.0
+        return listOf(end)
+    }
 }

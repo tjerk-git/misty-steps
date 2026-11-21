@@ -65,6 +65,17 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
     /** Called on every camera move, for things drawn above the map. */
     var onCameraMove: (() -> Unit)? = null
 
+    /** Sees every touch event on the map before the map does (it never consumes them). */
+    var onTouch: ((MotionEvent) -> Unit)? = null
+
+    /** The map's own one-finger pan and double-tap zoom, off while the magic eraser draws; pinch zoom stays on. */
+    fun setOneFingerGestures(on: Boolean) {
+        val ui = map?.uiSettings ?: return
+        ui.isScrollGesturesEnabled = on
+        ui.isDoubleTapGesturesEnabled = on
+        ui.isQuickZoomGesturesEnabled = on
+    }
+
     /** A tap or a long-press on the map at screen position (x, y); return true when it was used. */
     var onTap: ((Float, Float) -> Boolean)? = null
     var onLongPress: ((Float, Float) -> Boolean)? = null
@@ -242,6 +253,7 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
         var downY = 0f
         var multi = false
         mapView.setOnTouchListener { _, e ->
+            onTouch?.invoke(e)
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y; multi = false }
                 MotionEvent.ACTION_POINTER_DOWN -> multi = true
