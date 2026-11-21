@@ -262,7 +262,10 @@ struct ContentView: View {
                              secondaryButton: .cancel(Text(IosTextsKt.notNowText())))
             }
         }
-        .onChange(of: fog.session?.id) { _, _ in backupHost?.setRecording(value: fog.session != nil) }
+        .onChange(of: fog.session?.id) { _, _ in
+            backupHost?.setRecording(value: fog.session != nil)
+            location.setRecording(fog.session != nil)
+        }
         .onChange(of: fog.finished?.id) { _, id in
             // A postcard when a walk ends (not for tiny ones, like a start-stop by mistake).
             if let walk = fog.finished, let id, walk.distanceM >= StatsScreenKt.MIN_WALK_M {

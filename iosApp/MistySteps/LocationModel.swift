@@ -15,6 +15,18 @@ final class LocationModel: NSObject, ObservableObject, CLLocationManagerDelegate
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
+        // A walk is movement on foot or by bike: tell iOS, and never let it pause the updates on its own (it would guess we stopped).
+        manager.activityType = .fitness
+        manager.pausesLocationUpdatesAutomatically = false
+    }
+
+    /// A walk is on or off. Only during a walk may location updates continue with the screen locked or the app in the background
+    /// (the blue status-bar indicator shows then); outside a walk the app goes quiet like any other. The counterpart of Android's
+    /// foreground service. Needs the `location` background mode in Info.plist (project.yml), or this would crash.
+    func setRecording(_ on: Bool) {
+        manager.allowsBackgroundLocationUpdates = on
+        manager.showsBackgroundLocationIndicator = on
+        if on && isAllowed { manager.startUpdatingLocation() }
     }
 
     /// Whether the app may use the location now.

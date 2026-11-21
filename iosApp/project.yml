@@ -20,6 +20,8 @@ targets:
       properties:
         # Compose Multiplatform on iOS aborts at start without this.
         CADisableMinimumFrameDurationOnPhone: true
+        # A walk keeps recording with the screen locked (location updates run only while a walk is on; see LocationModel).
+        UIBackgroundModes: [location]
         NSPhotoLibraryAddUsageDescription: Misty Steps saves your postcard to Photos when you tap Save.
     sources:
       - MistySteps
@@ -52,7 +54,7 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.healthcare-fitness
         INFOPLIST_KEY_CFBundleDisplayName: Misty Steps
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Misty Steps shows where you are on the map and clears the fog as you walk.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Misty Steps shows where you are on the map and clears the fog as you walk. While a walk is on, it keeps clearing the fog with the screen locked.
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
         OTHER_LDFLAGS: "-framework Shared"
         ENABLE_USER_SCRIPT_SANDBOXING: NO

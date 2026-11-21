@@ -94,7 +94,7 @@ De eerste versie van Misty Steps voor iPhone.
 - Sign-in required: No
 - Contact: your name, phone number and email (Apple needs them; not public)
 - Notes for the reviewer:
-  "Misty Steps is a walking app. No account is needed. On first launch it explains the app, asks (optionally) about an anonymous open count, then offers to download a province map (free, 26 to 109 MB, from maps.potloodgum.com). Choose any province, e.g. Friesland. Tap 'Start wandering' and allow location 'While Using the App'; the fog clears around your position as you move. To see it without walking, use Features > Location in the Simulator, or walk outside. Location is used only on the device. The app is for the Netherlands; positions outside the Netherlands show an empty map."
+  "Misty Steps is a walking app. No account is needed. On first launch it explains the app, asks (optionally) about an anonymous open count, then offers to download a province map (free, 26 to 109 MB, from maps.potloodgum.com). Choose any province, e.g. Friesland. Tap 'Start wandering' and allow location 'While Using the App'; the fog clears around your position as you move. To see it without walking, use Features > Location in the Simulator, or walk outside. Location is used only on the device. Background location: while a walk is on (after tapping 'Start wandering', until 'Stop'), the app keeps recording your own walk when the screen is locked or the app is in the background, so the fog keeps clearing along the whole route; iOS shows its blue location indicator then. Location updates stop when the walk stops, and the app never asks for 'Always'. The app is for the Netherlands; positions outside the Netherlands show an empty map."
 - Demo account: none.
 
 ## App Privacy (nutrition label)
