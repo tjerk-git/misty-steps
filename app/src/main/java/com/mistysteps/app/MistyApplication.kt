@@ -5,6 +5,8 @@ import com.mistysteps.app.character.Characters
 import com.mistysteps.app.character.SharedPreferencesStore
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.debug.BatteryLog
+import com.mistysteps.app.eraser.EraserAccessHolder
+import com.mistysteps.app.eraser.StoreHook
 import com.mistysteps.app.maps.MapsGraph
 import com.mistysteps.app.pin.PinSprites
 import com.mistysteps.app.stats.Analytics
@@ -24,5 +26,6 @@ class MistyApplication : Application() {
         BatteryLog.init(this)
         MapsGraph.init(this)
         Analytics.pingIfAllowed(this)
+        EraserAccessHolder.purchases = StoreHook.purchases(this)
     }
 }
