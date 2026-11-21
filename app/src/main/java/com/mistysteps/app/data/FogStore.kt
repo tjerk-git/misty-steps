@@ -98,13 +98,14 @@ object FogStore {
      */
     private fun loadFromDatabase(keepLive: Boolean) {
         val points = db.loadAll()
-        points.lastOrNull()?.let { if (lastKnown == null) lastKnown = it.lat to it.lon }
+        // Where you were last: a walked spot, not something erased by hand.
+        walkedOnly(points).lastOrNull()?.let { if (lastKnown == null) lastKnown = it.lat to it.lon }
         // Projecting every point is the slow part, so do it here, not on the main thread.
         val built = PointIndex()
         val builtTrails = Trails()
         for (p in points) {
             built.add(p.lat, p.lon, p.radius)
-            builtTrails.add(p)
+            if (p.eraseStroke == null) builtTrails.add(p) // erased mist has no footsteps
         }
         main.post {
             if (keepLive) {
@@ -264,6 +265,24 @@ object FogStore {
         }
         _version.value++
         io.execute { db.insert(newPoints) }
+    }
+
+    /**
+     * The magic eraser cleared these spots. Main thread. They clear the mist at once, are saved, and never join the
+     * trail line, the walked distance or the walk log.
+     */
+    fun addErased(points: List<TrailPoint>) {
+        if (points.isEmpty()) return
+        for (p in points) index.add(p.lat, p.lon, p.radius)
+        _version.value++
+        io.execute { db.insert(points) }
+    }
+
+    /** Undo of one eraser stroke: [points] are the spots [addErased] was given for it. Main thread. */
+    fun removeErased(strokeId: Long, points: List<TrailPoint>) {
+        for (p in points) index.remove(p.lat, p.lon, p.radius)
+        _version.value++
+        io.execute { db.deleteStroke(strokeId) }
     }
 
     /** Blocking read of the whole trail; call off the main thread. */

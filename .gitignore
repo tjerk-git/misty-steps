@@ -39,4 +39,7 @@ xcuserdata/
 # cf CLI cache and map build input
 .cloudflare/
 data/
+# ...but not the source packages named data (the fog and trail code lives in them)
+!app/src/**/data/
+!shared/src/**/data/
 node_modules/
