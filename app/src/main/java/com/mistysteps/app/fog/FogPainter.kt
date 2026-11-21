@@ -38,11 +38,21 @@ import kotlin.math.max
  *     scaled to fit, so panning never waits for it;
  *  2. each frame, the veil and two drifting swirl layers are drawn straight onto the map's
  *     (GPU) canvas in an offscreen layer, and the mask is cut out of them, stretched to full size.
- * The mist drifts at [FRAME_MS] and stands still while battery saver is on.
+ * The mist drifts at [FRAME_MS] and stands still while battery saver is on; on a phone that can't keep up it gets
+ * cheaper in steps (see [FogLevel], [FogGovernor]).
  */
 class FogPainter {
 
     private val resolution = 0.5f
+
+    /** How much the mist costs to draw; set by [FogView] from how the phone keeps up. */
+    var level = FogLevel.FULL
+        set(value) {
+            if (field == value) return
+            field = value
+            animatedView?.let { restartTick(it) }
+            lastHost?.invalidate()
+        }
 
     // Main thread only, except what a job carries to the worker.
     private var front: Bitmap? = null          // last finished mask, never written again
@@ -135,9 +145,9 @@ class FogPainter {
         layerRect.set(clip)
         val save = canvas.saveLayer(layerRect, null)
         canvas.drawPaint(basePaint)
-        swirl?.let {
+        if (level != FogLevel.MINIMAL) swirl?.let {
             layer(canvas, it.shadow, shadowMatrix, shadowScale, offX + t * 5.0, offY + t * 1.6)
-            layer(canvas, it.light, lightMatrix, lightScale, offX - t * 3.5, offY + t * 2.4)
+            if (level == FogLevel.FULL) layer(canvas, it.light, lightMatrix, lightScale, offX - t * 3.5, offY + t * 2.4)
         }
         val mask = front
         val spec = frontSpec
@@ -268,10 +278,10 @@ class FogPainter {
             val v = animatedView ?: return
             // Battery saver on: let the mist stand still; check again now and then.
             val saver = v.context.getSystemService(PowerManager::class.java)?.isPowerSaveMode == true
-            drifting = !saver
+            drifting = !saver && level != FogLevel.MINIMAL
             if (drifting) {
                 v.invalidate()
-                v.postDelayed(this, FRAME_MS)
+                v.postDelayed(this, if (level == FogLevel.FULL) FRAME_MS else LITE_FRAME_MS)
             } else {
                 v.postDelayed(this, 5_000)
             }
@@ -283,6 +293,11 @@ class FogPainter {
         stopDrifting()
         animatedView = host
         host.postDelayed(tick, FRAME_MS)
+    }
+
+    private fun restartTick(host: View) {
+        host.removeCallbacks(tick)
+        host.post(tick)
     }
 
     fun stopDrifting() {
@@ -302,6 +317,9 @@ class FogPainter {
     private companion object {
         /** ~12 frames a second: the drift is slow enough that more frames only cost battery. */
         const val FRAME_MS = 80L
+
+        /** About 4 frames a second: the cheaper drift of [FogLevel.LITE]. */
+        const val LITE_FRAME_MS = 250L
         const val SWIRL_TILE = 256
     }
 }
