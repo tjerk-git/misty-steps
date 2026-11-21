@@ -1,0 +1,2 @@
+- Fixed buttons and scrolling that did not react on some phones (for example the Galaxy S21), including the map download screens
+- Map downloads no longer slow the app down while they run
