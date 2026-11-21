@@ -38,6 +38,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.mistysteps.app.BuildConfig
 import com.mistysteps.app.R
+import com.mistysteps.app.eraser.EraserAccessHolder
+import com.mistysteps.app.eraser.EraserBar
+import com.mistysteps.app.eraser.EraserButton
+import com.mistysteps.app.eraser.EraserSheet
+import com.mistysteps.app.eraser.EraserState
+import com.mistysteps.app.eraser.BuyResult
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -129,6 +136,19 @@ fun MistyScreen() {
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
     // A pin being placed or looked at. Not saved: a half-made pin is lost if the app is killed.
     var pinSheet by remember { mutableStateOf<PinSheetState?>(null) }
+
+    // The magic eraser: what you may do with it, whether it is in hand, and the purchase sheet.
+    val eraserScope = androidx.compose.runtime.rememberCoroutineScope()
+    val purchases = EraserAccessHolder.purchases
+    val owned by purchases.owned.collectAsState()
+    val price by purchases.priceText.collectAsState()
+    val tasteLedger = remember { EraserAccessHolder.ledger(context) }
+    var tasteUsedM by remember { mutableStateOf(tasteLedger.usedM) }
+    val eraserState = EraserAccessHolder.state(context, owned, tasteUsedM)
+    var eraserActive by remember { mutableStateOf(false) }
+    var eraserCanUndo by remember { mutableStateOf(false) }
+    var showEraserSheet by remember { mutableStateOf(false) }
+    var eraserTasteUsedUp by remember { mutableStateOf(false) }
 
     fun currentPlace(): Pair<Double, Double>? =
         map.myLocation()?.let { it.lat to it.lon } ?: FogStore.lastKnown
@@ -264,6 +284,30 @@ fun MistyScreen() {
         map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
     }
 
+    // The eraser: wire what it may do, put it down when another page covers the map, keep it in step with the state.
+    LaunchedEffect(Unit) {
+        if (EraserAccessHolder.debugOverride(context) == 2) { tasteLedger.reset(); tasteUsedM = 0.0 }
+    }
+    LaunchedEffect(eraserState) {
+        val c = map.eraser
+        c.allowance = {
+            when (eraserState) {
+                is EraserState.Unlocked -> Double.POSITIVE_INFINITY
+                is EraserState.Taste -> tasteLedger.metersLeft
+                else -> 0.0
+            }
+        }
+        c.onSpent = { metres -> if (eraserState is EraserState.Taste) { tasteLedger.spend(metres); tasteUsedM = tasteLedger.usedM } }
+        c.onOutOfAllowance = { eraserActive = false; eraserTasteUsedUp = true; showEraserSheet = true }
+        c.onZoomedOut = { Toast.makeText(context, context.getString(R.string.eraser_hint_zoom), Toast.LENGTH_SHORT).show() }
+        c.onUndoChanged = { eraserCanUndo = c.canUndo }
+    }
+    val eraserUsable = eraserState is EraserState.Unlocked || eraserState is EraserState.Taste
+    SideEffect { map.eraser.active = eraserActive && eraserUsable }
+    LaunchedEffect(showStats, showCharacters, showAbout, showPicker, postcardWalk) {
+        if (showStats || showCharacters || showAbout || showPicker || postcardWalk != null) eraserActive = false
+    }
+
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { map.mapView }, modifier = Modifier.fillMaxSize())
 
@@ -296,6 +340,20 @@ fun MistyScreen() {
                         color = Dusk,
                     )
                 }
+            }
+
+            // The magic eraser: picks it up, or shows the purchase sheet when it is not yours yet.
+            if (eraserState !is EraserState.NotAvailable) {
+                EraserButton(
+                    active = eraserActive && eraserUsable,
+                    onClick = {
+                        if (eraserUsable) eraserActive = !eraserActive
+                        else { eraserTasteUsedUp = false; showEraserSheet = true }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 20.dp, bottom = 252.dp),
+                )
             }
 
             // Your character: opens character select
@@ -355,6 +413,7 @@ fun MistyScreen() {
 
             // One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
             val banner: Pair<String, (() -> Unit)?>? = when {
+                eraserActive -> null
                 // In a car, train or bus: clearing is paused until you're moving under your own power again.
                 recording && inVehicle -> stringResource(R.string.notif_text_vehicle) to null
                 showPinTip && !recording -> stringResource(R.string.banner_pin_tip) to ::dismissPinTip
@@ -381,6 +440,34 @@ fun MistyScreen() {
                         textAlign = TextAlign.Center,
                     )
                 }
+            }
+
+            if (eraserActive && eraserUsable) {
+                EraserBar(
+                    canUndo = eraserCanUndo,
+                    onUndo = { map.eraser.undo() },
+                    onDone = { eraserActive = false },
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 88.dp),
+                )
+            }
+            if (showEraserSheet) {
+                EraserSheet(
+                    priceText = price,
+                    tasteUsed = eraserTasteUsedUp,
+                    onBuy = {
+                        eraserScope.launch {
+                            when (purchases.buy()) {
+                                BuyResult.BOUGHT -> {
+                                    showEraserSheet = false
+                                    Toast.makeText(context, context.getString(R.string.eraser_thanks), Toast.LENGTH_SHORT).show()
+                                }
+                                BuyResult.UNAVAILABLE -> Toast.makeText(context, context.getString(R.string.eraser_unavailable), Toast.LENGTH_SHORT).show()
+                                BuyResult.CANCELLED -> Unit
+                            }
+                        }
+                    },
+                    onNotNow = { showEraserSheet = false },
+                )
             }
 
             // Start / stop wandering
