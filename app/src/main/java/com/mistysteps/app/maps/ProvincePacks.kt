@@ -26,8 +26,38 @@ class ProvincePacks(private val root: File) {
 
     private fun mapPath(year: Int, id: String) = File(packDir(year, id), "map.pmtiles")
 
-    private fun years(id: String): List<Int> =
-        (root.listFiles().orEmpty().mapNotNull { it.name.toIntOrNull() }).filter { mapPath(it, id).isFile }.sortedDescending()
+    /**
+     * Which years of each province's map are on disk, read from the files once and kept until a pack is installed, replaced
+     * or removed. The screens ask for every province's state on every download progress tick, on the main thread; listing
+     * folders each time made every tick cost tens of milliseconds on a phone with slow storage.
+     */
+    @Volatile private var installed: Map<String, List<Int>>? = null
+
+    /** How many times the folders were listed; for tests. */
+    @Volatile internal var scans = 0
+        private set
+
+    private fun installedYears(): Map<String, List<Int>> = installed ?: scan().also { installed = it }
+
+    private fun scan(): Map<String, List<Int>> {
+        scans++
+        val found = HashMap<String, MutableList<Int>>()
+        for (yearDir in root.listFiles().orEmpty()) {
+            val year = yearDir.name.toIntOrNull() ?: continue
+            for (idDir in yearDir.listFiles().orEmpty()) {
+                if (idDir.isDirectory && File(idDir, "map.pmtiles").isFile) found.getOrPut(idDir.name) { mutableListOf() } += year
+            }
+        }
+        return found.mapValues { it.value.sortedDescending() }
+    }
+
+    /** The files changed: list them again next time they are asked for. */
+    private fun filesChanged() {
+        installed = null
+        _installedVersion.value++
+    }
+
+    private fun years(id: String): List<Int> = installedYears()[id].orEmpty()
 
     /** The newest installed year for [id], or null. */
     fun installedYear(id: String): Int? = years(id).firstOrNull()
@@ -36,10 +66,7 @@ class ProvincePacks(private val root: File) {
 
     /** The installed map files, one per province (its newest year), sorted by province id. */
     fun mapFiles(): List<File> {
-        val ids = root.listFiles().orEmpty().filter { it.name.toIntOrNull() != null }
-            .flatMap { year -> year.listFiles().orEmpty().filter { it.isDirectory }.map { it.name } }
-            .toSortedSet()
-        return ids.mapNotNull { mapFile(it) }
+        return installedYears().keys.sorted().mapNotNull { mapFile(it) }
     }
 
     fun state(entry: PackEntry): PackState {
@@ -55,7 +82,7 @@ class ProvincePacks(private val root: File) {
     fun clearTransient(id: String) {
         transient.remove(id)
         _version.value++
-        _installedVersion.value++
+        filesChanged()
     }
 
     /** Deletes every year of [id]'s pack, partial downloads included. */
@@ -63,7 +90,7 @@ class ProvincePacks(private val root: File) {
         transient.remove(id)
         root.listFiles().orEmpty().filter { it.name.toIntOrNull() != null }.forEach { File(it, id).deleteRecursively() }
         _version.value++
-        _installedVersion.value++
+        filesChanged()
     }
 
     /** After a new year's pack is in place: delete the older ones. Does nothing until [year]'s file exists. */
@@ -71,7 +98,7 @@ class ProvincePacks(private val root: File) {
         if (!mapPath(year, id).isFile) return
         years(id).filter { it < year }.forEach { packDir(it, id).deleteRecursively() }
         _version.value++
-        _installedVersion.value++
+        filesChanged()
     }
 
     private fun setTransient(id: String, state: PackState) {

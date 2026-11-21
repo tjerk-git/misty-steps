@@ -139,4 +139,31 @@ class ProvincePacksTest {
         packs.remove("fr")
         assertTrue(packs.installedVersion.value > v1)
     }
+
+    // state() is read for every province on every download progress tick, on the main thread: it must not list folders each time.
+    @Test
+    fun readingStateManyTimesScansTheFolderOnlyOnce() {
+        install(2026)
+        repeat(200) { packs.state(entry()); packs.state(entry(id = "zh")); packs.mapFiles() }
+        assertEquals(1, packs.scans)
+    }
+
+    @Test
+    fun progressTicksDoNotCauseAScan() {
+        install(2026, "zh")
+        packs.state(entry(id = "zh"))
+        val before = packs.scans
+        repeat(100) { packs.markDownloading("fr", it * 10L, 1000); packs.state(entry()) }
+        assertEquals(before, packs.scans)
+    }
+
+    @Test
+    fun aPackInstalledOrRemovedIsSeenAfterTheChangeIsAnnounced() {
+        assertTrue(packs.state(entry()) is PackState.NotDownloaded)
+        install(2026)
+        packs.clearTransient("fr") // what the download worker does when the file is in place
+        assertEquals(2026, (packs.state(entry()) as PackState.Ready).year)
+        packs.remove("fr")
+        assertTrue(packs.state(entry()) is PackState.NotDownloaded)
+    }
 }
