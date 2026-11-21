@@ -86,7 +86,7 @@ Built and tested in the iOS simulator (iPhone 17, iOS 27.2). Works: map from dow
 drifting mist, walk recording, trail line, character with clearing ring, pins, stats (city, country, world), postcards,
 backup export and import, first run (onboarding, consent, province picker), About, character picker, the open-count ping.
 
-Not done, and needing a real iPhone: **background GPS and battery** (the question that decides whether iOS is viable),
+Background GPS is built since 2026-11-21 (`UIBackgroundModes: location`, background updates and the blue indicator only while a walk is on; see `LocationModel.setRecording`) but not yet measured: still needing a real iPhone walk with the screen locked and a battery check (the question that decides whether iOS is viable). Not done, and needing the account side:
 and the release plumbing (signing with the Apple account, notarization, the AltStore PAL source). Small gaps: pin
 the distance walked before walks were logged is not carried over from an Android backup, neighbourhoods and streets in
 stats (they need data Android downloads separately). Since 2026-11-18 (branch ios-parity) the map screen matches Android:

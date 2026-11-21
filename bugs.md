@@ -8,7 +8,7 @@ Reported against 1.3.1 (versionCode 5) as of 2026-11-12.
 - **Reported:** 2026-11-12, by several users (no device or Android version details yet).
 - **Symptom:** map scrolling or panning, and taps on buttons, sometimes do nothing. Not constant, no known trigger.
 - **Severity:** high (app feels frozen, no workaround known besides waiting or restarting).
-- **Status:** resolved for now (2026-11-16, per owner). Never reproduced; likely fixed by the off-main-thread fog mask in 1.3.2, not confirmed. Reopen if reports return.
+- **Status:** FIXED in 1.4.3 (2026-11-21). Real cause found on a Galaxy S21 (SM-G991B, Android 15, One UI 7): `blockTouchesBelow()` consumed every pointer event in the Final pass, so Compose cancelled every click and scroll inside a full-screen page (first-run questions, province picker, stats, characters, about) whenever the finger sent small move events between down and up. A real S21 panel does; `adb input tap` does not, which is why it never showed in earlier tests. The main map's own buttons were not affected. The earlier suspects (fog mask on the main thread, 1.3.2) were not the cause. Found by recording raw touches with `adb shell getevent -lt` (touch range is 0..4095 on both axes, so scale x by 1079.7/4095 and y by 2399.4/4095), reproduced on the emulator with `adb shell input swipe x y x+4 y+1 150`, confirmed fixed on the phone with a real finger. Also fixed in the same release: `ProvincePacks.state()` listed folders on every call (about 46 ms per download progress tick on the S21), and the map style was reloaded on every download progress tick (1.4.1).
 - **Needed from reporters:** device model and Android version, whether a walk was being recorded, whether the screen had just been unlocked or the app resumed from background, whether it recovers on its own, whether battery saver was on.
 - **Suspects:**
   - Main thread blocked: the fog overlay redraws on `invalidate()` (`fog/FogOverlay.kt:76`, `:252`) while the map is also drawing; heavy redraw while GPS points arrive could starve touch handling.
@@ -73,3 +73,11 @@ Still unverified: that this is what real users hit (no confirmation from reporte
 
 - BUG-1 and BUG-2 may share a cause (a throttled CPU or background restriction making the main thread or overlay slow). Check this before fixing them separately.
 - The in-app "Send feedback" button mails debug@potloodgum.com; ask reporters to use it so the report includes version info.
+
+
+## Lessons from the S21 hunt (2026-11-21)
+
+- Synthetic input (`adb input tap`) hides touch bugs that depend on move events. Test full-screen pages with `adb shell input swipe x y x+4 y+1 150` as well, and on a real device with a real finger.
+- When buttons "do nothing", record the raw touches (`getevent -lt`) and compare them with where the buttons are before suspecting performance.
+- Emulator frame timings are dominated by the host: close other apps, use `-gpu host`, and do not trust software rendering. A throttle that pauses the emulator in 20 ms blocks sets its own frame-time floor.
+- 1.4.2 also shipped an adaptive fog (`FogGovernor`); emulator tests showed it gains only about 15% at 20% CPU speed. It was not the cause and can be removed if it ever gets in the way.
