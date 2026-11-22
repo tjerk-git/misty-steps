@@ -9,6 +9,7 @@ import com.mistysteps.app.fog.FogView
 import com.mistysteps.app.map.LatLon
 import com.mistysteps.app.eraser.EraserController
 import com.mistysteps.app.eraser.FogErasedStore
+import com.mistysteps.app.eraser.onTouch
 import com.mistysteps.app.map.LocationFeed
 import com.mistysteps.app.map.MarkersView
 import com.mistysteps.app.map.MistyMap
@@ -38,7 +39,7 @@ class MapController(context: Context) {
     private val trail = TrailLayer()
 
     /** The magic eraser: its touch handling sits on the map; the screen decides when it is active and what it may do. */
-    val eraser = EraserController(map.projection, FogErasedStore, context.resources.displayMetrics.density, map::setOneFingerGestures)
+    val eraser = EraserController(map.projection, FogErasedStore, context.resources.displayMetrics.density, map::setOneFingerGestures, System::currentTimeMillis)
 
     /** The map with the mist and the markers stacked on it. */
     val mapView = FrameLayout(context).apply {
