@@ -253,7 +253,7 @@
     <string name="eraser_done">Put it down</string>
     <string name="eraser_undo">Undo</string>
     <string name="eraser_sheet_title">The Magic Eraser</string>
-    <string name="eraser_sheet_body">Misty Steps stays free, for good. But some of you cannot sleep while one grey corner is left. For you: a hand-held eraser that rubs the mist away wherever you drag. It is also a donation, because it helps keep the app going.</string>
+    <string name="eraser_sheet_body">For the completionists and the hard-to-reach corners: the eraser lets you rub away the mist you... missed. Buying it counts as a donation to the app. Misty Steps is built, maintained and hosted by one dude, so your support really helps!</string>
     <string name="eraser_sheet_buy">Get it for %1$s</string>
     <string name="eraser_sheet_not_now">Not now</string>
     <string name="eraser_taste_used">That was your free taste. Want the whole eraser?</string>
