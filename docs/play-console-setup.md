@@ -56,7 +56,7 @@ The signed bundle for the first upload is `~/Desktop/misty-play/misty-steps-1.5.
 ## 6. In-app product
 
 - Monetize with Play, In-app products, Create product.
-- Product ID: `magic_eraser` (exactly). Name: Magic Eraser. Description: "Rub away the mist you missed." Price: 4.99 EUR (set other countries automatically). Managed, one-time. Activate it.
+- Product ID: `magic_eraser` (exactly). Name: Magic Eraser. Description: "Rub away the mist you missed." Price: 3.99 EUR (set other countries automatically). Managed, one-time. Activate it.
 - A payments profile (name, address, bank account) may be needed first: that is the owner's to fill in.
 - Setup, License testing: add your Gmail so test purchases are free on the internal track.
 - The app finds the product by ID. In a build without a store (F-Droid, debug) the eraser button shows the sheet but no Buy button.
@@ -70,3 +70,6 @@ The signed bundle for the first upload is `~/Desktop/misty-play/misty-steps-1.5.
 
 - Check the real purchase on the internal track with a license tester, then restore it on a second phone (reinstall, same account).
 - Update the data safety form if anything about data changes.
+
+## Price note (2026-11-22)
+The price is now EUR 3,99 on both stores. The app never hard-codes it: the sheet shows what the store returns. Apple product: type must be Non-Consumable (a Consumable cannot be restored); product ids are not reused after deletion.

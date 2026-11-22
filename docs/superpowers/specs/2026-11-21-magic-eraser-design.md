@@ -6,7 +6,7 @@ Status: written for approval. Nothing is built.
 
 Misty Steps clears mist where you walk. The magic eraser is a hand tool for the completionists: you grab it, drag a finger over the map, and the mist comes off wherever you drag. It fixes the corner GPS missed, the indoor bits, the street you walked before installing the app, and it feeds the itch for a clean 100%.
 
-It is a one-time purchase of EUR 4,99. The app, every province and every other feature stay free for good. The copy is quirky, and says plainly that buying it is also a donation to keep the app alive. This is for "the real OCD people", not a requirement for anyone.
+It is a one-time purchase of EUR 3,99. The app, every province and every other feature stay free for good. The copy is quirky, and says plainly that buying it is also a donation to keep the app alive. This is for "the real OCD people", not a requirement for anyone.
 
 ## Goals
 
@@ -55,7 +55,7 @@ It is a one-time purchase of EUR 4,99. The app, every province and every other f
 
 ## What was decided
 
-Their decisions: the tool works anywhere on the map; it counts in the percentages; undo "a bit"; payments approach 1; storage approach 1; the iPhone version comes later; price EUR 4,99; quirky copy that doubles as a donation message.
+Their decisions: the tool works anywhere on the map; it counts in the percentages; undo "a bit"; payments approach 1; storage approach 1; the iPhone version comes later; price EUR 3,99; quirky copy that doubles as a donation message.
 
 My calls, to check:
 - Undo = the last 10 strokes, while the eraser is in hand. Putting the eraser down makes the strokes final.

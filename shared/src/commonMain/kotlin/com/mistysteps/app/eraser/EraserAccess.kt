@@ -30,7 +30,7 @@ interface EraserPurchases {
     val storeAvailable: Boolean
     val owned: StateFlow<Boolean>
 
-    /** The price as the store shows it, e.g. "4,99", once known. */
+    /** The price as the store shows it, e.g. "3,99", once known. */
     val priceText: StateFlow<String?>
 
     suspend fun buy(): BuyResult

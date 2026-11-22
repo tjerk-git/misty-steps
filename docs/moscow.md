@@ -9,7 +9,7 @@ Items marked (suggested) are my proposals and not yet decided by the owner.
 ## Must
 
 - **Publish the stats files.** Run `tools/maps/publish.py ... --pbf ...` so each province has its `stats.zip` on R2 (needs the owner's rclone credentials). Until then the neighbourhood card only works from hand-placed files. Then check the quiet download on a real phone.
-- **Google Play set-up for the magic eraser.** Listing, the in-app product `magic_eraser` (EUR 4,99, one-time), internal test purchase, closed test with about 12 testers for 14 days, data-safety form. The owner is doing this.
+- **Google Play set-up for the magic eraser.** Listing, the in-app product `magic_eraser` (EUR 3,99, one-time), internal test purchase, closed test with about 12 testers for 14 days, data-safety form. The owner is doing this.
 - **First iPhone testers on TestFlight.** Check recording with the screen locked and the battery on a real walk (build 2611212202), add the build to the external group, then watch the feedback.
 - **Confirm the Galaxy S21 fix.** The reporter should be happy on 1.4.3 (dead buttons on full-screen pages).
 

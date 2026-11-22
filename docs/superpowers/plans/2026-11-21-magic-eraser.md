@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- One-time purchase of EUR 4,99; price and product id `magic_eraser` live in the Play Console, the sheet shows the price Play returns.
+- One-time purchase of EUR 3,99; price and product id `magic_eraser` live in the Play Console, the sheet shows the price Play returns.
 - Undo: the last 10 strokes while the eraser is in hand; putting it down makes strokes final.
 - Brush: about 28 dp radius on screen, radius in metres capped at 100 m; below MapLibre zoom 14.0 the eraser does nothing and says "zoom in a bit".
 - Spots along a stroke are spaced 0.6 times the brush radius.
