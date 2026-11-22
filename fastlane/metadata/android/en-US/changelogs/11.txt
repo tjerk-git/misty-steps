@@ -1,0 +1,2 @@
+- Your neighbourhood and streets are back on the stats page: how much of your wijk you cleared, which streets you walked, and which are still in the mist. It works offline, from your map download.
+- The map picker shows the full download size
