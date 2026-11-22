@@ -43,8 +43,10 @@ final class FogModel: ObservableObject {
         self.store = store
         for p in store.loadAll() {
             index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
-            trails.add(p: p, newSegment: false)
-            lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+            if p.eraseStroke == nil { // erased mist has no footsteps
+                trails.add(p: p, newSegment: false)
+                lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+            }
         }
         version += 1
         baseDistanceM = FogModel.sumDistance(store)
@@ -60,8 +62,10 @@ final class FogModel: ObservableObject {
         trails = Trails()
         for p in store.loadAll() {
             index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
-            trails.add(p: p, newSegment: false)
-            lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+            if p.eraseStroke == nil { // erased mist has no footsteps
+                trails.add(p: p, newSegment: false)
+                lastKnown = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+            }
         }
         version += 1
         baseDistanceM = FogModel.sumDistance(store)
@@ -137,6 +141,24 @@ final class FogModel: ObservableObject {
             minLat: mine.map { $0.lat }.min()! - pad, minLon: mine.map { $0.lon }.min()! - padLon,
             maxLat: mine.map { $0.lat }.max()! + pad, maxLon: mine.map { $0.lon }.max()! + padLon)
         return ClearedCells.Companion.shared.from(points: mine).areaNotIn(other: ClearedCells.Companion.shared.from(points: others))
+    }
+
+    /// The magic eraser cleared these spots. They clear the mist at once and are saved, and never join the trail lines,
+    /// the walked distance or the walk log.
+    func addErased(_ points: [TrailPoint]) {
+        guard !points.isEmpty else { return }
+        for p in points { index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        version += 1
+        writer.async { [store] in store.insert(points: points) }
+        notify()
+    }
+
+    /// Undo of one eraser stroke: [points] are the spots [addErased] was given for it.
+    func removeErased(strokeId: Int64, points: [TrailPoint]) {
+        for p in points { _ = index.remove(lat: p.lat, lon: p.lon, radiusMeters: p.radius) }
+        version += 1
+        writer.async { [store] in store.deleteStroke(id: strokeId) }
+        notify()
     }
 
     /// Test data: random walks of cleared spots around Leeuwarden, like a long-time user's trail.

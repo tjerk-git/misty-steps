@@ -10,6 +10,17 @@ import com.mistysteps.app.resources.download_eta_sec
 import com.mistysteps.app.resources.download_pill
 import com.mistysteps.app.resources.download_speed
 import com.mistysteps.app.resources.download_starting
+import com.mistysteps.app.resources.eraser_button
+import com.mistysteps.app.resources.eraser_hint_zoom
+import com.mistysteps.app.resources.eraser_done
+import com.mistysteps.app.resources.eraser_undo
+import com.mistysteps.app.resources.eraser_sheet_title
+import com.mistysteps.app.resources.eraser_sheet_body
+import com.mistysteps.app.resources.eraser_sheet_buy
+import com.mistysteps.app.resources.eraser_sheet_not_now
+import com.mistysteps.app.resources.eraser_taste_used
+import com.mistysteps.app.resources.eraser_unavailable
+import com.mistysteps.app.resources.eraser_thanks
 import com.mistysteps.app.resources.offer_card
 import com.mistysteps.app.resources.start_wandering
 import com.mistysteps.app.resources.stop_wandering
@@ -96,3 +107,28 @@ fun downloadDetailText(bytes: Long, total: Long, bytesPerSecond: Long, secondsLe
     }
     "$percent% · " + getString(Res.string.download_detail, formatSize(bytes), formatSize(total), speed) + eta
 }
+
+// ---- the magic eraser ------------------------------------------------------------------------------------------
+
+fun eraserButtonText(): String = runBlocking { getString(Res.string.eraser_button) }
+
+fun eraserHintZoomText(): String = runBlocking { getString(Res.string.eraser_hint_zoom) }
+
+fun eraserDoneText(): String = runBlocking { getString(Res.string.eraser_done) }
+
+fun eraserUndoText(): String = runBlocking { getString(Res.string.eraser_undo) }
+
+fun eraserSheetTitleText(): String = runBlocking { getString(Res.string.eraser_sheet_title) }
+
+fun eraserSheetBodyText(): String = runBlocking { getString(Res.string.eraser_sheet_body) }
+
+/** "Get it for 3,99" ([price] is what the store shows). */
+fun eraserSheetBuyText(price: String): String = runBlocking { getString(Res.string.eraser_sheet_buy, price) }
+
+fun eraserSheetNotNowText(): String = runBlocking { getString(Res.string.eraser_sheet_not_now) }
+
+fun eraserTasteUsedText(): String = runBlocking { getString(Res.string.eraser_taste_used) }
+
+fun eraserUnavailableText(): String = runBlocking { getString(Res.string.eraser_unavailable) }
+
+fun eraserThanksText(): String = runBlocking { getString(Res.string.eraser_thanks) }
