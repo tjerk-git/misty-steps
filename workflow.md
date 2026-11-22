@@ -206,6 +206,16 @@ A paid hand tool for completionists: a round button on the map picks up an erase
 - **Testing without Play:** debug builds honour `adb shell settings put global misty_eraser 0|1|2` (0 unlocked, 1 locked, 2 a fresh 100 m free taste). Test real-finger taps with `adb shell input swipe x y x+3 y+1 150`.
 - **Still to do before release:** create the Play listing and the in-app product `magic_eraser` (EUR 4,99, one-time, non-consumable), run a purchase test on the internal testing track, update the Play data-safety form, review the Dutch and English copy in `shared/strings`, and build with `./gradlew bundleRelease -Pstore=play`. Not yet tried on the Galaxy S21 with a real finger. iPhone version comes later (the iPhone store passes `eraseStroke: nil` for now).
 
+## Streets and neighbourhoods offline (built 2026-11-22 on branch `streets-stats`, not merged or published)
+
+The neighbourhood percentage and "x of y streets walked" with "Still in the mist" come back for everyone, with no network request: each province's map now has a `stats.zip` next to it. Design: `docs/superpowers/specs/2026-11-22-streets-and-neighbourhoods-design.md`, plan next to it under `plans/`.
+
+- **Build and publish (one command, your side):** `uv run --no-project --python 3.13 --with-requirements tools/maps/requirements.txt python tools/maps/publish.py --year 2026 --data-date 2026-11-10 --pbf tools/maps/data/netherlands-latest.osm.pbf` builds any missing `out/<id>.stats.zip` from the dump, uploads it with the pack, checks both with HEAD requests and writes the catalog last (the catalog then lists `stats`). To build only the files: `python tools/maps/stats_build.py --pbf ... --provinces fr --data-date 2026-11-10`. Friesland takes about 2 minutes and gives 0.3 MB (0.5% of the map; 9 towns with 121 neighbourhoods and 120 street files; the biggest has 187 streets). Towns whose neighbourhoods are not tagged in OpenStreetMap simply have no neighbourhood card.
+- **File format 1:** described at the top of `tools/maps/stats_build.py` (index, one hoods file per town, one streets file per neighbourhood, delta-encoded 1e-5 degree). The app reads single entries (`ZipStatsPack`, `StatsPacks`), skips damaged or newer files, and still shows what older versions saved when there is no stats file.
+- **People who already have a map** get the stats file quietly on an unmetered connection (`StatsDownloadWorker`, unique work `stats-<id>`) when the installed map is of the catalog's year; new downloads include it and the picker shows the combined size. "Your maps" shows "Streets and neighbourhoods are ready".
+- **Checked:** unit tests (builder, format reader, zip reading, pack handling, fetch rule); a real Friesland file on the emulator showed the Leeuwarden neighbourhood card with its streets; a garbage file gave no card and no crash; reading the biggest real town and street entries takes 30 to 40 ms and 7 to 12 ms on the laptop JVM.
+- **Not yet checked:** the quiet download end to end (needs the files published to R2, which needs your rclone credentials; the worker is only built and reviewed), and a real phone.
+
 ## Roadmap (chosen 2026-11-08)
 
 ### Built (2026-11-08)
