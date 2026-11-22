@@ -19,6 +19,8 @@ class AndroidPackManager(private val context: Context) : PackManager {
         MapsGraph.packs.remove(id)
     }
 
+    override fun hasStats(id: String): Boolean = MapsGraph.packs.hasStats(id)
+
     override fun isMetered(): Boolean =
         (context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).isActiveNetworkMetered
 }

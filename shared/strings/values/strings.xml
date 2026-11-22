@@ -207,6 +207,7 @@
     <string name="offer_card">No map of %1$s yet. Download (%2$s)</string>
     <string name="maps_title">Your maps</string>
     <string name="maps_add">Add a province</string>
+    <string name="maps_streets_ready">Streets and neighbourhoods are ready</string>
     <string name="maps_update">Update</string>
     <string name="maps_remove">Remove</string>
     <string name="maps_data_year">Data from %1$d</string>

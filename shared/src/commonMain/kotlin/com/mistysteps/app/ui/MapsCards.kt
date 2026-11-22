@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.mistysteps.app.resources.Res
 import com.mistysteps.app.resources.data_download
 import com.mistysteps.app.resources.maps_add
+import com.mistysteps.app.resources.maps_streets_ready
 import com.mistysteps.app.resources.maps_data_year
 import com.mistysteps.app.resources.maps_downloading
 import com.mistysteps.app.resources.maps_failed
@@ -70,6 +71,9 @@ fun YourMapsCard(provinces: List<PackEntry>?, packs: PackManager, onAdd: () -> U
                     Column(Modifier.weight(1f)) {
                         Text(entry.name, color = Ink, fontSize = 16.sp)
                         Text(statusText(state, entry), color = if (state is PackState.Failed) Ember else Dusk, fontSize = 12.sp)
+                        if ((state is PackState.Ready || state is PackState.UpdateAvailable) && packs.hasStats(entry.id)) {
+                            Text(stringResource(Res.string.maps_streets_ready), color = Dusk, fontSize = 12.sp)
+                        }
                     }
                     if (state is PackState.UpdateAvailable) {
                         TextButton(onClick = { packs.download(entry, unmeteredOnly = false) }) {
