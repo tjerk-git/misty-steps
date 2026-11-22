@@ -8,7 +8,7 @@ class PickerState(allOptions: List<PackEntry>, preselected: Set<String> = emptyS
     val options: List<PackEntry> = allOptions.sortedBy { it.name.lowercase() }
     val selected: Set<String> = preselected.intersect(options.map { it.id }.toSet())
 
-    val totalBytes: Long get() = options.filter { it.id in selected }.sumOf { it.map.bytes }
+    val totalBytes: Long get() = options.filter { it.id in selected }.sumOf { it.totalBytes }
 
     fun toggle(id: String): PickerState = PickerState(options, if (id in selected) selected - id else selected + id)
 

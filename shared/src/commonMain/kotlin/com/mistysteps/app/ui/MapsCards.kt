@@ -47,7 +47,7 @@ import com.mistysteps.app.maps.formatSize
 fun OfferCard(province: Province, entry: PackEntry, onDownload: () -> Unit, onNotNow: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier, shape = RoundedCornerShape(20.dp), color = Frost, shadowElevation = 4.dp) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text(stringResource(Res.string.offer_card, province.name, formatSize(entry.map.bytes)), color = Ink, fontSize = 15.sp)
+            Text(stringResource(Res.string.offer_card, province.name, formatSize(entry.totalBytes)), color = Ink, fontSize = 15.sp)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onNotNow) { Text(stringResource(Res.string.not_now), color = Dusk) }
                 TextButton(onClick = onDownload) { Text(stringResource(Res.string.data_download), color = Ember) }
@@ -108,5 +108,5 @@ private fun statusText(state: PackState, entry: PackEntry): String = when (state
     is PackState.UpdateAvailable -> stringResource(Res.string.maps_data_year, state.installedYear)
     is PackState.Downloading -> stringResource(Res.string.maps_downloading, "${percent(state)}%")
     is PackState.Failed -> stringResource(if (state.reason == Reason.NO_SPACE) Res.string.maps_no_space else Res.string.maps_failed)
-    PackState.NotDownloaded -> formatSize(entry.map.bytes)
+    PackState.NotDownloaded -> formatSize(entry.totalBytes)
 }

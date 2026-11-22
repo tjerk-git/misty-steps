@@ -40,7 +40,27 @@ object PackDownloads {
             .build()
         // KEEP: tapping Download twice does not start a second job for the same province.
         WorkManager.getInstance(context).enqueueUniqueWork("pack-${entry.id}", ExistingWorkPolicy.KEEP, request)
-        MapsGraph.packs.markDownloading(entry.id, 0, entry.map.bytes)
+        MapsGraph.packs.markDownloading(entry.id, 0, entry.totalBytes)
+    }
+
+    /**
+     * Fetches just the neighbourhoods-and-streets file of an installed pack, quietly: only on an unmetered connection, with
+     * no notification and no progress. For people who downloaded their province before stats files existed.
+     */
+    fun enqueueStats(context: Context, entry: PackEntry) {
+        val request = OneTimeWorkRequestBuilder<StatsDownloadWorker>()
+            .setInputData(workDataOf(PackDownloadWorker.KEY_ID to entry.id))
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build())
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
+            .build()
+        // KEEP: asking again while one is waiting or running does nothing.
+        WorkManager.getInstance(context).enqueueUniqueWork("stats-${entry.id}", ExistingWorkPolicy.KEEP, request)
+    }
+
+    /** Queues the quiet fetch for every installed pack of an up-to-date map that lacks its stats file. */
+    fun enqueueMissingStats(context: Context, catalog: Catalog) {
+        val packs = MapsGraph.packs
+        for (entry in statsToFetch(catalog.provinces, packs::installedYear, packs::hasStats)) enqueueStats(context, entry)
     }
 
     fun cancel(context: Context, id: String) {
@@ -76,7 +96,7 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
 
         val have = File(dest.path + ".part").takeIf { it.exists() }?.length() ?: 0L
         val free = StatFs(applicationContext.filesDir.path).availableBytes
-        if (!DownloadPolicy.hasSpaceFor(entry.map.bytes - have, free)) {
+        if (!DownloadPolicy.hasSpaceFor(entry.totalBytes - have, free)) {
             packs.markFailed(id, Reason.NO_SPACE)
             return Result.failure()
         }
@@ -88,7 +108,7 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
         } catch (e: Exception) {
             Log.w(TAG, "download continues without a notification", e)
         }
-        packs.markDownloading(id, have, entry.map.bytes)
+        packs.markDownloading(id, have, entry.totalBytes)
         val installer = PackInstaller(HttpDownloader("${applicationContext.packageName}/${BuildConfig.VERSION_NAME}"))
         var lastTick = 0L
         val result = withContext(Dispatchers.IO) {
@@ -96,16 +116,25 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
                 val now = SystemClock.elapsedRealtime()
                 if (now - lastTick >= PROGRESS_EVERY_MS) {
                     lastTick = now
-                    packs.markDownloading(id, bytes, entry.map.bytes)
+                    packs.markDownloading(id, bytes, entry.totalBytes)
                     notify(entry, bytes)
                 }
             }
         }
         return when (result) {
             is InstallResult.Done -> {
-                // The neighbourhoods and streets file comes with plan 4; it is only fetched when the catalog has one.
+                // The neighbourhoods and streets file comes with the map when the catalog lists one.
                 entry.stats?.let { stats ->
-                    withContext(Dispatchers.IO) { installer.install(stats, File(packs.packDir(entry.year, id), "stats.zip")) }
+                    withContext(Dispatchers.IO) {
+                        // The stats file counts toward the same progress: it follows the map in the one total shown.
+                        installer.install(stats, File(packs.packDir(entry.year, id), ProvincePacks.STATS_FILE)) { bytes ->
+                            val now = SystemClock.elapsedRealtime()
+                            if (now - lastTick >= PROGRESS_EVERY_MS) {
+                                lastTick = now
+                                packs.markDownloading(id, entry.map.bytes + bytes, entry.totalBytes)
+                            }
+                        }
+                    }
                 }
                 packs.clearTransient(id)
                 packs.removeOlderThan(entry.year, id)
@@ -151,7 +180,7 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
                 NotificationChannel(CHANNEL_ID, applicationContext.getString(R.string.maps_downloads_channel), NotificationManager.IMPORTANCE_LOW)
             )
         }
-        val total = entry?.map?.bytes ?: 0L
+        val total = entry?.totalBytes ?: 0L
         return NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(applicationContext.getString(R.string.maps_downloading_notif, entry?.name.orEmpty()))
@@ -169,5 +198,41 @@ class PackDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
         private const val NOTIFICATION_ID = 42
         private const val PROGRESS_EVERY_MS = 250L
         private const val MAX_ATTEMPTS = 5
+    }
+}
+
+/** Downloads only the stats file of an installed pack (see [PackDownloads.enqueueStats]). Silent: a failure just means no neighbourhood card yet. */
+class StatsDownloadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    override suspend fun doWork(): Result {
+        val id = inputData.getString(PackDownloadWorker.KEY_ID) ?: return Result.failure()
+        val entry = MapsGraph.catalogStore.cached()?.entry(id) ?: return Result.success()
+        val stats = entry.stats ?: return Result.success()
+        val packs = MapsGraph.packs
+        // Only for a map that is still of the catalog's year and does not have the file yet; otherwise there is nothing to do.
+        if (packs.installedYear(id) != entry.year || packs.hasStats(id)) return Result.success()
+        val dest = File(packs.packDir(entry.year, id), ProvincePacks.STATS_FILE)
+        val installer = PackInstaller(HttpDownloader("${applicationContext.packageName}/${BuildConfig.VERSION_NAME}"))
+        return try {
+            when (val result = withContext(Dispatchers.IO) { installer.install(stats, dest) }) {
+                is InstallResult.Done -> {
+                    packs.clearTransient(id) // announces the change: the file list is read again
+                    Result.success()
+                }
+                is InstallResult.Failed -> {
+                    Log.w(TAG, "stats of $id failed: ${result.reason} (${result.cause})")
+                    if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
+                }
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "stats of $id failed", e)
+            if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
+        }
+    }
+
+    private companion object {
+        const val TAG = "StatsDownloadWorker"
+        const val MAX_ATTEMPTS = 5
     }
 }

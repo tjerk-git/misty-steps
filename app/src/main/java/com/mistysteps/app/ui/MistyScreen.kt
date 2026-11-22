@@ -38,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.mistysteps.app.BuildConfig
 import com.mistysteps.app.R
+import com.mistysteps.app.maps.PackDownloads
 import com.mistysteps.app.eraser.EraserAccessHolder
 import com.mistysteps.app.eraser.EraserBar
 import com.mistysteps.app.eraser.EraserButton
@@ -130,6 +131,8 @@ fun MistyScreen() {
     var showPicker by rememberSaveable { mutableStateOf(false) }
     var pickerPreselect by rememberSaveable { mutableStateOf(listOf<String>()) }
     val catalog by rememberCatalog()
+    // Installed maps that came before stats files get theirs quietly (unmetered connection only, no prompt).
+    LaunchedEffect(catalog) { catalog?.let { PackDownloads.enqueueMissingStats(context, it) } }
     val packManager = rememberPackManager()
     val inVehicle by FogStore.inVehicle.collectAsState()
     var dialog by remember { mutableStateOf<PermissionDialog?>(null) }
