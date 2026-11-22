@@ -97,3 +97,14 @@ The shared parts above carry over. The iPhone version needs a drawing layer over
 ## Out of scope
 
 Play listing set-up, the closed-test requirement, the Play data-safety form update, store copy for the listing, consumer-law wording for digital purchases, and the tip jar.
+
+## iPhone addendum (2026-11-22, approved: "build this for ios of course")
+
+Same tool, same rules, same price (EUR 3,99, one-time). Differences only where the platform forces them:
+
+- **One engine, two platforms.** The stroke logic (`EraserController` minus Android's `MotionEvent` adapter) moves into `:shared` so Android and iPhone behave identically: same zoom gate, brush, spacing, allowance, undo of 10 strokes, taste of 100 m.
+- **Payment:** StoreKit 2, one **Non-Consumable** product `magic_eraser` (a Consumable cannot be restored; the first draft in App Store Connect, product `eraser`, was a Consumable and has to be recreated). Ownership comes from `Transaction.currentEntitlements` (so it restores on a new phone through the Apple ID), cached for offline use. A local StoreKit configuration file lets the simulator buy it for testing.
+- **Gestures:** a one-finger recognizer feeds the engine and turns the map's own scrolling off while a stroke is drawn; a second finger ends the stroke and gives pan and pinch back to the map.
+- **Data:** the iPhone `points` table gets the same nullable `erase_stroke` column (added to existing databases with `ALTER TABLE` when missing); backups already carry it (shared format).
+- **Debug and test hooks:** launch arguments `-eraser 0|1|2` (unlocked, locked, fresh taste) and `-eraserdemo 1` (draws a short stroke at launch) for simulator checks, like the existing `-autostart`.
+- **Not in the iPhone App Store build until the in-app purchase is recreated as Non-Consumable and reviewed with the app version.** The sheet shows no Buy button while the store cannot return the product.
