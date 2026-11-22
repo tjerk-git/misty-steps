@@ -1,7 +1,5 @@
 package com.mistysteps.app.eraser
 
-import android.view.MotionEvent
-import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.TrailPoint
 import com.mistysteps.app.map.LatLon
 import com.mistysteps.app.map.MapProjection
@@ -10,11 +8,6 @@ import com.mistysteps.app.map.MapProjection
 interface ErasedStore {
     fun add(points: List<TrailPoint>)
     fun remove(strokeId: Long, points: List<TrailPoint>)
-}
-
-object FogErasedStore : ErasedStore {
-    override fun add(points: List<TrailPoint>) = FogStore.addErased(points)
-    override fun remove(strokeId: Long, points: List<TrailPoint>) = FogStore.removeErased(strokeId, points)
 }
 
 /**
@@ -29,7 +22,8 @@ class EraserController(
     private val density: Float,
     /** Turns the map's own one-finger pan (and double-tap zoom) on or off. */
     private val setMapGestures: (Boolean) -> Unit,
-    private val clock: () -> Long = System::currentTimeMillis,
+    /** Milliseconds since 1970; passed in because common code has no clock of its own. */
+    private val clock: () -> Long,
 ) {
     /** Metres of drag the person may still erase: unlimited when the eraser is bought, the taste that is left otherwise. */
     var allowance: () -> Double = { Double.POSITIVE_INFINITY }
@@ -68,16 +62,6 @@ class EraserController(
     private var budgetM = Double.POSITIVE_INFINITY
     private var lastPoint: LatLon? = null
     private val strokeSpots = ArrayList<TrailPoint>()
-
-    /** Feed every touch event of the map to this; it never consumes them (the map must see them too). */
-    fun onTouch(e: MotionEvent) {
-        when (e.actionMasked) {
-            MotionEvent.ACTION_DOWN -> down(e.x, e.y)
-            MotionEvent.ACTION_MOVE -> move(e.x, e.y, e.pointerCount)
-            MotionEvent.ACTION_POINTER_DOWN -> secondFinger()
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> up()
-        }
-    }
 
     /** The first finger lands at screen position ([x], [y]). */
     fun down(x: Float, y: Float) {

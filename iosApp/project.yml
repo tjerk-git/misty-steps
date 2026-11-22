@@ -24,7 +24,9 @@ targets:
         UIBackgroundModes: [location]
         NSPhotoLibraryAddUsageDescription: Misty Steps saves your postcard to Photos when you tap Save.
     sources:
-      - MistySteps
+      - path: MistySteps
+        excludes:
+          - "*.storekit" # only for simulator runs (see the scheme), not shipped
       # The same style template and glyphs the Android app uses; one copy in the repo.
       - path: ../app/src/main/assets/maps
         type: folder
@@ -66,3 +68,14 @@ targets:
           export PATH="$JAVA_HOME/bin:$PATH"
           cd "$SRCROOT/.."
           ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+schemes:
+  MistySteps:
+    build:
+      targets:
+        MistySteps: all
+    run:
+      config: Debug
+      # Simulator runs can buy the eraser with the local StoreKit file; release archives never read it.
+      storeKitConfiguration: MistySteps/Misty.storekit
+    archive:
+      config: Release

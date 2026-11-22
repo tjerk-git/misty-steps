@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
+    @StateObject private var eraser = EraserModel()
     @State private var pinSheet: PinSheetTarget?
     @StateObject private var postcards = PostcardPainterImpl(store: ContentView.store)
     @State private var postcardWalk: Int64?
@@ -92,7 +93,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(coordinate: location.coordinate, locationModel: location, styleJSON: packs.styleJSON, fogModel: fog, pinsModel: pins,
+            MapView(coordinate: location.coordinate, locationModel: location, styleJSON: packs.styleJSON, fogModel: fog, pinsModel: pins, eraser: eraser,
                     onOpenPin: { pinSheet = .open(id: $0) },
                     onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },
@@ -106,7 +107,7 @@ struct ContentView: View {
             }
             HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
                     onStats: { app.route = .stats }, onCharacters: { app.route = .characters },
-                    onLocate: locate, onPin: dropPin, onRecord: record)
+                    onLocate: locate, onPin: dropPin, onRecord: record, eraser: eraser)
             if let d = packs.active {
                 Button { pickerPreselect = []; app.route = .picker } label: {
                     VStack(alignment: .leading, spacing: 6) {
@@ -248,6 +249,10 @@ struct ContentView: View {
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
         }
+        .task { eraser.purchases.start() }
+        .sheet(isPresented: $eraser.showSheet) { EraserSheet(eraser: eraser, purchases: eraser.purchases) }
+        .onChange(of: eraser.hint) { _, h in if let h { showHint(h); eraser.hint = nil } }
+        .onChange(of: app.route == nil) { _, closed in if !closed { eraser.mapCovered() } }
         .alert(item: $dialog) { d in
             switch d {
             case .rationale:

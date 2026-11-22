@@ -20,12 +20,14 @@ struct HubView: View {
     let onLocate: () -> Void
     let onPin: () -> Void
     let onRecord: () -> Void
+    @ObservedObject var eraser: EraserModel
 
     private var recording: Bool { fog.session != nil }
 
     /// One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
     private var banner: (text: String, onTap: (() -> Void)?)? {
         if recording && fog.inVehicle { return (IosTextsKt.notifTextVehicleText(), nil) }
+        if eraser.active { return nil }
         if showPinTip && !recording { return (IosTextsKt.bannerPinTipText(), onDismissPinTip) }
         if !recording && fog.totalDistanceM == 0 { return (IosTextsKt.bannerStartText(), nil) }
         return nil
@@ -62,6 +64,19 @@ struct HubView: View {
                 .buttonStyle(.plain).disabled(banner.onTap == nil)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .padding(.top, 88).padding(.horizontal, 32)
+            }
+
+            // The magic eraser: picks it up, or shows the purchase sheet when it is not yours yet.
+            round(action: { eraser.buttonTapped() }, label: IosTextsKt.eraserButtonText(), fill: eraser.active ? Misty.ember : Misty.frost) {
+                Image(systemName: "eraser").font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(eraser.active ? Color.white : Misty.ink)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .padding(.leading, 20).padding(.bottom, 252)
+            if eraser.active {
+                EraserBar(eraser: eraser)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 88)
             }
 
             // Bottom left: your character (opens the picker) above the stats button.
@@ -111,12 +126,12 @@ struct HubView: View {
     }
 
     /// A round 56 pt button on the frosted surface, like Android's small floating buttons.
-    private func round<Content: View>(action: @escaping () -> Void, label: String, @ViewBuilder content: () -> Content) -> some View {
+    private func round<Content: View>(action: @escaping () -> Void, label: String, fill: Color = Misty.frost, @ViewBuilder content: () -> Content) -> some View {
         Button(action: action) {
             content()
                 .foregroundStyle(Misty.ink)
                 .frame(width: 56, height: 56)
-                .background(Misty.frost, in: Circle())
+                .background(fill, in: Circle())
                 .shadow(color: .black.opacity(0.2), radius: 5, y: 3)
         }
         .buttonStyle(.plain)

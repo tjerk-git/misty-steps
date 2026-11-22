@@ -27,6 +27,8 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
                 battery_start INTEGER, battery_end INTEGER, new_area_m2 REAL)
             """)
         exec("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
+        addEraseColumnIfMissing()
+        exec("CREATE INDEX IF NOT EXISTS points_erase_stroke ON points(erase_stroke)")
         exec("""
             CREATE TABLE IF NOT EXISTS pins (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, lat REAL NOT NULL, lon REAL NOT NULL, time INTEGER NOT NULL,
@@ -37,17 +39,41 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
 
     deinit { sqlite3_close(db) }
 
+    /// The magic eraser tags the spots it clears with their stroke. Databases made before it have no such column: adding a
+    /// nullable column is instant however big the trail is.
+    private func addEraseColumnIfMissing() {
+        var stmt: OpaquePointer?
+        var has = false
+        sqlite3_prepare_v2(db, "PRAGMA table_info(points)", -1, &stmt, nil)
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            if let name = sqlite3_column_text(stmt, 1), String(cString: name) == "erase_stroke" { has = true }
+        }
+        sqlite3_finalize(stmt)
+        if !has { exec("ALTER TABLE points ADD COLUMN erase_stroke INTEGER") }
+    }
+
+    /// Undo of one magic-eraser stroke: its spots go.
+    func deleteStroke(id: Int64) {
+        lock.lock(); defer { lock.unlock() }
+        var stmt: OpaquePointer?
+        sqlite3_prepare_v2(db, "DELETE FROM points WHERE erase_stroke = ?", -1, &stmt, nil)
+        sqlite3_bind_int64(stmt, 1, id)
+        sqlite3_step(stmt)
+        sqlite3_finalize(stmt)
+    }
+
     func insert(points: [TrailPoint]) {
         lock.lock(); defer { lock.unlock() }
         exec("BEGIN")
         var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id) VALUES (?, ?, ?, ?, ?)", -1, &stmt, nil)
+        sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id, erase_stroke) VALUES (?, ?, ?, ?, ?, ?)", -1, &stmt, nil)
         for p in points {
             sqlite3_bind_double(stmt, 1, p.lat)
             sqlite3_bind_double(stmt, 2, p.lon)
             sqlite3_bind_int64(stmt, 3, p.time)
             sqlite3_bind_double(stmt, 4, p.radius)
             if let s = p.sessionId { sqlite3_bind_int64(stmt, 5, s.int64Value) } else { sqlite3_bind_null(stmt, 5) }
+            if let e = p.eraseStroke { sqlite3_bind_int64(stmt, 6, e.int64Value) } else { sqlite3_bind_null(stmt, 6) }
             sqlite3_step(stmt)
             sqlite3_reset(stmt)
         }
@@ -59,11 +85,11 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         lock.lock(); defer { lock.unlock() }
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id FROM points ORDER BY id", -1, &stmt, nil)
+        sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id, erase_stroke FROM points ORDER BY id", -1, &stmt, nil)
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: sqlite3_column_type(stmt, 5) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 5))))
         }
         sqlite3_finalize(stmt)
         return out
@@ -178,12 +204,12 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         lock.lock(); defer { lock.unlock() }
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id FROM points WHERE session_id = ? ORDER BY id", -1, &stmt, nil)
+        sqlite3_prepare_v2(db, "SELECT lat, lon, time, radius, session_id, erase_stroke FROM points WHERE session_id = ? ORDER BY id", -1, &stmt, nil)
         sqlite3_bind_int64(stmt, 1, id)
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: sqlite3_column_type(stmt, 5) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 5))))
         }
         sqlite3_finalize(stmt)
         return out
@@ -195,7 +221,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         var out: [TrailPoint] = []
         var stmt: OpaquePointer?
         sqlite3_prepare_v2(db, """
-            SELECT lat, lon, time, radius, session_id FROM points
+            SELECT lat, lon, time, radius, session_id, erase_stroke FROM points
             WHERE (session_id IS NULL OR session_id != ?) AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?
             """, -1, &stmt, nil)
         sqlite3_bind_int64(stmt, 1, id)
@@ -204,7 +230,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: sqlite3_column_type(stmt, 5) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 5))))
         }
         sqlite3_finalize(stmt)
         return out
@@ -241,12 +267,13 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         }
         sqlite3_finalize(s)
         var p: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id) VALUES (?, ?, ?, ?, ?)", -1, &p, nil)
+        sqlite3_prepare_v2(db, "INSERT INTO points (lat, lon, time, radius, session_id, erase_stroke) VALUES (?, ?, ?, ?, ?, ?)", -1, &p, nil)
         for x in points {
             guard have.insert("\(x.lat),\(x.lon),\(x.time)").inserted else { continue }
             sqlite3_bind_double(p, 1, x.lat); sqlite3_bind_double(p, 2, x.lon)
             sqlite3_bind_int64(p, 3, x.time); sqlite3_bind_double(p, 4, x.radius)
             if let id = x.sessionId { sqlite3_bind_int64(p, 5, id.int64Value) } else { sqlite3_bind_null(p, 5) }
+            if let e = x.eraseStroke { sqlite3_bind_int64(p, 6, e.int64Value) } else { sqlite3_bind_null(p, 6) }
             sqlite3_step(p)
             sqlite3_reset(p)
             addedPoints += 1
