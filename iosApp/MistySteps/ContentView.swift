@@ -246,6 +246,13 @@ struct ContentView: View {
             location.start()
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
+            // Test hook (demo video): -demochar <id> picks that character after -demochardelay seconds (default 3), so the picker shows the choice move.
+            if let id = UserDefaults.standard.string(forKey: "demochar") {
+                let delay = UserDefaults.standard.object(forKey: "demochardelay") != nil ? UserDefaults.standard.double(forKey: "demochardelay") : 3
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    if let c = (Characters.shared.all as? [Character])?.first(where: { $0.id == id }) { Characters.shared.select(c: c) }
+                }
+            }
             let stop = UserDefaults.standard.integer(forKey: "autostop")
             if stop > 0 { DispatchQueue.main.asyncAfter(deadline: .now() + Double(stop)) { fog.endWalk() } }
         }
