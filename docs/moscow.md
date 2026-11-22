@@ -17,7 +17,7 @@ Items marked (suggested) are my proposals and not yet decided by the owner.
 
 - **Release the eraser and streets work to the stores** once the Must items above are done (Play build with `-Pstore=play`; the F-Droid build has neither the eraser button nor billing).
 - **Review the eraser's Dutch and English copy** (`shared/strings`); the owner rewrote the sheet text on 2026-11-22.
-- **iPhone version of the eraser and of the stats files** (shared rules already live in `:shared`; the iPhone store passes `eraseStroke: nil` and does not fetch stats yet).
+- **iPhone version of the stats files** (the iPhone downloader does not fetch `stats.zip` yet). The iPhone eraser is built (2026-11-22); it still needs a real-finger test and the in-app purchase recreated as Non-Consumable in App Store Connect.
 
 ## Could (Maybe, parked)
 

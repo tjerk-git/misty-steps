@@ -32,12 +32,15 @@ final class EraserModel: ObservableObject {
         ledger = TasteLedger(usedM: used) { UserDefaults.standard.set($0.doubleValue, forKey: EraserModel.tasteKey) }
         tasteUsedM = ledger.usedM
         // Debug and test hooks (like -autostart): -eraser 0|1|2 forces unlocked, locked or a fresh taste.
-        if UserDefaults.standard.object(forKey: "eraser") as? Int == 2 { ledger.reset(); tasteUsedM = 0 }
+        if Self.launchInt("eraser") == 2 { ledger.reset(); tasteUsedM = 0 }
     }
+
+    /// A launch argument such as `-eraser 1` (they arrive in UserDefaults as text), or nil when it was not given.
+    private static func launchInt(_ key: String) -> Int? { UserDefaults.standard.string(forKey: key).flatMap { Int($0) } }
 
     /// 0 unlocked, 1 locked, 2 free taste, nil follows the real state. Only from launch arguments (never set by the app).
     private var debugOverride: Int? {
-        guard let v = UserDefaults.standard.object(forKey: "eraser") as? Int, (0...2).contains(v) else { return nil }
+        guard let v = Self.launchInt("eraser"), (0...2).contains(v) else { return nil }
         return v
     }
 
@@ -121,7 +124,11 @@ final class EraserModel: ObservableObject {
     /// -eraserdemo 1 draws a short stroke a few seconds after launch; 2 draws it and then undoes it. For simulator checks,
     /// where touches cannot be scripted. It goes through the same engine and store as a finger would.
     private func runDemoIfAsked() {
-        guard let demo = UserDefaults.standard.object(forKey: "eraserdemo") as? Int, demo > 0 else { return }
+        // -erasersheet 1 opens the purchase sheet a few seconds after launch (to look at it).
+        if Self.launchInt("erasersheet") == 1 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in self?.showSheet = true }
+        }
+        guard let demo = Self.launchInt("eraserdemo"), demo > 0 else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
             guard let self, let c = self.controller, let map = self.map else { return }
             self.active = true

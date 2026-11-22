@@ -67,11 +67,10 @@ struct HubView: View {
             }
 
             // The magic eraser: picks it up, or shows the purchase sheet when it is not yours yet.
-            round(action: { eraser.buttonTapped() }, label: IosTextsKt.eraserButtonText()) {
+            round(action: { eraser.buttonTapped() }, label: IosTextsKt.eraserButtonText(), fill: eraser.active ? Misty.ember : Misty.frost) {
                 Image(systemName: "eraser").font(.system(size: 22, weight: .regular))
                     .foregroundStyle(eraser.active ? Color.white : Misty.ink)
             }
-            .background(eraser.active ? Misty.ember : Color.clear, in: Circle())
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(.leading, 20).padding(.bottom, 252)
             if eraser.active {
@@ -127,12 +126,12 @@ struct HubView: View {
     }
 
     /// A round 56 pt button on the frosted surface, like Android's small floating buttons.
-    private func round<Content: View>(action: @escaping () -> Void, label: String, @ViewBuilder content: () -> Content) -> some View {
+    private func round<Content: View>(action: @escaping () -> Void, label: String, fill: Color = Misty.frost, @ViewBuilder content: () -> Content) -> some View {
         Button(action: action) {
             content()
                 .foregroundStyle(Misty.ink)
                 .frame(width: 56, height: 56)
-                .background(Misty.frost, in: Circle())
+                .background(fill, in: Circle())
                 .shadow(color: .black.opacity(0.2), radius: 5, y: 3)
         }
         .buttonStyle(.plain)
