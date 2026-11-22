@@ -13,12 +13,14 @@ A ring or line is a flat list of integers in units of 1e-5 degree, delta-encoded
 
 Reads the OpenStreetMap dump from disk and never contacts any service.
 """
+import argparse
 import json
 import math
+import sys
 import zipfile
 from pathlib import Path
 
-from shapely.geometry import LineString, MultiPolygon, Polygon
+from shapely.geometry import LineString, MultiPolygon, Polygon, shape as geojson_shape
 from shapely.strtree import STRtree
 
 E5 = 100_000
@@ -94,8 +96,11 @@ def to_shape(polygons):
     return MultiPolygon([q for p in parts for q in (p.geoms if p.geom_type == "MultiPolygon" else [p])]) if parts else None
 
 
-def assign_hoods_to_cities(hoods, cities):
-    """{town id: [hoods]}: each neighbourhood belongs to the town around its representative point; strays are dropped."""
+def assign_hoods_to_cities(hoods, cities, max_fraction=0.5):
+    """
+    {town id: [hoods]}: each neighbourhood belongs to the town around its representative point; strays are dropped,
+    and so is any area of [max_fraction] of the town or more (the app never picks one that big, so it only costs space).
+    """
     shapes = [(c["osmId"], to_shape(c["polygons"])) for c in cities]
     shapes = [(cid, shape) for cid, shape in shapes if shape is not None]
     tree = STRtree([shape for _, shape in shapes])
@@ -106,7 +111,8 @@ def assign_hoods_to_cities(hoods, cities):
             continue
         point = shape.representative_point()
         for i in tree.query(point, predicate="intersects"):
-            out.setdefault(shapes[i][0], []).append(hood)
+            if shape.area < max_fraction * shapes[i][1].area:
+                out.setdefault(shapes[i][0], []).append(hood)
             break
     return out
 
@@ -139,3 +145,125 @@ def write_stats_zip(path, province, data_date, city_hoods, hood_streets):
                 continue
             body = {"streets": [{"name": s["name"], "lines": [encode_line(line) for line in s["lines"]]} for s in streets]}
             z.writestr(f"streets/{key}.json", json.dumps(body, separators=(",", ":"), ensure_ascii=False))
+
+
+def streets_by_hood(hoods, ways):
+    """{hood_key: [street]} for many neighbourhoods at once, through one spatial index over the ways."""
+    lines = [LineString(coords) for _, coords in ways]
+    tree = STRtree(lines)
+    out = {}
+    for hood in hoods:
+        shape = to_shape(hood["polygons"])
+        if shape is None:
+            continue
+        near = [ways[i] for i in tree.query(shape, predicate="intersects")]
+        streets = group_streets(near)
+        if streets:
+            out[hood_key(hood)] = streets
+    return out
+
+
+HOOD_PLACES = frozenset({"quarter", "suburb", "neighbourhood"})
+HOOD_ADMIN_LEVELS = frozenset({"9", "10", "11"})
+
+
+def hood_kind(tags):
+    """'quarter', 'suburb' or 'neighbourhood' from the place tag, else 'admin<level>' for an administrative boundary."""
+    place = tags.get("place")
+    if place in HOOD_PLACES:
+        return place
+    if tags.get("boundary") == "administrative" and tags.get("admin_level") in HOOD_ADMIN_LEVELS:
+        return "admin" + tags["admin_level"]
+    return None
+
+
+def read_osm(pbf, region):
+    """
+    (neighbourhoods, street ways) of the OpenStreetMap file [pbf] that lie inside [region] (a shapely geometry).
+    Neighbourhoods: areas tagged place=quarter/suburb/neighbourhood or administrative levels 9 to 11, with a name,
+    kept when their representative point is in the region. Street ways: [is_street] ways that touch the region.
+    """
+    import osmium  # imported here so the pure helpers above work without pyosmium
+    from shapely import wkb
+    from shapely.prepared import prep
+
+    inside = prep(region)
+    factory = osmium.geom.WKBFactory()
+    hoods = []
+    areas = (
+        osmium.FileProcessor(pbf)
+        .with_areas(osmium.filter.TagFilter(("boundary", "administrative"), ("place", "quarter"),
+                                            ("place", "suburb"), ("place", "neighbourhood")))
+        .with_filter(osmium.filter.EntityFilter(osmium.osm.AREA))
+    )
+    for area in areas:
+        kind = hood_kind(area.tags)
+        name = (area.tags.get("name:nl") or area.tags.get("name") or "").split(";")[0].strip()
+        if kind is None or not name:
+            continue
+        try:
+            geom = wkb.loads(factory.create_multipolygon(area), hex=True)
+        except Exception as e:  # broken or cut-off relation
+            print(f"skip {area.orig_id()} {name}: {e}", file=sys.stderr)
+            continue
+        if geom.is_empty or not inside.contains(geom.representative_point()):
+            continue
+        polygons = [[list(poly.exterior.coords)] + [list(r.coords) for r in poly.interiors]
+                    for poly in (geom.geoms if geom.geom_type == "MultiPolygon" else [geom])]
+        hoods.append({"type": "way" if area.from_way() else "relation", "id": area.orig_id(), "name": name,
+                      "kind": kind, "polygons": polygons})
+
+    ways = []
+    streets = (
+        osmium.FileProcessor(pbf, osmium.osm.NODE | osmium.osm.WAY).with_locations().with_filter(osmium.filter.KeyFilter("highway"))
+    )
+    for way in streets:
+        if not is_street(way.tags):
+            continue
+        try:
+            coords = [(n.lon, n.lat) for n in way.nodes]
+        except Exception:  # a node outside the extract
+            continue
+        if len(coords) >= 2 and inside.intersects(LineString(coords)):
+            ways.append((way.tags["name"].strip(), coords))
+    return hoods, ways
+
+
+def read_cities(index_path):
+    """The towns of the app's `nl-index.json` as {"osmId", "polygons"} with (lon, lat) rings."""
+    cities = json.loads(Path(index_path).read_text())["cities"]
+    return [{"osmId": c["osmId"],
+             "polygons": [[list(zip(ring[0::2], ring[1::2])) for ring in polygon] for polygon in c["polygons"]]}
+            for c in cities]
+
+
+def build_province(pbf, province_id, out_dir, index_path, data_date):
+    """Writes `<out_dir>/<province_id>.stats.zip` and returns its path."""
+    out_dir = Path(out_dir)
+    region = geojson_shape(json.loads((out_dir / f"{province_id}.geojson").read_text()))
+    hoods, ways = read_osm(pbf, region)
+    cities = [c for c in read_cities(index_path) if (to_shape(c["polygons"]) or region).intersects(region)]
+    city_hoods = assign_hoods_to_cities(hoods, cities)
+    kept = [h for hs in city_hoods.values() for h in hs]
+    path = out_dir / f"{province_id}.stats.zip"
+    write_stats_zip(path, province_id, data_date, city_hoods, streets_by_hood(kept, ways))
+    return path
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--pbf", required=True)
+    ap.add_argument("--provinces", nargs="+", required=True)
+    ap.add_argument("--out-dir", default=str(Path(__file__).resolve().parent / "out"))
+    ap.add_argument("--index", default=str(Path(__file__).resolve().parents[2] / "app/src/main/assets/nl-index.json"))
+    ap.add_argument("--data-date", required=True)
+    args = ap.parse_args()
+    for pid in args.provinces:
+        path = build_province(args.pbf, pid, args.out_dir, args.index, args.data_date)
+        pack = Path(args.out_dir) / f"{pid}.pmtiles"
+        share = f" ({100 * path.stat().st_size / pack.stat().st_size:.1f}% of the map)" if pack.exists() else ""
+        print(f"{pid}: {path.stat().st_size / 1e6:.1f} MB{share}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

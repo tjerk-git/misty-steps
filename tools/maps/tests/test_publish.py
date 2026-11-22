@@ -39,3 +39,19 @@ def test_provinces_sorted_by_id(tmp_path):
     provinces = [make(tmp_path, "zh", b"z"), make(tmp_path, "dr", b"d"), make(tmp_path, "fr", b"f")]
     ids = [p["id"] for p in publish.catalog_json(2026, "2026-11-10", provinces)["provinces"]]
     assert ids == ["dr", "fr", "zh"]
+
+
+def test_catalog_lists_a_stats_file_when_the_province_has_one(tmp_path):
+    p = make(tmp_path, "fr", b"a")
+    stats = tmp_path / "fr.stats.zip"
+    stats.write_bytes(b"zipzip")
+    p["stats"] = {"path": str(stats), "url": "v2/nl/2026/fr/stats.zip"}
+    entry = publish.catalog_json(2026, "2026-11-10", [p])["provinces"][0]
+    assert entry["stats"]["url"] == "v2/nl/2026/fr/stats.zip"
+    assert entry["stats"]["bytes"] == 6
+    assert entry["stats"]["sha256"] == hashlib.sha256(b"zipzip").hexdigest()
+
+
+def test_catalog_has_no_stats_key_without_a_stats_file(tmp_path):
+    entry = publish.catalog_json(2026, "2026-11-10", [make(tmp_path, "fr", b"a")])["provinces"][0]
+    assert "stats" not in entry

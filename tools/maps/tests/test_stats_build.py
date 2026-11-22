@@ -128,3 +128,65 @@ def test_a_hood_without_streets_gets_no_streets_entry(tmp_path):
     sb.write_stats_zip(out, "fr", "2026-11-10", {7: [hood]}, {})
     with zipfile.ZipFile(out) as z:
         assert not [n for n in z.namelist() if n.startswith("streets/")]
+
+
+# ---- Task 3: spatial helpers, reading the dump, building a province -------------------------------------------------
+
+import pytest
+from shapely.geometry import Polygon as ShapelyPolygon, mapping
+
+TINY_OSM = """<?xml version='1.0' encoding='UTF-8'?>
+<osm version="0.6" generator="test">
+  <node id="1" lat="53.000" lon="5.000"/><node id="2" lat="53.000" lon="5.010"/>
+  <node id="3" lat="53.010" lon="5.010"/><node id="4" lat="53.010" lon="5.000"/>
+  <node id="6" lat="53.005" lon="5.002"/><node id="7" lat="53.005" lon="5.006"/>
+  <node id="8" lat="53.500" lon="5.500"/><node id="9" lat="53.500" lon="5.505"/>
+  <way id="100"><nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><nd ref="1"/>
+    <tag k="place" v="quarter"/><tag k="name" v="Binnenstad"/></way>
+  <way id="101"><nd ref="6"/><nd ref="7"/><tag k="highway" v="residential"/><tag k="name" v="Hoofdstraat"/></way>
+  <way id="102"><nd ref="6"/><nd ref="7"/><tag k="highway" v="service"/><tag k="name" v="Parkeerterrein"/></way>
+  <way id="103"><nd ref="8"/><nd ref="9"/><tag k="highway" v="residential"/><tag k="name" v="Verweggestraat"/></way>
+</osm>
+"""
+
+
+def test_streets_by_hood_uses_one_index_for_many_hoods():
+    h1 = make_hood(1, (5.0, 53.0, 5.01, 53.01))
+    h2 = make_hood(2, (6.0, 54.0, 6.01, 54.01), typ="way")
+    ways = [("A", [(5.002, 53.005), (5.006, 53.005)]), ("B", [(6.002, 54.005), (6.006, 54.005)])]
+    got = sb.streets_by_hood([h1, h2], ways)
+    assert {k: [s["name"] for s in v] for k, v in got.items()} == {"r1": ["A"], "w2": ["B"]}
+
+
+def test_a_neighbourhood_as_big_as_its_town_is_dropped():
+    city = make_city(1, (5.0, 53.0, 6.0, 54.0))
+    small = make_hood(10, (5.2, 53.2, 5.4, 53.4))
+    huge = make_hood(11, (5.0, 53.0, 5.9, 53.9))     # most of the town: the app would never pick it
+    got = sb.assign_hoods_to_cities([small, huge], [city])
+    assert [h["id"] for h in got[1]] == [10]
+
+
+def test_read_osm_finds_neighbourhoods_and_street_ways_inside_the_region(tmp_path):
+    osm = tmp_path / "tiny.osm"
+    osm.write_text(TINY_OSM)
+    region = ShapelyPolygon(square(4.9, 52.9, 5.1, 53.1))
+    hoods, ways = sb.read_osm(str(osm), region)
+    assert [(h["type"], h["id"], h["name"], h["kind"]) for h in hoods] == [("way", 100, "Binnenstad", "quarter")]
+    ring = hoods[0]["polygons"][0][0]
+    assert len(ring) == 5 and near(sorted(set(ring)), sorted(set(square(5.0, 53.0, 5.01, 53.01))))
+    assert [name for name, _ in ways] == ["Hoofdstraat"]      # not the service road, not the far-away street
+
+
+def test_build_province_writes_the_zip_for_the_towns_it_finds(tmp_path, monkeypatch):
+    out = tmp_path
+    (out / "fr.geojson").write_text(json.dumps(mapping(ShapelyPolygon(square(4.9, 52.9, 5.1, 53.1)))))
+    index = tmp_path / "nl-index.json"
+    index.write_text(json.dumps({"format": 1, "country": {}, "cities": [
+        {"osmId": 7, "name": "Teststad", "polygons": [[[4.95, 52.95, 5.05, 52.95, 5.05, 53.05, 4.95, 53.05, 4.95, 52.95]]]}]}))
+    hood = make_hood(100, (5.0, 53.0, 5.01, 53.01), typ="way", name="Binnenstad")
+    monkeypatch.setattr(sb, "read_osm", lambda pbf, region: ([hood], [("Hoofdstraat", [(5.002, 53.005), (5.006, 53.005)])]))
+    path = sb.build_province("unused.pbf", "fr", str(out), str(index), "2026-11-10")
+    assert path == out / "fr.stats.zip"
+    with zipfile.ZipFile(path) as z:
+        assert sorted(z.namelist()) == ["hoods/7.json", "index.json", "streets/w100.json"]
+        assert json.loads(z.read("index.json"))["cities"] == [7]
