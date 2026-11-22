@@ -57,3 +57,74 @@ def test_streets_shorter_than_30_metres_in_total_are_dropped():
     # Two short pieces that add up to enough are kept.
     pieces = [("Two", _east(5.8, 53.2, 20)), ("Two", _east(5.81, 53.2, 20))]
     assert [s["name"] for s in sb.group_streets(pieces)] == ["Two"]
+
+
+# ---- Task 2: neighbourhoods, streets per neighbourhood, the zip -------------------------------------------------
+
+import json
+import zipfile
+
+
+def square(lon0, lat0, lon1, lat1):
+    return [(lon0, lat0), (lon1, lat0), (lon1, lat1), (lon0, lat1), (lon0, lat0)]
+
+
+def make_hood(hid, rect, kind="quarter", name="Wijk", typ="relation"):
+    return {"type": typ, "id": hid, "name": name, "kind": kind, "polygons": [[square(*rect)]]}
+
+
+def make_city(cid, rect):
+    return {"osmId": cid, "polygons": [[square(*rect)]]}
+
+
+def test_hood_key_uses_r_for_relations_and_w_for_ways():
+    assert sb.hood_key({"type": "relation", "id": 12345}) == "r12345"
+    assert sb.hood_key({"type": "way", "id": 7}) == "w7"
+
+
+def test_a_hood_goes_to_the_town_around_its_middle_and_stray_ones_are_dropped():
+    cities = [make_city(1, (5.0, 53.0, 6.0, 54.0)), make_city(2, (7.0, 53.0, 8.0, 54.0))]
+    inside = make_hood(10, (5.2, 53.2, 5.4, 53.4))
+    elsewhere = make_hood(11, (7.2, 53.2, 7.4, 53.4))
+    nowhere = make_hood(12, (9.2, 53.2, 9.4, 53.4))
+    got = sb.assign_hoods_to_cities([inside, elsewhere, nowhere], cities)
+    assert {k: [h["id"] for h in v] for k, v in got.items()} == {1: [10], 2: [11]}
+
+
+def test_streets_for_a_hood_are_the_ways_that_touch_it_grouped_by_name():
+    hood = make_hood(10, (5.0, 53.0, 5.01, 53.01))
+    ways = [
+        ("In", [(5.002, 53.005), (5.004, 53.005)]),           # inside, about 130 m
+        ("In", [(5.005, 53.005), (5.007, 53.005)]),           # same street, second piece
+        ("Crossing", [(4.99, 53.005), (5.02, 53.005)]),       # runs through the hood
+        ("Far", [(6.0, 54.0), (6.01, 54.0)]),                 # nowhere near
+    ]
+    streets = {s["name"]: s for s in sb.streets_for_hood(hood, ways)}
+    assert set(streets) == {"In", "Crossing"}
+    assert len(streets["In"]["lines"]) == 2
+
+
+def test_write_stats_zip_lays_out_the_index_the_hoods_and_the_streets(tmp_path):
+    hood = make_hood(10, (5.0, 53.0, 5.01, 53.01), kind="suburb", name="Binnenstad")
+    street = {"name": "Hoofdstraat", "lines": [[(5.002, 53.005), (5.004, 53.005)]]}
+    out = tmp_path / "fr.stats.zip"
+    sb.write_stats_zip(out, "fr", "2026-11-10", {7: [hood]}, {"r10": [street]})
+    with zipfile.ZipFile(out) as z:
+        assert sorted(z.namelist()) == ["hoods/7.json", "index.json", "streets/r10.json"]
+        index = json.loads(z.read("index.json"))
+        assert index == {"format": 1, "province": "fr", "dataDate": "2026-11-10", "cities": [7]}
+        hoods = json.loads(z.read("hoods/7.json"))["hoods"]
+        assert (hoods[0]["type"], hoods[0]["id"], hoods[0]["name"], hoods[0]["kind"]) == ("relation", 10, "Binnenstad", "suburb")
+        ring = sb.decode_line(hoods[0]["polygons"][0][0])
+        assert near(ring, square(5.0, 53.0, 5.01, 53.01))
+        streets = json.loads(z.read("streets/r10.json"))["streets"]
+        assert streets[0]["name"] == "Hoofdstraat"
+        assert near(sb.decode_line(streets[0]["lines"][0]), [(5.002, 53.005), (5.004, 53.005)])
+
+
+def test_a_hood_without_streets_gets_no_streets_entry(tmp_path):
+    hood = make_hood(10, (5.0, 53.0, 5.01, 53.01))
+    out = tmp_path / "fr.stats.zip"
+    sb.write_stats_zip(out, "fr", "2026-11-10", {7: [hood]}, {})
+    with zipfile.ZipFile(out) as z:
+        assert not [n for n in z.namelist() if n.startswith("streets/")]
