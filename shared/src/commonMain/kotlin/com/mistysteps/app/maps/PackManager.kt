@@ -20,6 +20,9 @@ interface PackManager {
 
     /** Whether the current connection is metered (mobile data). */
     fun isMetered(): Boolean
+
+    /** True when this province's neighbourhoods-and-streets file is on the device. Platforms without them say no. */
+    fun hasStats(id: String): Boolean = false
 }
 
 /** Download progress in whole percent. */

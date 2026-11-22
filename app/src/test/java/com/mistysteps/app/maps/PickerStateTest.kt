@@ -60,4 +60,14 @@ class PickerStateTest {
         packs.markFailed("fr", Reason.NETWORK)
         assertEquals(listOf("fr"), PickerState(options).toggle("fr").toDownload(packs::state).map { it.id })
     }
+
+    @Test
+    fun theTotalCountsTheStatsFileOfEachTickedProvince() {
+        val withStats = listOf(
+            PackEntry("dr", "Drenthe", 2026, listOf(0.0, 0.0, 1.0, 1.0), FileRef("https://x/dr", 41, sha), FileRef("https://x/dr-s", 6, sha)),
+            PackEntry("fr", "Fryslân", 2026, listOf(0.0, 0.0, 1.0, 1.0), FileRef("https://x/fr", 58, sha), null),
+        )
+        val state = PickerState(withStats, setOf("dr", "fr"))
+        assertEquals(41L + 6L + 58L, state.totalBytes)
+    }
 }

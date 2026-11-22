@@ -81,7 +81,7 @@ fun ProvincePickerScreen(
     var askAboutData by rememberSaveable { mutableStateOf(false) }
     val state = PickerState(provinces.orEmpty(), ticked.toSet())
     val toDownload = if (provinces != null) state.toDownload(packs::state) else emptyList()
-    val downloadBytes = toDownload.sumOf { it.map.bytes }
+    val downloadBytes = toDownload.sumOf { it.totalBytes }
 
     // After Download the page stays, showing each province's progress; Continue then leaves it while the downloads go on.
     var started by rememberSaveable { mutableStateOf(false) }
@@ -157,7 +157,7 @@ fun ProvincePickerScreen(
                                         else -> {}
                                     }
                                 }
-                                Text(formatSize(entry.map.bytes), color = Dusk, fontSize = 14.sp)
+                                Text(formatSize(entry.totalBytes), color = Dusk, fontSize = 14.sp)
                             }
                         }
                     }

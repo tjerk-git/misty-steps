@@ -31,24 +31,32 @@ class ProvincePacks(private val root: File) {
      * or removed. The screens ask for every province's state on every download progress tick, on the main thread; listing
      * folders each time made every tick cost tens of milliseconds on a phone with slow storage.
      */
-    @Volatile private var installed: Map<String, List<Int>>? = null
+    private class Scan(val years: Map<String, List<Int>>, val withStats: Set<String>) // withStats: "<year>/<id>"
+
+    @Volatile private var installed: Scan? = null
 
     /** How many times the folders were listed; for tests. */
     @Volatile internal var scans = 0
         private set
 
-    private fun installedYears(): Map<String, List<Int>> = installed ?: scan().also { installed = it }
+    private fun scanned(): Scan = installed ?: scan().also { installed = it }
 
-    private fun scan(): Map<String, List<Int>> {
+    private fun installedYears(): Map<String, List<Int>> = scanned().years
+
+    private fun scan(): Scan {
         scans++
         val found = HashMap<String, MutableList<Int>>()
+        val withStats = HashSet<String>()
         for (yearDir in root.listFiles().orEmpty()) {
             val year = yearDir.name.toIntOrNull() ?: continue
             for (idDir in yearDir.listFiles().orEmpty()) {
-                if (idDir.isDirectory && File(idDir, "map.pmtiles").isFile) found.getOrPut(idDir.name) { mutableListOf() } += year
+                if (idDir.isDirectory && File(idDir, "map.pmtiles").isFile) {
+                    found.getOrPut(idDir.name) { mutableListOf() } += year
+                    if (File(idDir, STATS_FILE).isFile) withStats += "$year/${idDir.name}"
+                }
             }
         }
-        return found.mapValues { it.value.sortedDescending() }
+        return Scan(found.mapValues { it.value.sortedDescending() }, withStats)
     }
 
     /** The files changed: list them again next time they are asked for. */
@@ -63,6 +71,13 @@ class ProvincePacks(private val root: File) {
     fun installedYear(id: String): Int? = years(id).firstOrNull()
 
     fun mapFile(id: String): File? = installedYear(id)?.let { mapPath(it, id) }
+
+    /** True when the newest installed pack of [id] has its neighbourhoods-and-streets file. Cached like the rest. */
+    fun hasStats(id: String): Boolean = installedYear(id)?.let { "$it/$id" in scanned().withStats } == true
+
+    /** The neighbourhoods-and-streets files of the installed packs (newest year of each province, sorted by id). */
+    fun statsFiles(): List<File> =
+        installedYears().keys.sorted().filter(::hasStats).mapNotNull { id -> installedYear(id)?.let { File(packDir(it, id), STATS_FILE) } }
 
     /** The installed map files, one per province (its newest year), sorted by province id. */
     fun mapFiles(): List<File> {
@@ -104,5 +119,10 @@ class ProvincePacks(private val root: File) {
     private fun setTransient(id: String, state: PackState) {
         transient[id] = state
         _version.value++
+    }
+
+    companion object {
+        /** The file next to a pack's `map.pmtiles` that holds its neighbourhoods and streets. */
+        const val STATS_FILE = "stats.zip"
     }
 }

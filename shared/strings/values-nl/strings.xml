@@ -206,6 +206,7 @@
     <string name="offer_card">Nog geen kaart van %1$s. Download (%2$s)</string>
     <string name="maps_title">Je kaarten</string>
     <string name="maps_add">Voeg een provincie toe</string>
+    <string name="maps_streets_ready">Straten en buurten staan klaar</string>
     <string name="maps_update">Werk bij</string>
     <string name="maps_remove">Verwijder</string>
     <string name="maps_data_year">Gegevens uit %1$d</string>

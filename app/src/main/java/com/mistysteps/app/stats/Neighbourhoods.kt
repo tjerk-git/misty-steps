@@ -6,14 +6,14 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Neighbourhoods (wijken) and their streets, as saved on this phone by earlier versions.
+ * Neighbourhoods (wijken) and their streets: from the neighbourhoods-and-streets file that comes with each downloaded
+ * province ([StatsPacks]), and otherwise from what earlier versions saved on this phone.
  *
- * Earlier versions fetched these from OpenStreetMap's Overpass service. That put a load on
- * shared servers for every user, so the app no longer fetches anything: it only reads what an
- * earlier version already saved. Downloadable town maps will bring them back for everyone
- * (docs/superpowers/specs/2026-11-10-offline-maps-design.md).
+ * Earlier versions fetched these from OpenStreetMap's Overpass service. That put a load on shared servers for every user,
+ * so the app fetches nothing from there any more (docs/superpowers/specs/2026-11-22-streets-and-neighbourhoods-design.md).
  */
-class Neighbourhoods(context: Context) {
+class Neighbourhoods(context: Context, private val statsFiles: () -> List<File> = { emptyList() }) {
+    private val packs = StatsPacks { statsFiles() }
 
     private val root = File(context.filesDir, "boundaries")
     private val hoodDir = File(root, "neighbourhoods")
@@ -25,14 +25,18 @@ class Neighbourhoods(context: Context) {
     @Synchronized
     fun saved(city: Boundary): List<Boundary>? {
         val area = city.overpassAreaId ?: return null
-        return hoods.getOrPut(area) { saved(File(hoodDir, "$area.json"))?.let(::parseHoods) }
+        return hoods.getOrPut(area) {
+            packs.hoodsFor(city.osmId) ?: saved(File(hoodDir, "$area.json"))?.let(::parseHoods)
+        }
     }
 
     /** Saved named streets in [hood], or null if they were never saved. Blocking (disk). */
     @Synchronized
     fun streets(hood: Boundary): List<Street>? {
         val area = hood.overpassAreaId ?: return null
-        return streets.getOrPut(area) { saved(File(streetDir, "$area.json"))?.let(::parseStreets) }
+        return streets.getOrPut(area) {
+            hood.osmType?.let { packs.streetsFor(it, hood.osmId) } ?: saved(File(streetDir, "$area.json"))?.let(::parseStreets)
+        }
     }
 
     private fun saved(file: File): JSONObject? =
