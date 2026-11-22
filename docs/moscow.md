@@ -15,13 +15,13 @@ Items marked (suggested) are my proposals and not yet decided by the owner.
 
 ## Should
 
-- **Monthly recap card.** A "Month in the mist" card on the stats page with a Share button: a picture made on the phone (city name and percentage, small cleared map, neighbourhood percentage, streets walked, what the month added). Shared through the share sheet, never uploaded. People compare their city percentage with each other, so the total counts, eraser ground included. Needs its own design.
 - **Release the eraser and streets work to the stores** once the Must items above are done (Play build with `-Pstore=play`; the F-Droid build has neither the eraser button nor billing).
 - **Review the eraser's Dutch and English copy** (`shared/strings`); the owner rewrote the sheet text on 2026-11-22.
 - **iPhone version of the eraser and of the stats files** (shared rules already live in `:shared`; the iPhone store passes `eraseStroke: nil` and does not fetch stats yet).
 
 ## Could (Maybe, parked)
 
+- **Monthly recap card** (parked 2026-11-22, moved down from Should after a first look). A "Month in the mist" card on the stats page with a Share button: a picture made on the phone, shared through the share sheet, never uploaded. People compare their city percentage with each other, so the total counts, eraser ground included. What a first look found: the postcard renderer and share code can be reused; a month is the walks in a date range; erased ground has its own timestamps so walked and erased can be shown apart; "from x% to y%" can be rebuilt from spot timestamps; the streets line needs the stats files published. Open: what a friend should see first, and whether it also appears on the 1st by itself. Nothing designed or built.
 - **Things you passed** (parked 2026-11-22, "in the fridge"). Windmills, benches, bridges you walked past, shown without quests, goals or counters. Would reuse the stats pipeline. Open: where it is shown and how it feels.
 - **GPX import** (parked 2026-11-22). Bring past walks in from Strava, Komoot or a watch. Set aside because it works against the point of walking and the eraser covers gaps. If ever built, imported ground must be marked so stats stay honest.
 - **GPX export** as a backup without accounts.
