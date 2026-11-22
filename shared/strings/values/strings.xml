@@ -151,6 +151,8 @@
     <string name="character_cow_blurb">Mooved out to see the world.</string>
     <string name="character_horse_name">Trek Horse</string>
     <string name="character_horse_blurb">Walks everywhere. Refuses to carry you.</string>
+    <string name="character_duck_name">Waddle Duck</string>
+    <string name="character_duck_blurb">An Indian runner duck: upright, two feet, always in a hurry to a puddle.</string>
 
     <!-- About screen. Plain text; edit freely. -->
     <string name="about_title">About Misty Steps</string>
@@ -192,9 +194,9 @@
     <string name="onboarding_1_title">Mist covers the map</string>
     <string name="onboarding_1_body">Misty Steps hides the Netherlands in mist.</string>
     <string name="onboarding_2_title">Your steps clear it</string>
-    <string name="onboarding_2_body">Tap Start wandering and walk, run or cycle. The mist lifts around you.</string>
+    <string name="onboarding_2_body">Tap Start wandering and walk, run or cycle. Your steps clear about 50 m around you.\n\nRiding in a car or train does not count!</string>
     <string name="onboarding_3_title">Yours alone</string>
-    <string name="onboarding_3_body">No account. Your trails never leave your phone.</string>
+    <string name="onboarding_3_body">Misty Steps works offline, with downloaded maps and only your GPS. That way I don’t have to run any servers, and your trails never leave your phone.\n\nIt keeps going with the screen off, so put your phone away and enjoy the walk, but don’t forget to end it.\n\nFor now it only works in the Netherlands: download your province and get going!</string>
     <string name="picker_title">Which provinces do you want to explore?</string>
     <string name="picker_total">Total: %1$s</string>
     <string name="picker_skip">Skip for now</string>

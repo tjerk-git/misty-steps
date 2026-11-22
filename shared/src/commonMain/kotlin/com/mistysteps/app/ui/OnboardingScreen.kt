@@ -85,23 +85,22 @@ fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
             Spacer(Modifier.weight(1f))
             Illustration(page)
             Spacer(Modifier.height(32.dp))
-            Text(
-                stringResource(titles[page]),
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 28.sp,
-                lineHeight = 34.sp,
-                color = Ink,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                stringResource(bodies[page]),
-                fontSize = 17.sp,
-                lineHeight = 24.sp,
-                color = Dusk,
-                textAlign = TextAlign.Center,
-            )
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                Text(
+                    stringResource(titles[page]),
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 28.sp,
+                    lineHeight = 34.sp,
+                    color = Ink,
+                    textAlign = TextAlign.Start,
+                )
+                // Paragraphs are separated by a blank line in the string.
+                stringResource(bodies[page]).split("\n\n").forEach { paragraph ->
+                    Spacer(Modifier.height(12.dp))
+                    Text(paragraph, fontSize = 17.sp, lineHeight = 24.sp, color = Dusk, textAlign = TextAlign.Start)
+                }
+            }
             Spacer(Modifier.weight(1f))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(PAGES) { i ->
@@ -129,9 +128,26 @@ private fun Illustration(page: Int) {
     val character by Characters.selected.collectAsState()
     val frames = remember(character) { character?.let { SpriteFrames(it) } }
     val ticker = rememberTicker(stepMs = Characters.WALK_FRAME_MS)
+    // The last page is about not staring at your phone: the duck does it for you.
+    if (page == PAGES - 1) {
+        val duck = remember { Characters.all.firstOrNull { it.id == "duck" } ?: character }
+        if (duck != null) {
+            Box(
+                Modifier.size(200.dp).drawBehind {
+                    drawCircle(
+                        Brush.radialGradient(listOf(Color(0xE6FFFFFF), Color(0x00FFFFFF)), center = center, radius = size.minDimension / 2),
+                        radius = size.minDimension / 2,
+                    )
+                },
+                contentAlignment = Alignment.Center,
+            ) { DuckPhone(duck, 112.dp) }
+            return
+        }
+    }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Box(
         Modifier
-            .size(200.dp)
+            .size(if (page == 1) 150.dp else 200.dp)
             .drawBehind {
                 // Mist behind the character.
                 drawCircle(
@@ -148,8 +164,15 @@ private fun Illustration(page: Int) {
     ) {
         Box(
             Modifier
-                .size(112.dp)
+                .size(if (page == 1) 84.dp else 112.dp)
                 .drawBehind { frames?.let { drawSprite(it.at(walking = page == 1, timeMs = ticker.value)) } },
         )
+    }
+    // Riding along does not clear the mist: a dog in a car, driving past.
+    if (page == 1) {
+        Spacer(Modifier.height(44.dp))
+        CarScene(width = 140.dp)
+        Spacer(Modifier.height(28.dp))
+    }
     }
 }

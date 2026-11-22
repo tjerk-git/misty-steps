@@ -150,6 +150,8 @@
     <string name="character_cow_blurb">De wijde wereld in. Moooi!</string>
     <string name="character_horse_name">Trekpaard</string>
     <string name="character_horse_blurb">Loopt overal naartoe. Weigert jou te dragen.</string>
+    <string name="character_duck_name">Indische loopeend</string>
+    <string name="character_duck_blurb">Rechtopgaand, op twee poten, altijd haast naar de volgende plas.</string>
 
     <!-- Over -->
     <string name="about_title">Over Misty Steps</string>
@@ -191,9 +193,9 @@
     <string name="onboarding_1_title">De mist bedekt de kaart</string>
     <string name="onboarding_1_body">Misty Steps verbergt Nederland in de mist.</string>
     <string name="onboarding_2_title">Jouw stappen ruimen hem op</string>
-    <string name="onboarding_2_body">Tik op Start wandeling en loop, ren of fiets. De mist trekt op om je heen.</string>
+    <string name="onboarding_2_body">Tik op Start wandeling en loop, ren of fiets. Je stappen ruimen de mist op binnen zo’n 50 m om je heen.\n\nMeerijden in een auto of trein telt niet mee!</string>
     <string name="onboarding_3_title">Alleen van jou</string>
-    <string name="onboarding_3_body">Geen account. Je routes verlaten je telefoon nooit.</string>
+    <string name="onboarding_3_body">Misty Steps werkt offline, met gedownloade kaarten en alleen je gps. Zo hoef ik geen servers te draaien en verlaten je routes je telefoon nooit.\n\nHet werkt ook met een gesloten scherm, dus stop je telefoon weg en geniet van de wandeling, maar vergeet hem niet te beëindigen.\n\nVoorlopig werkt het alleen in Nederland: download je provincie en ga op pad!</string>
     <string name="picker_title">Welke provincies wil je verkennen?</string>
     <string name="picker_total">Totaal: %1$s</string>
     <string name="picker_skip">Nu overslaan</string>
