@@ -10,6 +10,7 @@ struct MapView: UIViewRepresentable {
     var styleJSON: String?
     let fogModel: FogModel
     let pinsModel: PinsModel
+    let eraser: EraserModel
     var onOpenPin: (Int64) -> Void
     var onNewPin: (CLLocationCoordinate2D) -> Void
     var onFogPress: () -> Void
@@ -34,6 +35,8 @@ struct MapView: UIViewRepresentable {
         locationModel.observeFixes { [weak character] in character?.offer($0) }
         context.coordinator.model = fogModel
         context.coordinator.pinsModel = pinsModel
+        context.coordinator.eraser = eraser
+        eraser.attach(map: map, fog: fogModel)
         fogModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshTrail() }
         pinsModel.observe { [weak coordinator = context.coordinator] in coordinator?.refreshPins() }
         // Long-press on cleared ground leaves a pin; a tap on a pin opens it.
@@ -78,6 +81,7 @@ struct MapView: UIViewRepresentable {
         var character: CharacterOverlayView?
         var model: FogModel?
         var pinsModel: PinsModel?
+        var eraser: EraserModel?
         var onOpenPin: (Int64) -> Void = { _ in }
         var onNewPin: (CLLocationCoordinate2D) -> Void = { _ in }
         var onFogPress: () -> Void = {}
@@ -259,7 +263,7 @@ struct MapView: UIViewRepresentable {
         }
 
         @objc func longPressed(_ g: UILongPressGestureRecognizer) {
-            guard g.state == .began, let map = g.view as? MLNMapView, let model else { return }
+            guard g.state == .began, let map = g.view as? MLNMapView, let model, eraser?.active != true else { return }
             let coordinate = map.convert(g.location(in: map), toCoordinateFrom: map)
             if PinRules.shared.isCleared(index: model.index, lat: coordinate.latitude, lon: coordinate.longitude) {
                 onNewPin(coordinate)
@@ -269,7 +273,7 @@ struct MapView: UIViewRepresentable {
         }
 
         @objc func tapped(_ g: UITapGestureRecognizer) {
-            guard let map = g.view as? MLNMapView else { return }
+            guard let map = g.view as? MLNMapView, eraser?.active != true else { return }
             let p = g.location(in: map)
             let hit = CGRect(x: p.x - 22, y: p.y - 40, width: 44, height: 56) // icons sit above the spot
             let found = map.visibleFeatures(in: hit, styleLayerIdentifiers: Set(Coordinator.pinLayerIds))

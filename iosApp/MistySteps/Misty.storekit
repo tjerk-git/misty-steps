@@ -1,0 +1,21 @@
+{
+  "identifier" : "A7F2C3D1",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "3.99",
+      "familyShareable" : false,
+      "internalID" : "6837952001",
+      "localizations" : [
+        { "description" : "Rub away the mist you missed.", "displayName" : "Magic Eraser", "locale" : "en_US" },
+        { "description" : "Wrijf de mist weg die je gemist hebt.", "displayName" : "Magische Gum", "locale" : "nl" }
+      ],
+      "productID" : "magic_eraser",
+      "referenceName" : "Magic Eraser",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : { "_applicationInternalID" : "6836714750", "_developerTeamID" : "P9KK68PA63", "_failTransactionsEnabled" : false, "_locale" : "nl_NL", "_storefront" : "NLD", "_storeKitErrors" : [] },
+  "subscriptionGroups" : [],
+  "version" : { "major" : 4, "minor" : 0 }
+}
