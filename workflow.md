@@ -197,6 +197,15 @@ Looked at and not chosen:
 - **1.1.0** (versionCode 2, 2026-11-08): export and import of trails, "Send feedback" button. Tjerk moved to this F-Droid install using export/import; it works. The F-Droid listing now links the source and issues (the repo went public the same day).
 - **1.0.0** (versionCode 1, 2026-11-08): first release. (Published as "1.0" before the version system existed.)
 
+## Magic eraser (built 2026-11-22 on branch `magic-eraser`, not merged or released)
+
+A paid hand tool for completionists: a round button on the map picks up an eraser, one finger wipes the mist anywhere (zoom 14 or closer, brush about 28 dp and at most 100 m), two fingers still pan and zoom, the last 10 strokes can be undone, and putting it down makes them final. EUR 4,99 once, through Google Play Billing; the F-Droid build has no button. Design: `docs/superpowers/specs/2026-11-21-magic-eraser-design.md`, plan: `docs/superpowers/plans/2026-11-21-magic-eraser.md`.
+
+- **Storage:** erased mist is ordinary `points` rows with `erase_stroke` set (database version 6). The trail line, walked distance, walk log and postcards ignore them; the fog and the cleared-area and percentage stats count them. Backups carry an optional sixth value per point.
+- **Code:** rules, spot spacing, undo list, access states and the taste counter are in `shared/.../eraser/` (reused by the iPhone version later); the touch handling is `app/.../eraser/EraserController.kt`; the Play code is in `app/src/play` and only joins the build with `-Pstore=play` (the default build uses `app/src/fdroid` and carries no billing code).
+- **Testing without Play:** debug builds honour `adb shell settings put global misty_eraser 0|1|2` (0 unlocked, 1 locked, 2 a fresh 100 m free taste). Test real-finger taps with `adb shell input swipe x y x+3 y+1 150`.
+- **Still to do before release:** create the Play listing and the in-app product `magic_eraser` (EUR 4,99, one-time, non-consumable), run a purchase test on the internal testing track, update the Play data-safety form, review the Dutch and English copy in `shared/strings`, and build with `./gradlew bundleRelease -Pstore=play`. Not yet tried on the Galaxy S21 with a real finger. iPhone version comes later (the iPhone store passes `eraseStroke: nil` for now).
+
 ## Roadmap (chosen 2026-11-08)
 
 ### Built (2026-11-08)

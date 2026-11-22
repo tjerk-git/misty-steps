@@ -244,4 +244,17 @@
     <string name="character_rename_cd">Hernoem %1$s</string>
     <string name="postcard_with">met %1$s</string>
     <string name="ios_dialog_settings_text">Om de mist op te klaren, geef Misty Steps toegang tot je locatie in Instellingen (Locatie → Tijdens gebruik van de app, met Nauwkeurige locatie aan).</string>
+
+    <!-- Magische gum -->
+    <string name="eraser_button">Magische gum</string>
+    <string name="eraser_hint_zoom">Zoom wat verder in, dan heeft de gum iets om vast te pakken.</string>
+    <string name="eraser_done">Leg neer</string>
+    <string name="eraser_undo">Ongedaan maken</string>
+    <string name="eraser_sheet_title">De Magische Gum</string>
+    <string name="eraser_sheet_body">Misty Steps blijft gratis, voor altijd. Maar sommigen van jullie kunnen niet slapen zolang er nog één grijs hoekje over is. Voor jullie: een gum in je hand die de mist wegwrijft waar je ook sleept. Het is ook een gift, want zo blijft de app draaien.</string>
+    <string name="eraser_sheet_buy">Koop hem voor %1$s</string>
+    <string name="eraser_sheet_not_now">Nu niet</string>
+    <string name="eraser_taste_used">Dat was je gratis proefstukje. Wil je de hele gum?</string>
+    <string name="eraser_unavailable">De winkel antwoordt even niet. Probeer het over een minuut opnieuw.</string>
+    <string name="eraser_thanks">Bedankt. Ga wat uitgummen.</string>
 </resources>

@@ -9,6 +9,10 @@ plugins {
 // Single source of the version: version.properties (bumped by tools/release.sh).
 val version = Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
 
+// ./gradlew ... -Pstore=play builds the Google Play version, which sells the magic eraser through Play Billing.
+// Every other build (F-Droid, debug, release) has no store: no eraser button and no billing code in the APK.
+val playStore = findProperty("store") == "play"
+
 android {
     namespace = "com.mistysteps.app"
     compileSdk = 36
@@ -16,6 +20,8 @@ android {
     sourceSets {
         // The strings live in :shared so Compose screens on every platform read the same text.
         getByName("main").res.srcDir("../shared/strings")
+        // One of these two folders joins the build: they hold the only code that differs (src/*/java/.../eraser/StoreHook.kt).
+        getByName("main").java.srcDir(if (playStore) "src/play/java" else "src/fdroid/java")
     }
 
     defaultConfig {
@@ -26,6 +32,7 @@ android {
         targetSdk = 36
         versionCode = version.getProperty("versionCode").toInt()
         versionName = version.getProperty("versionName")
+        buildConfigField("String", "STORE", if (playStore) "\"play\"" else "\"fdroid\"")
 
         // The F-Droid repo is a Cloudflare Worker with a 25 MiB limit per file, and the MapLibre native
         // library is 8-12 MB per CPU type. tools/release.sh passes -PfdroidAbi=arm64-v8a so that APK carries
@@ -92,6 +99,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
+    if (playStore) implementation("com.android.billingclient:billing-ktx:8.0.0")
 
     implementation(platform("androidx.compose:compose-bom:2025.09.00"))
     implementation("androidx.compose.ui:ui")

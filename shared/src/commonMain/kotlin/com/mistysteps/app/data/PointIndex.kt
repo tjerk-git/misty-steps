@@ -32,6 +32,25 @@ class PointIndex {
         count++
     }
 
+    /** Removes one spot that was added with this position and radius (the last one found swaps into its place). False if there is none. */
+    fun remove(lat: Double, lon: Double, radiusMeters: Double): Boolean {
+        val x = Mercator.x(lon)
+        val y = Mercator.y(lat)
+        val r = Mercator.metersToUnits(radiusMeters, lat)
+        val b = buckets[key(cell(x), cell(y))] ?: return false
+        for (i in 0 until b.size) {
+            val j = 3 * i
+            if (b.data[j] == x && b.data[j + 1] == y && b.data[j + 2] == r) {
+                val last = 3 * (b.size - 1)
+                b.data[j] = b.data[last]; b.data[j + 1] = b.data[last + 1]; b.data[j + 2] = b.data[last + 2]
+                b.size--
+                count--
+                return true
+            }
+        }
+        return false
+    }
+
     /** Copies every spot of [other] into this index. */
     fun addAll(other: PointIndex) {
         for ((k, b) in other.buckets) {

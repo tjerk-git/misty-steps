@@ -15,4 +15,6 @@ data class TrailPoint(
     val radius: Double = FogConstants.CLEAR_RADIUS_M,
     /** The walk this spot belongs to; null for spots from before walks were logged. */
     val sessionId: Long? = null,
+    /** Set when the magic eraser cleared this spot: the stroke (its start time) it belongs to. Walked spots have null. */
+    val eraseStroke: Long? = null,
 )

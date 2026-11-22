@@ -63,7 +63,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
         }
         sqlite3_finalize(stmt)
         return out
@@ -183,7 +183,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
         }
         sqlite3_finalize(stmt)
         return out
@@ -204,7 +204,7 @@ final class SQLiteTrailStore: NSObject, PointStore, SessionStore, PinStorage {
         while sqlite3_step(stmt) == SQLITE_ROW {
             let session: KotlinLong? = sqlite3_column_type(stmt, 4) == SQLITE_NULL ? nil : KotlinLong(value: sqlite3_column_int64(stmt, 4))
             out.append(TrailPoint(lat: sqlite3_column_double(stmt, 0), lon: sqlite3_column_double(stmt, 1),
-                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session))
+                                  time: sqlite3_column_int64(stmt, 2), radius: sqlite3_column_double(stmt, 3), sessionId: session, eraseStroke: nil))
         }
         sqlite3_finalize(stmt)
         return out

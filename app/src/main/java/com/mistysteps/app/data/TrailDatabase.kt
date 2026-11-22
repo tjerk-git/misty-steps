@@ -10,12 +10,13 @@ import com.mistysteps.app.pin.PinRules
 
 /** Every place you have walked, stored only on this device. */
 class TrailDatabase(context: Context) :
-    SQLiteOpenHelper(context, "trails.db", null, 5), PointStore, SessionStore, PinStorage {
+    SQLiteOpenHelper(context, "trails.db", null, 6), PointStore, SessionStore, PinStorage {
 
     override fun onCreate(db: SQLiteDatabase) {
         createPoints(db)
         createSessions(db)
         db.execSQL("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS points_erase_stroke ON points(erase_stroke)")
         createPins(db)
     }
 
@@ -28,7 +29,8 @@ class TrailDatabase(context: Context) :
                 lon REAL NOT NULL,
                 time INTEGER NOT NULL,
                 radius REAL NOT NULL DEFAULT ${FogStore.CLEAR_RADIUS_M},
-                session_id INTEGER
+                session_id INTEGER,
+                erase_stroke INTEGER
             )
             """.trimIndent()
         )
@@ -49,6 +51,11 @@ class TrailDatabase(context: Context) :
             db.execSQL("CREATE INDEX IF NOT EXISTS points_session ON points(session_id)")
         }
         if (oldVersion < 5) createPins(db)
+        if (oldVersion < 6) {
+            // Spots the magic eraser cleared: the stroke they belong to. Adding a nullable column is instant, however big the trail.
+            db.execSQL("ALTER TABLE points ADD COLUMN erase_stroke INTEGER")
+            db.execSQL("CREATE INDEX IF NOT EXISTS points_erase_stroke ON points(erase_stroke)")
+        }
     }
 
     /** Things you noticed and left on the map (see pin/Pin.kt). */
@@ -156,13 +163,14 @@ class TrailDatabase(context: Context) :
         val db = writableDatabase
         db.beginTransaction()
         try {
-            val values = ContentValues(5)
+            val values = ContentValues(6)
             for (p in points) {
                 values.put("lat", p.lat)
                 values.put("lon", p.lon)
                 values.put("time", p.time)
                 values.put("radius", p.radius)
                 if (p.sessionId != null) values.put("session_id", p.sessionId) else values.putNull("session_id")
+                if (p.eraseStroke != null) values.put("erase_stroke", p.eraseStroke) else values.putNull("erase_stroke")
                 db.insert("points", null, values)
             }
             db.setTransactionSuccessful()
@@ -173,11 +181,12 @@ class TrailDatabase(context: Context) :
 
     override fun loadAll(): List<TrailPoint> {
         val out = ArrayList<TrailPoint>()
-        readableDatabase.rawQuery("SELECT lat, lon, time, radius, session_id FROM points ORDER BY id", null).use { c ->
+        readableDatabase.rawQuery("SELECT lat, lon, time, radius, session_id, erase_stroke FROM points ORDER BY id", null).use { c ->
             while (c.moveToNext()) {
                 out += TrailPoint(
                     c.getDouble(0), c.getDouble(1), c.getLong(2), c.getDouble(3),
                     if (c.isNull(4)) null else c.getLong(4),
+                    if (c.isNull(5)) null else c.getLong(5),
                 )
             }
         }
@@ -234,7 +243,7 @@ class TrailDatabase(context: Context) :
                 }
                 if (db.insertWithOnConflict("sessions", null, v, SQLiteDatabase.CONFLICT_IGNORE) != -1L) addedSessions++
             }
-            val v = ContentValues(5)
+            val v = ContentValues(6)
             for (p in points) {
                 if (!have.add(key(p.lat, p.lon, p.time))) continue
                 v.put("lat", p.lat)
@@ -242,6 +251,7 @@ class TrailDatabase(context: Context) :
                 v.put("time", p.time)
                 v.put("radius", p.radius)
                 if (p.sessionId != null) v.put("session_id", p.sessionId) else v.putNull("session_id")
+                if (p.eraseStroke != null) v.put("erase_stroke", p.eraseStroke) else v.putNull("erase_stroke")
                 db.insert("points", null, v)
                 addedPoints++
             }
@@ -250,6 +260,11 @@ class TrailDatabase(context: Context) :
             db.endTransaction()
         }
         return addedPoints to addedSessions
+    }
+
+    /** Undo of one magic-eraser stroke: its spots go. */
+    fun deleteStroke(id: Long) {
+        writableDatabase.delete("points", "erase_stroke = ?", arrayOf(id.toString()))
     }
 
     override fun countPoints(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM points", null).use { c ->
@@ -297,12 +312,12 @@ class TrailDatabase(context: Context) :
 
     /** The spots of one walk, in order. */
     fun loadSessionPoints(id: Long): List<TrailPoint> = query(
-        "SELECT lat, lon, time, radius, session_id FROM points WHERE session_id = ? ORDER BY id", arrayOf(id.toString()),
+        "SELECT lat, lon, time, radius, session_id, erase_stroke FROM points WHERE session_id = ? ORDER BY id", arrayOf(id.toString()),
     )
 
     /** Spots from other walks (or from before walks were logged) inside a lat/lon box. */
     fun loadOtherPointsIn(id: Long, minLat: Double, minLon: Double, maxLat: Double, maxLon: Double): List<TrailPoint> = query(
-        "SELECT lat, lon, time, radius, session_id FROM points " +
+        "SELECT lat, lon, time, radius, session_id, erase_stroke FROM points " +
             "WHERE (session_id IS NULL OR session_id != ?) AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?",
         arrayOf(id.toString(), minLat.toString(), maxLat.toString(), minLon.toString(), maxLon.toString()),
     )
@@ -314,6 +329,7 @@ class TrailDatabase(context: Context) :
                 out += TrailPoint(
                     c.getDouble(0), c.getDouble(1), c.getLong(2), c.getDouble(3),
                     if (c.isNull(4)) null else c.getLong(4),
+                    if (c.isNull(5)) null else c.getLong(5),
                 )
             }
         }
