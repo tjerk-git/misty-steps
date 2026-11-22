@@ -12,11 +12,11 @@ import java.io.File
  * One per app, so borders parsed from disk stay in memory between visits to the stats page.
  *
  * Works without any network: town and country borders come from the index shipped with the app
- * ([CityIndex]), neighbourhoods and streets only from what earlier versions saved ([Neighbourhoods]).
+ * ([CityIndex]), neighbourhoods and streets from the files that come with the downloaded provinces ([Neighbourhoods]).
  */
 class StatsRepository private constructor(context: Context) {
     private val appContext = context.applicationContext
-    private val hoods = Neighbourhoods(appContext)
+    private val hoods = Neighbourhoods(appContext) { com.mistysteps.app.maps.MapsGraph.packs.statsFiles() }
     private val index: CityIndex? by lazy {
         runCatching { CityIndex.load(appContext) }.onFailure { android.util.Log.e("Stats", "index", it) }.getOrNull()
     }

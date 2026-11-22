@@ -166,4 +166,40 @@ class ProvincePacksTest {
         packs.remove("fr")
         assertTrue(packs.state(entry()) is PackState.NotDownloaded)
     }
+
+    private fun installWithStats(year: Int, id: String) {
+        install(year, id)
+        File(tmp.root, "$year/$id/stats.zip").writeBytes(ByteArray(5))
+    }
+
+    @Test
+    fun statsFilesListsOnlyPacksThatHaveOneNewestYearOnlySortedById() {
+        installWithStats(2026, "zh")
+        installWithStats(2026, "fr")
+        install(2026, "gr")                       // a map without stats
+        install(2026, "dr"); installWithStats(2025, "dr") // stats only in an older year: the newest pack has none
+        assertEquals(listOf("fr", "zh"), packs.statsFiles().map { it.parentFile!!.name })
+        assertTrue(packs.hasStats("fr"))
+        assertFalse(packs.hasStats("gr"))
+        assertFalse(packs.hasStats("dr"))
+        assertFalse(packs.hasStats("nowhere"))
+    }
+
+    @Test
+    fun askingAboutStatsManyTimesDoesNotListTheFoldersAgain() {
+        installWithStats(2026, "fr")
+        packs.hasStats("fr")
+        val before = packs.scans
+        repeat(100) { packs.hasStats("fr"); packs.statsFiles() }
+        assertEquals(before, packs.scans)
+    }
+
+    @Test
+    fun aStatsFileAddedLaterIsSeenAfterTheChangeIsAnnounced() {
+        install(2026, "fr")
+        assertFalse(packs.hasStats("fr"))
+        File(tmp.root, "2026/fr/stats.zip").writeBytes(ByteArray(5)) // what the quiet download does
+        packs.clearTransient("fr")
+        assertTrue(packs.hasStats("fr"))
+    }
 }
