@@ -218,6 +218,8 @@ The neighbourhood percentage and "x of y streets walked" with "Still in the mist
 
 ## Roadmap (chosen 2026-11-08)
 
+The current priorities (Must, Should, Could, Won't) are in `docs/moscow.md`; the lists below are the older, detailed notes.
+
 ### Built (2026-11-08)
 
 New ground per walk, no clearing at vehicle speed, walk postcard, neighbourhood stats, street completion, fog through the day. See "What the app does" for how each one works. The plans below are kept for reference.
