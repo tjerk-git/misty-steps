@@ -6,6 +6,16 @@
 <title>Test Misty Steps</title>
 <meta name="description" content="Help test Misty Steps, a calm walking app that lifts the mist from the map of where you live.">
 <link rel="icon" href="poster.jpg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Misty Steps">
+<meta property="og:title" content="Test Misty Steps">
+<meta property="og:description" content="A calm walking app: the mist lifts wherever you walk. Help test it on iPhone or Android. Free, Netherlands only.">
+<meta property="og:url" content="https://testers.potloodgum.com/">
+<meta property="og:image" content="https://testers.potloodgum.com/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Misty Steps: a pixel-art horse on a map, with mist lifting where you walk.">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root { --ink:#2E3550; --dusk:#5B6B8C; --ember:#B4536A; --frost:#FAFBFF; --mist:#F6E9E8; }
   * { box-sizing: border-box; }
@@ -44,7 +54,8 @@
   a.btn { display:inline-block; margin-top:10px; font-weight:600; color:#fff; background:var(--ink); border-radius:999px; padding:12px 22px; text-decoration:none; }
   #done[data-p=ios] .a, #done[data-p=android] .i { display:none; }
   .hp { position:absolute; left:-9999px; }
-  footer { margin-top:28px; font-size:13px; color:var(--dusk); max-width:44em; }
+  .ai { margin:28px 0 0; font-size:15px; line-height:1.5; color:var(--ink); max-width:44em; padding-left:14px; border-left:3px solid var(--dusk); }
+  footer { margin-top:20px; font-size:13px; color:var(--dusk); max-width:44em; }
   main [lang=nl] { display:none; }
   html[data-l=nl] main [lang=nl] { display:revert; }
   html[data-l=nl] main [lang=en] { display:none; }
@@ -60,7 +71,7 @@
   <p class="lead" lang="nl">Een rustige wandel-app. Je buurt begint verborgen in de mist; de mist trekt weg waar je loopt. Geen accounts, geen scores, geen vrienden. Help me testen voordat de app in de app stores komt.</p>
 
   <div class="grid">
-    <video id="demo" controls playsinline muted preload="metadata" poster="poster.jpg" aria-label="30 second demo of Misty Steps">
+    <video id="demo" controls playsinline muted preload="metadata" poster="poster.jpg" aria-label="20 second demo of Misty Steps">
       <source src="demo.mp4" type="video/mp4">
       <track kind="captions" src="demo.en.vtt" srclang="en" label="English" default>
       <track kind="captions" src="demo.nl.vtt" srclang="nl" label="Nederlands">
@@ -118,6 +129,9 @@
       </div>
     </div>
   </div>
+
+  <p class="ai" lang="en">The idea, concept and features of Misty Steps were all thought up by a human and tested with friends; one developer can't support both iOS and Android by hand, so AI writes much of the boring backend code (though I've coded apps by hand before), and the artwork stays placeholder until real human-made art replaces it.</p>
+  <p class="ai" lang="nl">Het idee, het concept en de functies van Misty Steps zijn allemaal door een mens bedacht en met vrienden getest; één ontwikkelaar kan niet zowel iOS als Android met de hand ondersteunen, dus AI schrijft een groot deel van de saaie backendcode (al heb ik eerder apps met de hand gebouwd), en de afbeeldingen blijven tijdelijke placeholders totdat echt, door mensen gemaakt beeldmateriaal ze vervangt.</p>
 
   <footer>
     <p lang="en">What I keep: your email address, your phone type, your choices above, and the date you agreed. Nothing else, no tracking and no cookies on this page. I use it only for the test group and, if you ticked it, a rare newsletter. You can ask me to delete it at any time by replying to any message I send you. Your address is stored in a database at Cloudflare restricted to the EU and is never sold or shared, except with Apple or Google to send the test invite.</p>
