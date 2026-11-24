@@ -14,6 +14,9 @@ enum Misty {
 struct HubView: View {
     @ObservedObject var fog: FogModel
     @ObservedObject var pill: PillModel
+    /// How tall the pill is: the banner and the eraser bar sit under it.
+    @State private var pillHeight: CGFloat = 0
+    private var belowPill: CGFloat { max(88, 12 + pillHeight + 12) }
     let showPinTip: Bool
     let onDismissPinTip: () -> Void
     let onStats: () -> Void
@@ -34,24 +37,37 @@ struct HubView: View {
         return nil
     }
 
+    private func pillText(_ p: PillContent) -> some View {
+        VStack(spacing: 2) {
+            Text(p.value)
+                .font(.system(size: 26, weight: .semibold, design: .serif))
+                .foregroundStyle(Misty.ink)
+            Text(p.caption).font(.system(size: 12)).foregroundStyle(Misty.dusk)
+            if let place = p.place {
+                Text(place).font(.system(size: 12)).foregroundStyle(Misty.dusk)
+            }
+        }
+        .multilineTextAlignment(.center)
+    }
+
     var body: some View {
         ZStack {
             // Buckets of mist cleared where you are (tap for stats); nothing until the first count is in.
             if let p = pill.content {
                 Button(action: onStats) {
-                    VStack(spacing: 2) {
-                        Text(p.value)
-                            .font(.system(size: 26, weight: .semibold, design: .serif))
-                            .foregroundStyle(Misty.ink)
-                        Text(p.caption)
-                            .font(.system(size: 12)).lineSpacing(2).multilineTextAlignment(.center)
-                            .foregroundStyle(Misty.dusk)
+                    // Hugs its text up to 296 pt (320 with the padding), like Android; a very long place name wraps.
+                    ViewThatFits(in: .horizontal) {
+                        pillText(p)
+                        pillText(p).frame(maxWidth: 296)
                     }
-                    .frame(maxWidth: 320)
-                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 24).padding(.vertical, 10)
                     .background(Misty.frost, in: RoundedRectangle(cornerRadius: 24))
                     .shadow(color: .black.opacity(0.18), radius: 5, y: 3)
+                    .background(GeometryReader { g in
+                        Color.clear
+                            .onAppear { pillHeight = g.size.height }
+                            .onChange(of: g.size.height) { _, h in pillHeight = h }
+                    })
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -69,7 +85,7 @@ struct HubView: View {
                 }
                 .buttonStyle(.plain).disabled(banner.onTap == nil)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.top, 88).padding(.horizontal, 32)
+                .padding(.top, belowPill).padding(.horizontal, 32)
             }
 
             // The magic eraser: picks it up, or shows the purchase sheet when it is not yours yet.
@@ -82,7 +98,7 @@ struct HubView: View {
             if eraser.active {
                 EraserBar(eraser: eraser)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 88)
+                    .padding(.top, belowPill)
             }
 
             // Bottom left: your character (opens the "You" page) above the stats button.

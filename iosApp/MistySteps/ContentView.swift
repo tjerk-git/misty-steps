@@ -11,6 +11,7 @@ struct ContentView: View {
     /// Held, not observed: the pointer moves with every map frame and only `OffscreenPointerLayer` should redraw for it.
     @State private var pointerModel = PointerModel()
     @StateObject private var pillModel = PillModel()
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
@@ -251,7 +252,7 @@ struct ContentView: View {
                 if allowed { grantedAction(afterGrant) } else { dialog = .settings }
             }
             location.start()
-            pillModel.start(store: fog.store, here: { location.coordinate ?? fog.lastKnown })
+            pillModel.start(store: fog.store, version: { fog.version }, here: { location.coordinate ?? fog.lastKnown })
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
             // Test hook: -pointerdemo 1 starts with the camera not following you, so moving the simulated location off-screen shows the pointer.
@@ -271,8 +272,12 @@ struct ContentView: View {
         .onChange(of: eraser.hint) { _, h in if let h { showHint(h); eraser.hint = nil } }
         .onChange(of: app.route == nil) { _, mapShown in
             if !mapShown { eraser.mapCovered() }
-            pillModel.active = mapShown
+            pillModel.mapShown = mapShown
             if mapShown { pillModel.refresh() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            pillModel.foreground = phase == .active
+            if phase == .active { pillModel.refresh() }
         }
         .alert(item: $dialog) { d in
             switch d {

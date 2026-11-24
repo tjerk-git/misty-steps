@@ -53,11 +53,12 @@ class CharactersFileTest {
     fun thePillTextsExistInEnglishAndDutch() {
         for (dir in listOf("values", "values-nl")) {
             val lines = File("strings/$dir/strings.xml").readLines()
-            val place = lines.firstOrNull { it.contains("name=\"pill_place_caption\"") }
+            val place = lines.firstOrNull { it.contains("name=\"pill_place_line\"") }
             val total = lines.firstOrNull { it.contains("name=\"pill_total_caption\"") }
-            assertTrue(place != null, "$dir is missing pill_place_caption")
+            assertTrue(place != null, "$dir is missing pill_place_line")
             assertTrue(total != null, "$dir is missing pill_total_caption")
-            assertTrue("%1\$s" in place && "%2\$s" in place, "$dir pill_place_caption needs the place (%1\$s) and its share (%2\$s)")
+            assertTrue("%1\$s" in place && "%2\$s" in place, "$dir pill_place_line needs the place (%1\$s) and its share (%2\$s)")
+            assertTrue(lines.none { it.contains("name=\"pill_place_caption\"") }, "$dir still has the old one-line pill_place_caption")
         }
     }
 }

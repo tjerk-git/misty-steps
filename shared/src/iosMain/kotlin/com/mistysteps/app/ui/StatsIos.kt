@@ -13,6 +13,8 @@ import com.mistysteps.app.maps.PackManager
 import com.mistysteps.app.offline.CityIndex
 import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.stats.LocalStatsSource
+import com.mistysteps.app.stats.PillKey
+import com.mistysteps.app.stats.PillRefresh
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -110,15 +112,30 @@ fun youViewController(
 class PillSource(points: PointStore, sessions: SessionStore) {
     private val source = LocalStatsSource(points, sessions, lazy { bundledCityIndex() })
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var running = false
+    private var lastKey: PillKey? = null
 
-    fun refresh(lat: Double?, lon: Double?, onResult: (PillContent) -> Unit) {
+    /**
+     * Recounts only when [version] (the cleared ground) or your cell changed since the last count, and never two at once. Call it
+     * on the main thread; [onResult] is called on it too.
+     */
+    fun refresh(version: Long, lat: Double?, lon: Double?, onResult: (PillContent) -> Unit) {
+        val key = PillRefresh.key(version, lat, lon)
+        if (running || key == lastKey) return
+        running = true
         scope.launch {
             val content = try {
                 pillContent(source.compute(lat, lon))
             } catch (e: Exception) {
-                return@launch
+                null
             }
-            withContext(Dispatchers.Main) { onResult(content) }
+            withContext(Dispatchers.Main) {
+                running = false
+                if (content != null) {
+                    lastKey = key
+                    onResult(content)
+                }
+            }
         }
     }
 }
