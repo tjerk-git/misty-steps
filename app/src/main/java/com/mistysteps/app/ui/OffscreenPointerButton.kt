@@ -3,7 +3,7 @@ package com.mistysteps.app.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -27,14 +27,25 @@ import com.mistysteps.app.R
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.character.standingBitmap
 import com.mistysteps.app.map.PointerPlacement
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.PI
 import kotlin.math.roundToInt
 
 private val Size = 64.dp
 
 /**
+ * Collects [pointer] here rather than in the map screen, so the screen is not recomposed on every camera frame while the
+ * pointer shows. Place it in a box that fills the map.
+ */
+@Composable
+fun OffscreenPointerLayer(pointer: StateFlow<PointerPlacement?>, onClick: () -> Unit) {
+    val placement by pointer.collectAsState()
+    placement?.let { OffscreenPointerButton(it, onClick) }
+}
+
+/**
  * A small round pointer on the screen edge: your character's face and an arrow toward where it is, shown while the camera is
- * looking elsewhere. A tap brings you back ([onClick] is the location button's action). Place it in a box that fills the map.
+ * looking elsewhere. A tap brings you back ([onClick] is the location button's action). The position is absolute, so a right-to-left layout does not mirror it.
  */
 @Composable
 fun OffscreenPointerButton(placement: PointerPlacement, onClick: () -> Unit) {
@@ -43,7 +54,7 @@ fun OffscreenPointerButton(placement: PointerPlacement, onClick: () -> Unit) {
     val ink = Ink.copy(alpha = 0.8f)
     Box(
         modifier = Modifier
-            .offset { IntOffset((placement.x - half).roundToInt(), (placement.y - half).roundToInt()) }
+            .absoluteOffset { IntOffset((placement.x - half).roundToInt(), (placement.y - half).roundToInt()) }
             .size(Size),
         contentAlignment = Alignment.Center,
     ) {

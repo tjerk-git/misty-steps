@@ -319,11 +319,10 @@ fun MistyScreen() {
             Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
         }
     }
-    val pointer by map.pointer.collectAsState()
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { map.mapView }, modifier = Modifier.fillMaxSize())
-        pointer?.let { OffscreenPointerButton(it, locate) }
+        OffscreenPointerLayer(map.pointer, locate)
 
         // Controls stay clear of status bar, navigation bar and camera cutouts.
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {

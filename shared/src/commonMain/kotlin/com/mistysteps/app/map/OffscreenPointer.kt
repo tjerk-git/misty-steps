@@ -1,5 +1,6 @@
 package com.mistysteps.app.map
 
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.min
 
@@ -32,7 +33,7 @@ object OffscreenPointer {
      * Null when the pointer is hidden: no fix, a target that is not a real point, no map yet, camera following you, or the
      * character on-screen. Once shown ([wasShown]) it stays until the character is [hysteresis] inside the map, so a character
      * on the edge does not make it flicker. Otherwise it sits where the line from the map centre to the character meets the
-     * map shrunk by [insets]; an axis with no room left collapses to the centre.
+     * map edge, pulled inside [insets] on each axis separately; an axis with no room left uses the centre.
      */
     fun place(
         hasFix: Boolean,
@@ -54,19 +55,19 @@ object OffscreenPointer {
 
         val cx = width / 2
         val cy = height / 2
-        val minX = if (insets.left <= width - insets.right) insets.left else cx
-        val maxX = if (insets.left <= width - insets.right) width - insets.right else cx
-        val minY = if (insets.top <= height - insets.bottom) insets.top else cy
-        val maxY = if (insets.top <= height - insets.bottom) height - insets.bottom else cy
-
         val dx = targetX - cx
         val dy = targetY - cy
-        var k = 1f
-        if (dx > 0f) k = min(k, (maxX - cx) / dx) else if (dx < 0f) k = min(k, (minX - cx) / dx)
-        if (dy > 0f) k = min(k, (maxY - cy) / dy) else if (dy < 0f) k = min(k, (minY - cy) / dy)
 
-        val x = cx + dx * k
-        val y = cy + dy * k
+        // Where the line from the centre to the character meets the edge of the map, then pulled into the free band on each axis
+        // on its own. An axis with no free band left (a short or landscape screen) uses the centre of that axis.
+        val toEdgeX = if (dx != 0f) cx / abs(dx) else Float.MAX_VALUE
+        val toEdgeY = if (dy != 0f) cy / abs(dy) else Float.MAX_VALUE
+        val k = min(toEdgeX, toEdgeY)
+        val x = clampToBand(cx + dx * k, insets.left, width - insets.right, cx)
+        val y = clampToBand(cy + dy * k, insets.top, height - insets.bottom, cy)
         return PointerPlacement(x, y, atan2(targetY - y, targetX - x))
     }
+
+    private fun clampToBand(value: Float, min: Float, max: Float, centre: Float): Float =
+        if (min <= max) value.coerceIn(min, max) else centre
 }

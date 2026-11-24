@@ -111,4 +111,41 @@ class OffscreenPointerTest {
         assertEquals(PointerInsets(72f, 464f, 72f, 768f), OffscreenPointer.insetsFor(2f))
         assertEquals(24f * 3f, OffscreenPointer.hysteresisFor(3f), 1e-4f)
     }
+
+    // Production insets (density 1) on screens where the free band is short or empty: the pointer must stay on the map and on the
+    // side of the character (review findings C1 and I1).
+    private fun shipped(tx: Float, ty: Float, w: Float, h: Float) =
+        OffscreenPointer.place(true, tx, ty, w, h, false, OffscreenPointer.insetsFor(1f), OffscreenPointer.hysteresisFor(1f), false)
+
+    @Test
+    fun smallPhoneCharacterRightAndALittleBelow() {
+        val p = assertNotNull(shipped(5000f, 400f, 375f, 667f))
+        assertEquals(375f - 36f, p.x, 0.01f)
+        assertTrue(p.y in 232f..283f, "y ${p.y}")
+        assertTrue(p.angleRad > 0f && p.angleRad < 0.5f, "angle ${p.angleRad}")
+    }
+
+    @Test
+    fun smallPhoneCharacterBelowAndRight() {
+        val p = assertNotNull(shipped(900f, 5000f, 375f, 667f))
+        assertTrue(p.x > 187.5f, "x ${p.x}")
+        assertTrue(p.y in 232f..283f, "y ${p.y}")
+    }
+
+    @Test
+    fun landscapeStaysOnTheEdgeNotTheCentre() {
+        val p = assertNotNull(shipped(5000f, 260f, 915f, 412f))
+        assertEquals(915f - 36f, p.x, 0.01f)
+        assertEquals(206f, p.y, 0.01f)
+    }
+
+    @Test
+    fun everyShippedSizeKeepsThePointerOnTheMap() {
+        val sizes = listOf(375f to 667f, 360f to 800f, 393f to 852f, 412f to 915f, 915f to 412f, 600f to 300f)
+        val targets = listOf(-5000f to 100f, 5000f to 100f, 100f to -5000f, 100f to 5000f, 5000f to 5000f, -5000f to -5000f, 5000f to 450f)
+        for ((w, h) in sizes) for ((tx, ty) in targets) {
+            val p = shipped(tx, ty, w, h) ?: continue
+            assertTrue(p.x in 0f..w && p.y in 0f..h, "$w x $h target $tx,$ty gave ${p.x},${p.y}")
+        }
+    }
 }

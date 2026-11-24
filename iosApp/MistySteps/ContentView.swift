@@ -8,7 +8,8 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
-    @State private var pointer: PointerPlacement?
+    /// Held, not observed: the pointer moves with every map frame and only `OffscreenPointerLayer` should redraw for it.
+    @State private var pointerModel = PointerModel()
     @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
@@ -98,13 +99,9 @@ struct ContentView: View {
                     onOpenPin: { pinSheet = .open(id: $0) },
                     onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },
-                    status: $mapStatus, following: $following, pointer: $pointer)
+                    status: $mapStatus, following: $following, pointerModel: pointerModel)
                 .ignoresSafeArea()
-            if let p = pointer {
-                OffscreenPointerView(placement: p, onTap: locate)
-                    .position(x: CGFloat(p.x), y: CGFloat(p.y))
-                    .ignoresSafeArea()
-            }
+            OffscreenPointerLayer(model: pointerModel, onTap: locate)
             if debugStrip {
                 Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
                     .font(.system(size: 10)).padding(6)

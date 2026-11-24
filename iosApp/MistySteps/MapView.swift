@@ -17,7 +17,7 @@ struct MapView: UIViewRepresentable {
     @Binding var status: String
     @Binding var following: Bool
     /// Where the pointer to your character goes while it is off-screen (nil while hidden); see OffscreenPointer in the shared module.
-    @Binding var pointer: PointerPlacement?
+    let pointerModel: PointerModel
 
     func makeUIView(context: Context) -> MLNMapView {
         let map = MLNMapView(frame: .zero)
@@ -63,7 +63,7 @@ struct MapView: UIViewRepresentable {
             map.styleURL = file
         }
         context.coordinator.following = $following
-        context.coordinator.pointer = $pointer
+        context.coordinator.pointerModel = pointerModel
         context.coordinator.coordinate = coordinate
         context.coordinator.updatePointer(map)
         guard let coordinate, !context.coordinator.perfRunning else { return }
@@ -82,7 +82,7 @@ struct MapView: UIViewRepresentable {
         var styleJSON: String?
         var status: Binding<String>?
         var following: Binding<Bool>?
-        var pointer: Binding<PointerPlacement?>?
+        var pointerModel: PointerModel?
         var coordinate: CLLocationCoordinate2D?
         var fog: FogOverlayView?
         var character: CharacterOverlayView?
@@ -109,7 +109,7 @@ struct MapView: UIViewRepresentable {
 
         /// Works out whether the pointer to your character shows, and where (the rules are shared with Android).
         func updatePointer(_ map: MLNMapView) {
-            guard let pointer else { return }
+            guard let pointerModel else { return }
             var at = CGPoint.zero
             if let coordinate { at = map.convert(coordinate, toPointTo: map) }
             let placement = OffscreenPointer.shared.place(
@@ -119,10 +119,10 @@ struct MapView: UIViewRepresentable {
                 following: following?.wrappedValue ?? true,
                 insets: OffscreenPointer.shared.insetsFor(density: 1),
                 hysteresis: OffscreenPointer.shared.hysteresisFor(density: 1),
-                wasShown: pointer.wrappedValue != nil)
-            let current = pointer.wrappedValue
+                wasShown: pointerModel.placement != nil)
+            let current = pointerModel.placement
             let same = (placement == nil && current == nil) || (placement != nil && current != nil && placement!.isEqual(current!))
-            if !same { DispatchQueue.main.async { pointer.wrappedValue = placement } }
+            if !same { DispatchQueue.main.async { pointerModel.placement = placement } }
         }
 
         /// Dragging or pinching the map stops following; the recentre button starts it again.

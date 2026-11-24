@@ -1,6 +1,26 @@
 import Shared
 import SwiftUI
 
+/// Where the pointer goes (nil while hidden). Held, not observed, by `ContentView` and written by the map; only
+/// `OffscreenPointerLayer` observes it, so a pan does not re-evaluate the whole screen.
+final class PointerModel: ObservableObject {
+    @Published var placement: PointerPlacement?
+}
+
+/// The pointer over the map, drawn on the same screen coordinates as the map (which ignores the safe area).
+struct OffscreenPointerLayer: View {
+    @ObservedObject var model: PointerModel
+    let onTap: () -> Void
+
+    var body: some View {
+        if let p = model.placement {
+            OffscreenPointerView(placement: p, onTap: onTap)
+                .position(x: CGFloat(p.x), y: CGFloat(p.y))
+                .ignoresSafeArea()
+        }
+    }
+}
+
 /// A small round pointer on the screen edge: your character's face and an arrow toward where it is, shown while the map is
 /// looking elsewhere. A tap brings you back. Same look as Android's OffscreenPointerButton; the placement comes from the
 /// shared OffscreenPointer. Position it with its centre on the placement.
