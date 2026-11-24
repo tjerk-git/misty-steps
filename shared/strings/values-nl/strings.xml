@@ -259,6 +259,8 @@
     <string name="character_rename_empty">Laat leeg voor %1$s</string>
     <string name="character_rename_cd">Hernoem %1$s</string>
     <string name="postcard_with">met %1$s</string>
+    <!-- De stappenregel op de wandelbriefkaart: %1$s is het aantal (31.000), %2$s de naam van je dier. -->
+    <string name="postcard_steps">Dat zijn ongeveer %1$s stappen als %2$s.</string>
     <string name="ios_dialog_settings_text">Om de mist op te klaren, geef Misty Steps toegang tot je locatie in Instellingen (Locatie → Tijdens gebruik van de app, met Nauwkeurige locatie aan).</string>
 
     <!-- Magische gum -->

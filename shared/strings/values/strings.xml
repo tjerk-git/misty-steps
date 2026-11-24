@@ -260,6 +260,8 @@
     <string name="character_rename_empty">Leave empty for %1$s</string>
     <string name="character_rename_cd">Rename %1$s</string>
     <string name="postcard_with">with %1$s</string>
+    <!-- The steps line on the walk postcard: %1$s is the number (31,000), %2$s the name of your animal. -->
+    <string name="postcard_steps">That is about %1$s %2$s steps.</string>
     <string name="ios_dialog_settings_text">To clear the mist, allow Misty Steps to use your location in Settings (Location → While Using the App, with Precise Location on).</string>
 
     <!-- Magic eraser -->
