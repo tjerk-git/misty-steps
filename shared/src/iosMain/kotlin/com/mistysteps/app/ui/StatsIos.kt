@@ -82,7 +82,6 @@ fun youViewController(
                         onOptedInChange = {
                             optedIn = it
                             defaults.setBool(it, forKey = "analytics_opt_in")
-                            defaults.setBool(true, forKey = "analytics_asked")
                         },
                         versionName = versionName,
                     )

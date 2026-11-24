@@ -245,10 +245,6 @@
     </plurals>
 
     <!-- Anonymous open count -->
-    <string name="consent_title">Count opens, anonymously?</string>
-    <string name="consent_body">One tiny message each time you open the app: just that it was opened and which version. No name, no ID, no location, nothing about your walks. You can change this any time on the You page (tap your character on the map).</string>
-    <string name="consent_yes">Yes, count my opens</string>
-    <string name="consent_no">No thanks</string>
     <!-- Usage counts card -->
     <string name="usage_title">Usage counts</string>
     <string name="usage_body">Count how often the app is opened, anonymously.</string>

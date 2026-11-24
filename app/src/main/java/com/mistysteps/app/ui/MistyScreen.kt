@@ -125,7 +125,7 @@ fun MistyScreen() {
     var showYou by rememberSaveable { mutableStateOf(false) }
     var postcardWalk by rememberSaveable { mutableStateOf<Long?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
-    // First launch: the stage shown on top of the map (a FirstRunStage name): onboarding, the consent question, the province picker.
+    // First launch: the stage shown on top of the map (a FirstRunStage name): onboarding, the province picker.
     var firstRun by rememberSaveable { mutableStateOf<String?>(null) }
     var existingUser by rememberSaveable { mutableStateOf(false) }
     // Steps finished in this run: they count as done at once, even for the debug `fresh` start that ignores the saved flags.
@@ -200,7 +200,6 @@ fun MistyScreen() {
 
     fun stageNow(): String = FirstRun.stage(
         onboardingDone = "ONBOARDING" in doneSteps || (!fresh && hints.getBoolean(ONBOARDING_DONE, false)),
-        consentAsked = "CONSENT" in doneSteps || (!fresh && Analytics.wasAsked(context)),
         pickerSeen = "PICKER" in doneSteps || (!fresh && hints.getBoolean(PICKER_SEEN, false)),
         hasTrailPoints = existingUser,
     ).name
@@ -287,7 +286,7 @@ fun MistyScreen() {
     }
 
     SideEffect {
-        map.setCovered(showStats || showYou || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
+        map.setCovered(showStats || showYou || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.PICKER.name)
     }
 
     // The eraser: wire what it may do, put it down when another page covers the map, keep it in step with the state.
@@ -578,13 +577,6 @@ fun MistyScreen() {
         if (firstRun == FirstRunStage.ONBOARDING.name) {
             val next = { hints.edit().putBoolean(ONBOARDING_DONE, true).apply(); finishStep(FirstRunStage.ONBOARDING) }
             OnboardingScreen(onDone = next, onSkip = next)
-        }
-        if (firstRun == FirstRunStage.CONSENT.name) {
-            ConsentScreen(onAnswer = { allowed ->
-                Analytics.setOptedIn(context, allowed)
-                Analytics.markAsked(context)
-                finishStep(FirstRunStage.CONSENT)
-            })
         }
         if (firstRun == FirstRunStage.PICKER.name) {
             ProvincePickerScreen(
