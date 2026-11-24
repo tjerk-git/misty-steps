@@ -152,6 +152,14 @@
     <string name="character_horse_blurb">Loopt overal naartoe. Weigert jou te dragen.</string>
     <string name="character_duck_name">Indische loopeend</string>
     <string name="character_duck_blurb">Rechtopgaand, op twee poten, altijd haast naar de volgende plas.</string>
+    <string name="character_rat_name">Kerstrat</string>
+    <string name="character_rat_blurb">Staat op de brave lijst. Meestal.</string>
+
+    <!-- De kaart die de Kerstrat eenmalig aanbiedt. -->
+    <string name="rat_card_title">Fijne feestdagen!</string>
+    <string name="rat_card_body">Er loopt een nieuwe vriend mee: de Kerstrat, mét muts. Zin om met hem te wandelen?</string>
+    <string name="rat_card_try">Probeer de rat</string>
+    <string name="rat_card_later">Niet nu</string>
 
     <!-- Over -->
     <string name="about_title">Over Misty Steps</string>

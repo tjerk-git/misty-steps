@@ -153,6 +153,14 @@
     <string name="character_horse_blurb">Walks everywhere. Refuses to carry you.</string>
     <string name="character_duck_name">Waddle Duck</string>
     <string name="character_duck_blurb">An Indian runner duck: upright, two feet, always in a hurry to a puddle.</string>
+    <string name="character_rat_name">Santa Rat</string>
+    <string name="character_rat_blurb">On the nice list, mostly.</string>
+
+    <!-- The one-time Christmas card that offers the Santa Rat. -->
+    <string name="rat_card_title">Merry Christmas!</string>
+    <string name="rat_card_body">A new friend joined the walk: the Santa Rat, hat and all. Want to walk with it?</string>
+    <string name="rat_card_try">Try the rat</string>
+    <string name="rat_card_later">Not now</string>
 
     <!-- About screen. Plain text; edit freely. -->
     <string name="about_title">About Misty Steps</string>
