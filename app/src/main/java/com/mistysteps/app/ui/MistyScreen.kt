@@ -88,6 +88,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.mistysteps.app.announce.RatAnnouncement
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.PinStore
@@ -590,6 +591,23 @@ fun MistyScreen() {
                 },
             )
         }
+    }
+
+    // The one-time Christmas card that offers the Santa Rat, once the first-run steps are done.
+    var ratSeen by remember { mutableStateOf(hints.getBoolean(RatAnnouncement.SEEN_KEY, false)) }
+    val firstRunStage = firstRun?.let { FirstRunStage.valueOf(it) }
+    if (firstRunStage != null && RatAnnouncement.due(firstRunStage, ratSeen)) {
+        fun markRatSeen() {
+            hints.edit().putBoolean(RatAnnouncement.SEEN_KEY, true).apply()
+            ratSeen = true
+        }
+        RatCard(
+            onTry = {
+                Characters.all.firstOrNull { it.id == RatAnnouncement.CHARACTER_ID }?.let { Characters.select(it) }
+                markRatSeen()
+            },
+            onLater = ::markRatSeen,
+        )
     }
 
     when (val sheet = pinSheet) {

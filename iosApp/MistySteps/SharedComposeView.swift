@@ -127,3 +127,17 @@ struct PostcardHostView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
+
+/// The shared Compose Santa Rat card, on a transparent view over the map.
+struct RatCardHostView: UIViewControllerRepresentable {
+    var onTry: () -> Void
+    var onLater: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = RatCardIosKt.ratCardViewController(onTry: { onTry() }, onLater: { onLater() })
+        controller.view.backgroundColor = .clear
+        return controller
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}

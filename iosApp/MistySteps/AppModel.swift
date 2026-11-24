@@ -12,6 +12,28 @@ final class AppModel: ObservableObject {
     @Published var route: Route?
 
     private let defaults = UserDefaults.standard
+
+    /// The Santa Rat card (see the shared `RatAnnouncement`): due once the first-run flow has been decided and no page is open.
+    @Published private var started = false
+    @Published private var ratSeen: Bool
+
+    init() {
+        ratSeen = UserDefaults.standard.bool(forKey: RatAnnouncement.shared.SEEN_KEY)
+    }
+
+    var ratCardDue: Bool {
+        RatAnnouncement.shared.due(stage: started && route == nil ? .done : .onboarding, seen: ratSeen)
+    }
+
+    /// The card was answered: "Try the rat" ([tryIt]) also makes it your character. Answers once, however fast the taps come.
+    func finishRatCard(tryIt: Bool) {
+        if ratSeen { return }
+        if tryIt, let rat = Characters.shared.all.first(where: { $0.id == RatAnnouncement.shared.CHARACTER_ID }) {
+            Characters.shared.select(c: rat)
+        }
+        defaults.set(true, forKey: RatAnnouncement.shared.SEEN_KEY)
+        ratSeen = true
+    }
     private let onboardingDone = "onboarding_done"
     private let pickerSeen = "picker_seen"
     private let consentAsked = "analytics_asked"
@@ -37,6 +59,9 @@ final class AppModel: ObservableObject {
 
     /// At launch: show the first step that is due. A launch argument `-route <page>` opens that page instead (for testing).
     func start(hasTrailPoints: Bool) {
+        started = true
+        // Test hook: -ratcard 1 shows the Santa Rat card whatever the saved flag says.
+        if defaults.integer(forKey: "ratcard") > 0 { route = nil; ratSeen = false; return }
         if let forced = defaults.string(forKey: "route"), let r = Route(rawValue: forced) { route = r; return }
         route = dueStage(hasTrailPoints: hasTrailPoints)
     }
