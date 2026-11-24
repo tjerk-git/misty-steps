@@ -3,7 +3,7 @@ import Shared
 
 /// A full-screen page shown on top of the map.
 enum Route: String {
-    case onboarding, consent, picker, stats, about, characters
+    case onboarding, consent, picker, stats, about, you
 }
 
 /// Which page is open, and the first-run flow (onboarding, then the question about counting opens, then the province

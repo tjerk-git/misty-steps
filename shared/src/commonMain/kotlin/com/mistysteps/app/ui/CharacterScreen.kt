@@ -22,7 +22,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -74,44 +77,42 @@ import com.mistysteps.app.character.Characters
 import kotlinx.coroutines.delay
 
 
+/**
+ * The character grid as a bottom sheet over the "You" page: picking one makes it your character and closes the sheet.
+ * Each card keeps its pencil to give a character a name of your own.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreen(onClose: () -> Unit) {
-    PlatformBackHandler(onBack = onClose)
+fun CharacterSheet(onClose: () -> Unit) {
     val selected by Characters.selected.collectAsState()
     val ticker = rememberTicker()
     val sprites = remember { Characters.all.map { it to SpriteFrames(it) } }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .blockTouchesBelow()
-            .background(Brush.verticalGradient(listOf(Color(0xFFF4F5FA), Color(0xFFDCE1EE))))
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = Color(0xFFF4F5FA),
     ) {
         Column(
             Modifier
-                .fillMaxSize()
-                .scrollingPage()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back_to_map), tint = Ink)
-                }
-                Text(
-                    stringResource(Res.string.characters_title),
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 24.sp,
-                    color = Ink,
-                )
-            }
+            Text(
+                stringResource(Res.string.characters_title),
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                color = Ink,
+            )
             Text(
                 stringResource(Res.string.characters_sub),
                 color = Dusk,
                 fontSize = 14.sp,
-                modifier = Modifier.padding(start = 12.dp, bottom = 16.dp),
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
             )
-
             // A handful of characters: plain rows, no lazy list needed.
             sprites.chunked(2).forEach { pair ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -121,7 +122,7 @@ fun CharacterScreen(onClose: () -> Unit) {
                             frames = frames,
                             isSelected = selected?.id == c.id,
                             time = { ticker.value },
-                            onClick = { Characters.select(c) },
+                            onClick = { Characters.select(c); onClose() },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -198,14 +199,14 @@ private fun CharacterCard(
 
 /** The translated name or blurb of a character, falling back to the English text in the sprite file. */
 @Composable
-private fun characterText(character: Character, part: String, fallback: String): String {
+internal fun characterText(character: Character, part: String, fallback: String): String {
     val resource = remember(character.id, part) { Res.allStringResources["character_${character.id}_$part"] }
     return if (resource != null) stringResource(resource) else fallback
 }
 
 /** Asks for a name for one character. Saving an empty name takes the name away: the species name shows again. */
 @Composable
-private fun RenameDialog(id: String, species: String, current: String?, onClose: () -> Unit) {
+internal fun RenameDialog(id: String, species: String, current: String?, onClose: () -> Unit) {
     var text by remember { mutableStateOf(current.orEmpty()) }
     AlertDialog(
         onDismissRequest = onClose,

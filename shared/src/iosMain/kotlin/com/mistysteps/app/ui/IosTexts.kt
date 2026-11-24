@@ -25,6 +25,7 @@ import com.mistysteps.app.resources.offer_card
 import com.mistysteps.app.resources.start_wandering
 import com.mistysteps.app.resources.stop_wandering
 import com.mistysteps.app.resources.show_my_location
+import com.mistysteps.app.resources.you_title
 import com.mistysteps.app.resources.drop_a_pin
 import com.mistysteps.app.resources.banner_pin_tip
 import com.mistysteps.app.resources.banner_start
@@ -54,6 +55,9 @@ fun startWanderingText(): String = runBlocking { getString(Res.string.start_wand
 fun stopWanderingText(): String = runBlocking { getString(Res.string.stop_wandering) }
 
 fun showMyLocationText(): String = runBlocking { getString(Res.string.show_my_location) }
+
+/** "You" / "Jij": the label of the character button, which opens the You page. */
+fun youTitleText(): String = runBlocking { getString(Res.string.you_title) }
 
 fun dropAPinText(): String = runBlocking { getString(Res.string.drop_a_pin) }
 

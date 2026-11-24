@@ -82,6 +82,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -120,7 +122,7 @@ fun MistyScreen() {
     val recording by RecordingService.recording.collectAsState()
     val distance by FogStore.distanceMeters.collectAsState()
     var showStats by rememberSaveable { mutableStateOf(false) }
-    var showCharacters by rememberSaveable { mutableStateOf(false) }
+    var showYou by rememberSaveable { mutableStateOf(false) }
     var postcardWalk by rememberSaveable { mutableStateOf<Long?>(null) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     // First launch: the stage shown on top of the map (a FirstRunStage name): onboarding, the consent question, the province picker.
@@ -225,7 +227,7 @@ fun MistyScreen() {
             if (walk.distanceM >= MIN_WALK_M && !hints.getBoolean(PIN_TIP_SEEN, false)) showPinTip = true
             if (walk.distanceM >= MIN_WALK_M) {
                 showStats = false
-                showCharacters = false
+                showYou = false
                 postcardWalk = walk.id
             }
         }
@@ -285,7 +287,7 @@ fun MistyScreen() {
     }
 
     SideEffect {
-        map.setCovered(showStats || showCharacters || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
+        map.setCovered(showStats || showYou || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.CONSENT.name || firstRun == FirstRunStage.PICKER.name)
     }
 
     // The eraser: wire what it may do, put it down when another page covers the map, keep it in step with the state.
@@ -308,8 +310,8 @@ fun MistyScreen() {
     }
     val eraserUsable = eraserState is EraserState.Unlocked || eraserState is EraserState.Taste
     SideEffect { map.eraser.active = eraserActive && eraserUsable }
-    LaunchedEffect(showStats, showCharacters, showAbout, showPicker, postcardWalk) {
-        if (showStats || showCharacters || showAbout || showPicker || postcardWalk != null) eraserActive = false
+    LaunchedEffect(showStats, showYou, showAbout, showPicker, postcardWalk) {
+        if (showStats || showYou || showAbout || showPicker || postcardWalk != null) eraserActive = false
     }
 
     // The location button and the pointer to your character (shown when it is off-screen) do the same thing.
@@ -370,9 +372,9 @@ fun MistyScreen() {
                 )
             }
 
-            // Your character: opens character select
+            // Your character: opens the You page
             CharacterButton(
-                onClick = { showCharacters = true },
+                onClick = { showYou = true },
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(start = 20.dp, bottom = 180.dp),
@@ -548,8 +550,6 @@ fun MistyScreen() {
                     showStats = false
                     postcardWalk = id
                 },
-                onOpenAbout = { showAbout = true },
-                onOpenPicker = { pickerPreselect = emptyList(); showPicker = true },
                 onOpenPin = { id ->
                     PinStore.byId(id)?.let {
                         showStats = false
@@ -559,8 +559,12 @@ fun MistyScreen() {
                 },
             )
         }
-        if (showCharacters) {
-            CharacterScreen(onClose = { showCharacters = false })
+        if (showYou) {
+            AndroidYouScreen(
+                onClose = { showYou = false },
+                onOpenAbout = { showAbout = true },
+                onOpenPicker = { pickerPreselect = emptyList(); showPicker = true },
+            )
         }
         postcardWalk?.let { walkId ->
             PostcardScreen(walkId = walkId, host = rememberPostcardHost(), onClose = { postcardWalk = null })
@@ -680,9 +684,11 @@ private fun CharacterButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
     val frames = remember(character) { character?.let { SpriteFrames(it) } }
     // Always standing here, and the idle pose only changes every IDLE_FRAME_MS: no need to redraw more often.
     val ticker = rememberTicker(stepMs = Characters.IDLE_FRAME_MS)
+    // This button opens the "You" page, where the settings live: a screen reader needs to hear that.
+    val label = stringResource(R.string.you_title)
     FloatingActionButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = label },
         containerColor = MaterialTheme.colorScheme.surface,
         shape = CircleShape,
     ) {

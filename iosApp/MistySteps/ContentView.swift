@@ -109,7 +109,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom).padding(.bottom, 90).allowsHitTesting(false)
             }
             HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
-                    onStats: { app.route = .stats }, onCharacters: { app.route = .characters },
+                    onStats: { app.route = .stats }, onYou: { app.route = .you },
                     onLocate: locate, onPin: dropPin, onRecord: record, eraser: eraser)
             if let d = packs.active {
                 Button { pickerPreselect = []; app.route = .picker } label: {
@@ -174,17 +174,19 @@ struct ContentView: View {
                                onDone: { app.finishPicker(hasTrailPoints: fog.count > 0) })
                     .id(packs.provinces?.count ?? -1) // rebuilt when the catalog arrives
                     .ignoresSafeArea()
-            case .stats where backupHost != nil:
-                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book, backup: backupHost!, packs: packs.manager, provinces: packs.provinces,
-                              onOpenPicker: { pickerPreselect = []; app.route = .picker }, onOpenAbout: { app.route = .about },
+            case .stats:
+                StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book,
                               onOpenWalk: { id in app.close(); postcardWalk = id },
                               onClose: { app.close() })
+                    .ignoresSafeArea()
+            case .you where backupHost != nil:
+                YouHostView(backup: backupHost!, packs: packs.manager, provinces: packs.provinces,
+                            onOpenPicker: { pickerPreselect = []; app.route = .picker }, onOpenAbout: { app.route = .about },
+                            onClose: { app.close() })
                     .id(packs.provinces?.count ?? -1)
                     .ignoresSafeArea()
             case .about:
                 AboutHostView(onClose: { app.close() }).ignoresSafeArea()
-            case .characters:
-                CharacterHostView(onClose: { app.close() }).ignoresSafeArea()
             default:
                 EmptyView()
             }
