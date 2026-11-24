@@ -39,6 +39,12 @@ interface PostcardPainter {
     fun saveToPhotos(png: NSData, done: (Boolean) -> Unit)
 
     fun share(png: NSData, name: String)
+
+    /** All the walks, for the list you can swipe through. */
+    fun postcardSessions(): List<com.mistysteps.app.data.Session>
+
+    /** The ids of the walks that have a pin. */
+    fun walkIdsWithPins(): List<Long>
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -49,25 +55,29 @@ private fun NSData.toByteArray(): ByteArray {
 }
 
 private class IosPostcardHost(private val painter: PostcardPainter) : PostcardHost {
-    private var png: NSData? = null
+    // The PNG of every painted walk by file name: Save and Share must use the one on screen, not the last one painted.
+    private val pngs = mutableMapOf<String, NSData>()
 
     override suspend fun render(walkId: Long): ImageBitmap? = suspendCoroutine { cont ->
         painter.paint(walkId) { data ->
-            png = data
+            if (data != null) pngs[painter.fileName(walkId)] = data
             cont.resume(data?.let { runCatching { Image.makeFromEncoded(it.toByteArray()).toComposeImageBitmap() }.getOrNull() })
         }
     }
 
+    override suspend fun walkIds(startId: Long): List<Long> =
+        PostcardPaging.walkIds(painter.postcardSessions(), painter.walkIdsWithPins().toSet(), startId)
+
     override fun fileName(walkId: Long): String = painter.fileName(walkId)
 
     override suspend fun save(card: ImageBitmap, name: String): String {
-        val data = png ?: return getString(Res.string.postcard_save_failed)
+        val data = pngs[name] ?: return getString(Res.string.postcard_save_failed)
         val ok = suspendCoroutine { cont -> painter.saveToPhotos(data) { cont.resume(it) } }
         return getString(if (ok) Res.string.postcard_saved_photos else Res.string.postcard_save_failed)
     }
 
     override suspend fun share(card: ImageBitmap, name: String) {
-        png?.let { painter.share(it, name) }
+        pngs[name]?.let { painter.share(it, name) }
     }
 }
 
