@@ -590,10 +590,8 @@ fun MistyScreen() {
             AndroidStatsScreen(
                 here = remember { currentPlace() },
                 onClose = { showStats = false },
-                onOpenWalk = { id ->
-                    showStats = false
-                    postcardWalk = id
-                },
+                // The postcard opens over the stats page, so leaving it brings the stats page (and its scroll position) back.
+                onOpenWalk = { id -> postcardWalk = id },
                 onOpenPin = { id ->
                     PinStore.byId(id)?.let {
                         showStats = false
