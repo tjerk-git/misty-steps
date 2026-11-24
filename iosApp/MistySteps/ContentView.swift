@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var following = true
     /// Held, not observed: the pointer moves with every map frame and only `OffscreenPointerLayer` should redraw for it.
     @State private var pointerModel = PointerModel()
+    @StateObject private var pillModel = PillModel()
     @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
@@ -108,7 +109,7 @@ struct ContentView: View {
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom).padding(.bottom, 90).allowsHitTesting(false)
             }
-            HubView(fog: fog, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
+            HubView(fog: fog, pill: pillModel, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
                     onStats: { app.route = .stats }, onYou: { app.route = .you },
                     onLocate: locate, onPin: dropPin, onRecord: record, eraser: eraser)
             if let d = packs.active {
@@ -250,6 +251,7 @@ struct ContentView: View {
                 if allowed { grantedAction(afterGrant) } else { dialog = .settings }
             }
             location.start()
+            pillModel.start(store: fog.store, here: { location.coordinate ?? fog.lastKnown })
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
             // Test hook: -pointerdemo 1 starts with the camera not following you, so moving the simulated location off-screen shows the pointer.
@@ -267,7 +269,11 @@ struct ContentView: View {
         .task { eraser.purchases.start() }
         .sheet(isPresented: $eraser.showSheet) { EraserSheet(eraser: eraser, purchases: eraser.purchases) }
         .onChange(of: eraser.hint) { _, h in if let h { showHint(h); eraser.hint = nil } }
-        .onChange(of: app.route == nil) { _, closed in if !closed { eraser.mapCovered() } }
+        .onChange(of: app.route == nil) { _, mapShown in
+            if !mapShown { eraser.mapCovered() }
+            pillModel.active = mapShown
+            if mapShown { pillModel.refresh() }
+        }
         .alert(item: $dialog) { d in
             switch d {
             case .rationale:

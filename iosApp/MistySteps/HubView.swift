@@ -13,6 +13,7 @@ enum Misty {
 /// The controls on top of the map: the same layout, sizes and texts as Android's MistyScreen.
 struct HubView: View {
     @ObservedObject var fog: FogModel
+    @ObservedObject var pill: PillModel
     let showPinTip: Bool
     let onDismissPinTip: () -> Void
     let onStats: () -> Void
@@ -35,22 +36,27 @@ struct HubView: View {
 
     var body: some View {
         ZStack {
-            // Title and total distance (tap for stats)
-            Button(action: onStats) {
-                VStack(spacing: 0) {
-                    Text("Misty Steps")
-                        .font(.system(size: 18, weight: .semibold, design: .serif)).kerning(1.5)
-                        .foregroundStyle(Misty.ink)
-                    Text(IosTextsKt.mistClearedText(distanceM: fog.totalDistanceM))
-                        .font(.system(size: 12)).foregroundStyle(Misty.dusk)
+            // Buckets of mist cleared where you are (tap for stats); nothing until the first count is in.
+            if let p = pill.content {
+                Button(action: onStats) {
+                    VStack(spacing: 2) {
+                        Text(p.value)
+                            .font(.system(size: 26, weight: .semibold, design: .serif))
+                            .foregroundStyle(Misty.ink)
+                        Text(p.caption)
+                            .font(.system(size: 12)).lineSpacing(2).multilineTextAlignment(.center)
+                            .foregroundStyle(Misty.dusk)
+                    }
+                    .frame(maxWidth: 320)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 24).padding(.vertical, 10)
+                    .background(Misty.frost, in: RoundedRectangle(cornerRadius: 24))
+                    .shadow(color: .black.opacity(0.18), radius: 5, y: 3)
                 }
-                .padding(.horizontal, 22).padding(.vertical, 10)
-                .background(Misty.frost, in: Capsule())
-                .shadow(color: .black.opacity(0.18), radius: 5, y: 3)
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.top, 12)
             }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .padding(.top, 12)
 
             if let banner {
                 Button { banner.onTap?() } label: {
