@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -84,12 +85,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import com.mistysteps.app.stats.PillKey
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import com.mistysteps.app.stats.PillRefresh
+import com.mistysteps.app.stats.AndroidStatsSource
+import androidx.lifecycle.repeatOnLifecycle
 import com.mistysteps.app.announce.RatAnnouncement
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
@@ -289,6 +298,42 @@ fun MistyScreen() {
         map.setCovered(showStats || showYou || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.PICKER.name)
     }
 
+    // The pill at the top: buckets of mist cleared in your city or town. Recounted while the map is on screen, off the main
+    // thread; a failed count keeps the old text.
+    var pill by remember { mutableStateOf<PillContent?>(null) }
+    var pillHeightPx by remember { mutableStateOf(0) }
+    val pageOpen = showStats || showYou || showAbout || showPicker || postcardWalk != null ||
+        firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.PICKER.name
+    // The banner and the eraser bar go under the pill, however tall it is (two lines, a large font): at least where they always were.
+    val bannerTop = maxOf(88.dp, 12.dp + with(LocalDensity.current) { pillHeightPx.toDp() } + 12.dp)
+    val pillLifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(pageOpen) {
+        if (pageOpen) return@LaunchedEffect
+        pillLifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            val source = AndroidStatsSource(context)
+            var lastKey: PillKey? = null
+            while (true) {
+                val here = currentPlace()
+                // Recount only when the cleared ground or your spot changed: counting reads every point you ever cleared.
+                val key = PillRefresh.key(FogStore.version.value.toLong(), here?.first, here?.second)
+                if (key != lastKey) {
+                    val content = try {
+                        pillContent(source.compute(here?.first, here?.second))
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        null
+                    }
+                    if (content != null) {
+                        pill = content
+                        lastKey = key
+                    }
+                }
+                delay(PillRefresh.INTERVAL_MS)
+            }
+        }
+    }
+
     // The eraser: wire what it may do, put it down when another page covers the map, keep it in step with the state.
     LaunchedEffect(Unit) {
         if (EraserAccessHolder.debugOverride(context) == 2) { tasteLedger.reset(); tasteUsedM = 0.0 }
@@ -328,32 +373,32 @@ fun MistyScreen() {
 
         // Controls stay clear of status bar, navigation bar and camera cutouts.
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            // Title + distance (tap for stats)
-            Surface(
-                onClick = { showStats = true },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 12.dp),
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 6.dp,
-            ) {
-                Column(
-                    Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            // Buckets of mist cleared where you are (tap for stats); nothing until the first count is in.
+            pill?.let { p ->
+                Surface(
+                    onClick = { showStats = true },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
+                        .onSizeChanged { pillHeightPx = it.height },
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 6.dp,
                 ) {
-                    Text(
-                        "Misty Steps",
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        letterSpacing = 1.5.sp,
-                    )
-                    Text(
-                        stringResource(R.string.mist_cleared, formatDistance(distance)),
-                        fontSize = 12.sp,
-                        color = Dusk,
-                    )
+                    Column(
+                        Modifier.widthIn(max = 320.dp).padding(horizontal = 24.dp, vertical = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            p.value,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 26.sp,
+                            color = Ink,
+                        )
+                        Text(p.caption, fontSize = 12.sp, lineHeight = 15.sp, color = Dusk, textAlign = TextAlign.Center)
+                        p.place?.let { Text(it, fontSize = 12.sp, lineHeight = 15.sp, color = Dusk, textAlign = TextAlign.Center) }
+                    }
                 }
             }
 
@@ -435,7 +480,7 @@ fun MistyScreen() {
                     enabled = onTap != null,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = 88.dp, start = 32.dp, end = 32.dp),
+                        .padding(top = bannerTop, start = 32.dp, end = 32.dp),
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 4.dp,
@@ -456,7 +501,7 @@ fun MistyScreen() {
                     canUndo = eraserCanUndo,
                     onUndo = { map.eraser.undo() },
                     onDone = { eraserActive = false },
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 88.dp),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = bannerTop),
                 )
             }
             if (showEraserSheet) {

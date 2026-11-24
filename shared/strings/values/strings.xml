@@ -23,6 +23,9 @@
     <string name="show_my_location">Show my location</string>
     <string name="drop_a_pin">Drop a pin</string>
     <string name="mist_cleared">%1$s of mist cleared</string>
+    <!-- The pill at the top of the map: %1$s is the place, %2$s the share of it you cleared (0.066%). -->
+    <string name="pill_place_line">in %1$s (%2$s)</string>
+    <string name="pill_total_caption">buckets of mist cleared</string>
     <string name="banner_pin_tip">Tip: long-press ground you’ve cleared to leave a pin there. Tap to close.</string>
     <string name="banner_start">Tap Start wandering and go outside. The mist lifts wherever you walk.</string>
     <string name="toast_pin_fog">Pins go on cleared ground. Walk here first.</string>
