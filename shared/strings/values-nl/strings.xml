@@ -285,7 +285,7 @@
     <string name="fact_distance_marathon">Je liep %1$s marathons.</string>
     <string name="fact_distance_afsluitdijk">Je liep %1$s keer de Afsluitdijk.</string>
     <string name="fact_distance_elfsteden">Je liep %1$s Elfstedentochten.</string>
-    <string name="fact_distance_moon">Je bent %1$s van de weg naar de maan.</string>
+    <string name="fact_distance_moon">Je hebt al %1$s van de weg naar de maan afgelegd.</string>
     <string name="fact_area_parking_space">Je hebt zoveel grond opgeklaard als %1$s parkeerplaatsen.</string>
     <string name="fact_area_tennis_court">Je hebt zoveel grond opgeklaard als %1$s tennisbanen.</string>
     <string name="fact_area_football_pitch">Je hebt zoveel grond opgeklaard als %1$s voetbalvelden.</string>

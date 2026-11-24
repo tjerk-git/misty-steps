@@ -290,9 +290,9 @@
     <string name="fact_area_parking_space">You cleared as much ground as %1$s parking spaces.</string>
     <string name="fact_area_tennis_court">You cleared as much ground as %1$s tennis courts.</string>
     <string name="fact_area_football_pitch">You cleared as much ground as %1$s football pitches.</string>
-    <string name="fact_area_vatican">You cleared %1$s times the Vatican City.</string>
+    <string name="fact_area_vatican">You cleared Vatican City %1$s times over.</string>
     <string name="fact_area_vondelpark">You cleared %1$s Vondelparks.</string>
-    <string name="fact_area_monaco">You cleared %1$s times Monaco.</string>
+    <string name="fact_area_monaco">You cleared Monaco %1$s times over.</string>
     <string name="fact_area_schiermonnikoog">You cleared %1$s Schiermonnikoogs.</string>
     <string name="fact_area_texel">You cleared %1$s Texels.</string>
     <string name="fact_area_luxembourg">You cleared %1$s Luxembourgs.</string>

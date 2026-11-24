@@ -76,4 +76,13 @@ class CharactersFileTest {
             }
         }
     }
+
+    @Test
+    fun theReviewedFunFactSentencesReadNaturally() {
+        val en = File("strings/values/strings.xml").readText()
+        val nl = File("strings/values-nl/strings.xml").readText()
+        assertTrue("You cleared Monaco %1\$s times over." in en)
+        assertTrue("You cleared Vatican City %1\$s times over." in en)
+        assertTrue("Je hebt al %1\$s van de weg naar de maan afgelegd." in nl)
+    }
 }

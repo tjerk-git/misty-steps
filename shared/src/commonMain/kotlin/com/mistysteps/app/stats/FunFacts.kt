@@ -43,9 +43,9 @@ object FunFacts {
         FactReference("vondelpark", 470_000.0), // Vondelpark, about 47 ha
         FactReference("monaco", 2_020_000.0), // Monaco, 2,02 km2
         FactReference("schiermonnikoog", 40_000_000.0), // Schiermonnikoog, about 40 km2
-        FactReference("texel", 463_000_000.0), // Texel, about 463 km2
+        FactReference("texel", 162_000_000.0), // Texel, land only: about 162 km2 (463 km2 counts the sea around it)
         FactReference("luxembourg", 2_586_000_000.0), // Luxembourg, 2.586 km2
-        FactReference("friesland", 5_749_000_000.0), // Friesland, about 5.750 km2
+        FactReference("friesland", 3_340_000_000.0), // Friesland, land only: about 3.340 km2 (5.750 km2 counts the IJsselmeer and the Wadden Sea)
     )
 
     private val volume = listOf(

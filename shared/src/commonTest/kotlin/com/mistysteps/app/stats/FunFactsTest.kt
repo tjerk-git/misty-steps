@@ -76,4 +76,11 @@ class FunFactsTest {
         assertEquals(all.size, all.toSet().size)
         assertTrue(all.size >= 20)
     }
+
+    @Test
+    fun islandsAndProvincesAreMeasuredByTheirLandNotTheirWater() {
+        fun size(key: String) = FunFacts.references(FactMeasure.AREA).first { it.key == key }.size
+        assertEquals(162_000_000.0, size("texel"))
+        assertEquals(3_340_000_000.0, size("friesland"))
+    }
 }
