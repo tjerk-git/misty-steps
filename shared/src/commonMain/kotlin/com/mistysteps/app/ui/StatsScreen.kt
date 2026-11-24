@@ -493,7 +493,8 @@ private fun AreaCard(stat: AreaStat, extra: @Composable ColumnScope.() -> Unit =
             if (f == null) {
                 Text(stringResource(Res.string.stats_note_outside), color = Dusk, fontSize = 14.sp)
             } else {
-                Text(if (f < ONE_IN_BELOW) stringResource(Res.string.area_one_in, formatOneIn(f)) else formatPercent(f), fontFamily = FontFamily.Serif, fontSize = 34.sp, color = Ink)
+                val oneInTemplate = stringResource(Res.string.area_one_in, "%s")
+                Text(formatShare(f) { oneInTemplate.replace("%s", it) }, fontFamily = FontFamily.Serif, fontSize = 34.sp, color = Ink)
                 Spacer(Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { max(f.toFloat(), if (f > 0) 0.01f else 0f) },

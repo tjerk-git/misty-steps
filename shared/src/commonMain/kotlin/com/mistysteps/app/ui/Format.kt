@@ -42,6 +42,10 @@ fun formatOneIn(fraction: Double): String {
     return formatNumber(round(n / magnitude) * magnitude, 0, grouping = true)
 }
 
+/** A share as a percentage, or "1 in N" when it is too small to read; nothing cleared (0) is simply "0%". */
+fun formatShare(fraction: Double, oneIn: (String) -> String): String =
+    if (fraction > 0 && fraction < ONE_IN_BELOW) oneIn(formatOneIn(fraction)) else formatPercent(fraction)
+
 /** The words in a duration, from the string resources ([EN] is for tests). */
 class DurationText(val underMinute: String, val min: String, val hMin: String) {
     companion object {
