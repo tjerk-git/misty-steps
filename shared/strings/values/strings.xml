@@ -306,4 +306,6 @@
     <string name="fact_volume_pyramid">That is %1$s Great Pyramids of mist.</string>
     <string name="fact_volume_windermere">That is %1$s Lake Windermeres of mist.</string>
     <string name="fact_volume_ijsselmeer">That is %1$s times the IJsselmeer, in mist.</string>
+    <!-- Fun facts: the steps your selected animal needed for all your distance. %1$s is its name, %2$s the number. -->
+    <string name="fact_character_steps">Your %1$s needed about %2$s steps to walk all that.</string>
 </resources>

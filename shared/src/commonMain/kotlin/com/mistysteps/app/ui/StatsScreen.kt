@@ -82,6 +82,7 @@ import org.jetbrains.compose.resources.stringResource
 import com.mistysteps.app.pin.PinLabel
 import com.mistysteps.app.pin.textResource
 import com.mistysteps.app.pin.PinRules
+import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.Session
 import com.mistysteps.app.stats.AreaKind
 import com.mistysteps.app.stats.AreaStat
@@ -122,7 +123,11 @@ fun StatsScreen(
     var streets by remember { mutableStateOf<StreetStats?>(null) }
     var streetsMissing by remember { mutableStateOf(false) }
     val hoodBoundary = hood?.stat?.boundary
-    LaunchedEffect(stats) { stats?.let { facts = funFactLines(it, currentEpochDay()) } }
+    val selectedCharacter by Characters.selected.collectAsState()
+    val characterNames by Characters.names.collectAsState()
+    LaunchedEffect(stats, selectedCharacter, characterNames) {
+        stats?.let { facts = funFactLines(it, currentEpochDay(), selectedCharacter, selectedCharacter?.let { c -> characterNames[c.id] }) }
+    }
     LaunchedEffect(hoodBoundary) {
         if (hoodBoundary == null) return@LaunchedEffect
         streets = repo.streets(hoodBoundary)

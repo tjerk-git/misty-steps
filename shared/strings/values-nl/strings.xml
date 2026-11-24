@@ -305,4 +305,6 @@
     <string name="fact_volume_pyramid">Dat zijn %1$s Grote Piramides vol mist.</string>
     <string name="fact_volume_windermere">Dat zijn %1$s Windermeren vol mist.</string>
     <string name="fact_volume_ijsselmeer">Dat is %1$s keer het IJsselmeer, vol mist.</string>
+    <!-- Weetjes: de stappen die je gekozen dier nodig had voor al je afstand. %1$s is de naam, %2$s het getal. -->
+    <string name="fact_character_steps">Jouw %1$s had daar ongeveer %2$s stappen voor nodig.</string>
 </resources>
