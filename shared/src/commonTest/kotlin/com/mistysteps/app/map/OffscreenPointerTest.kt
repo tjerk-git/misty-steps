@@ -105,4 +105,10 @@ class OffscreenPointerTest {
         assertTrue(p.x in 0f..300f, "x ${p.x}")
         assertTrue(p.y in 0f..400f, "y ${p.y}")
     }
+
+    @Test
+    fun insetsScaleWithDensityAndClearTheControls() {
+        assertEquals(PointerInsets(32f, 464f, 32f, 680f), OffscreenPointer.insetsFor(2f))
+        assertEquals(24f * 3f, OffscreenPointer.hysteresisFor(3f), 1e-4f)
+    }
 }

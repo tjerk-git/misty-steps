@@ -16,7 +16,7 @@
 - Pointer has no text, no animation, translucent, same round-button look as the existing buttons.
 - Hidden while following, with no fix, or when the character is on-screen.
 - Tap action is the location button's action (Android `map.flyToMe()` via the same lambda; iPhone `locate`).
-- Insets (distance kept clear from the map edge, same unit as the screen size: px on Android, pt on iPhone): left 16dp, right 16dp, top 190dp, bottom 300dp. Hysteresis 24dp.
+- Insets (distance kept clear from the map edge, same unit as the screen size: px on Android, pt on iPhone): left 16dp, right 16dp, top 232dp, bottom 340dp (measured on the Pixel: hint card ends near 205dp, button column starts near 320dp from the bottom; they live in `OffscreenPointer.insetsFor(density)`, both apps call it). Hysteresis 24dp (`hysteresisFor(density)`).
 - Reuse the existing "show my location" string as the accessibility label; add no new strings.
 - Work on branch `offscreen-pointer`. Dev app (`com.potloodgum.mistysteps.debug`) only for any on-device check; never the user's release app, never unlock the phone.
 

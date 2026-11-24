@@ -17,6 +17,17 @@ object OffscreenPointer {
     /** The hysteresis margin in dp; callers multiply by the screen density. */
     const val HYSTERESIS_DP = 24f
 
+    /** Keeps the pointer's centre clear of the sides, the header and hint cards (top) and the button column and start bar (bottom). */
+    private const val INSET_SIDE_DP = 16f
+    private const val INSET_TOP_DP = 232f
+    private const val INSET_BOTTOM_DP = 340f
+
+    /** The insets for a screen with [density] pixels (or points) per dp. */
+    fun insetsFor(density: Float) =
+        PointerInsets(INSET_SIDE_DP * density, INSET_TOP_DP * density, INSET_SIDE_DP * density, INSET_BOTTOM_DP * density)
+
+    fun hysteresisFor(density: Float) = HYSTERESIS_DP * density
+
     /**
      * Null when the pointer is hidden: no fix, a target that is not a real point, no map yet, camera following you, or the
      * character on-screen. Once shown ([wasShown]) it stays until the character is [hysteresis] inside the map, so a character

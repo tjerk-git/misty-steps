@@ -311,8 +311,19 @@ fun MistyScreen() {
         if (showStats || showCharacters || showAbout || showPicker || postcardWalk != null) eraserActive = false
     }
 
+    // The location button and the pointer to your character (shown when it is off-screen) do the same thing.
+    val locate: () -> Unit = {
+        if (!RecordingService.hasLocationPermission(context)) {
+            askForLocation(AfterGrant.LOCATE)
+        } else if (!map.flyToMe()) {
+            Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
+        }
+    }
+    val pointer by map.pointer.collectAsState()
+
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { map.mapView }, modifier = Modifier.fillMaxSize())
+        pointer?.let { OffscreenPointerButton(it, locate) }
 
         // Controls stay clear of status bar, navigation bar and camera cutouts.
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
@@ -382,13 +393,7 @@ fun MistyScreen() {
 
             // Fly back to me
             FloatingActionButton(
-                onClick = {
-                    if (!RecordingService.hasLocationPermission(context)) {
-                        askForLocation(AfterGrant.LOCATE)
-                    } else if (!map.flyToMe()) {
-                        Toast.makeText(context, context.getString(R.string.toast_looking), Toast.LENGTH_SHORT).show()
-                    }
-                },
+                onClick = locate,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 20.dp, bottom = 108.dp),

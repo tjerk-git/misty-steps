@@ -13,6 +13,8 @@ import com.mistysteps.app.eraser.onTouch
 import com.mistysteps.app.map.LocationFeed
 import com.mistysteps.app.map.MarkersView
 import com.mistysteps.app.map.MistyMap
+import com.mistysteps.app.map.OffscreenPointer
+import com.mistysteps.app.map.PointerPlacement
 import com.mistysteps.app.map.TrailLayer
 import com.mistysteps.app.maps.MapsGraph
 import com.mistysteps.app.pin.Pin
@@ -21,6 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Owns the map screen's map: the MapLibre map (drawing the downloaded province packs), your trail on it, the mist and
@@ -55,8 +60,32 @@ class MapController(context: Context) {
     private var resumed = false
     private var covered = false
 
+    private val density = context.resources.displayMetrics.density
+    private val _pointer = MutableStateFlow<PointerPlacement?>(null)
+
+    /** Where the pointer to your character sits on the screen edge, or null while it is hidden (you are in view, following, or have no fix). */
+    val pointer: StateFlow<PointerPlacement?> = _pointer
+
+    private fun updatePointer() {
+        val projection = map.projection
+        val at = feed.fix.value?.let { projection.toScreen(it.lat, it.lon) }
+        _pointer.value = OffscreenPointer.place(
+            hasFix = at != null,
+            targetX = at?.x ?: 0f,
+            targetY = at?.y ?: 0f,
+            width = projection.width.toFloat(),
+            height = projection.height.toFloat(),
+            following = map.isFollowing,
+            insets = OffscreenPointer.insetsFor(density),
+            hysteresis = OffscreenPointer.hysteresisFor(density),
+            wasShown = _pointer.value != null,
+        )
+    }
+
     init {
-        map.onCameraMove = { fog.moved(); markers.moved() }
+        map.onCameraMove = { fog.moved(); markers.moved(); updatePointer() }
+        scope.launch { feed.fix.collect { updatePointer() } }
+        mapView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updatePointer() }
         map.addStyleListener { trail.install(it) }
         trail.watch(scope)
         map.onTouch = { eraser.onTouch(it) }
