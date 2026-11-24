@@ -42,6 +42,7 @@ import com.mistysteps.app.pin.PinSprites
 import com.mistysteps.app.pin.bitmap
 import com.mistysteps.app.ui.formatArea
 import com.mistysteps.app.ui.formatDistance
+import com.mistysteps.app.ui.postcardStepsLine
 import com.mistysteps.app.ui.durationText
 import com.mistysteps.app.ui.formatDuration
 import kotlinx.coroutines.Dispatchers
@@ -88,7 +89,9 @@ object PostcardRenderer {
         val credit = context.getString(R.string.osm_credit)
         // Only a name you gave: the species name would just say what the picture already shows.
         val withLine = character?.let { Characters.customName(it.id) }?.let { context.getString(R.string.postcard_with, it) }
-        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit, withLine) }
+        // How far the walk would be in steps of your animal (a small joke; null when there is no distance).
+        val stepsLine = character?.let { postcardStepsLine(it, Characters.customName(it.id), walk.distanceM) }
+        return withContext(Dispatchers.Default) { compose(map, mapRect, view, walk, points, character, pins, parts, credit, withLine, stepsLine) }
     }
 
     /**
@@ -125,7 +128,7 @@ object PostcardRenderer {
 
     private fun compose(
         map: Bitmap, mapRect: Rect, view: View, walk: Session, points: List<TrailPoint>, character: Character?,
-        pins: List<Pin>, parts: List<String>, credit: String, withLine: String?,
+        pins: List<Pin>, parts: List<String>, credit: String, withLine: String?, stepsLine: String?,
     ): Bitmap {
         val last = points.lastOrNull()
         val palette = MistPalette.at(walk.endTime ?: walk.startTime, last?.lat ?: 52.0, last?.lon ?: 5.0)
@@ -228,6 +231,15 @@ object PostcardRenderer {
         text.textSize = 44f
         text.color = EMBER
         c.drawText(parts.joinToString("  ·  "), MARGIN.toFloat(), y0 + 132, text)
+
+        stepsLine?.let { line ->
+            // Quiet and monospaced like the date, shrunk until it fits between the margins (Dutch with a long name is the widest).
+            text.typeface = Typeface.MONOSPACE
+            text.textSize = 34f
+            text.color = DUSK
+            while (text.measureText(line) > W - 2 * MARGIN && text.textSize > 22f) text.textSize -= 1f
+            c.drawText(line, MARGIN.toFloat(), y0 + 196, text)
+        }
 
         text.typeface = Typeface.DEFAULT
         text.textSize = 22f
