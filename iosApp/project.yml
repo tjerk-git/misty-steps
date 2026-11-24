@@ -20,6 +20,8 @@ targets:
       properties:
         # Compose Multiplatform on iOS aborts at start without this.
         CADisableMinimumFrameDurationOnPhone: true
+        # Portrait only: the app is built for one-handed walking, landscape is not supported.
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         # A walk keeps recording with the screen locked (location updates run only while a walk is on; see LocationModel).
         UIBackgroundModes: [location]
         NSPhotoLibraryAddUsageDescription: Misty Steps saves your postcard to Photos when you tap Save.
