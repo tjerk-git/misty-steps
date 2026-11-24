@@ -42,7 +42,7 @@ about 7,500 Trek Horse steps. It is a small joke that gives each character a siz
 - `characters.txt`: a new property `stride = <metres>` per character: cat 0.2, Black Cat 0.2, dog 0.4, otter 0.25, capybara 0.3, cow 0.8, horse 0.9, fox 0.35, duck 0.15, rat 0.05. `Character.strideM` (default 0.3 when missing).
 - `WalkSteps.count(distanceM, strideM)` and `WalkSteps.readable(steps)` in shared code, with unit tests.
 - `postcardStepsLine(character, customName, distanceM): String?` (shared, null when there are no steps), and `PostcardTexts.steps(...)` for Swift.
-- English: "That is about %1$s %2$s steps." Dutch: "Dat zijn zo'n %1$s stappen als %2$s."
+- English: "That is about %1$s %2$s steps." Dutch: "Dat zijn ongeveer %1$s stappen als %2$s."
 - Both renderers draw it under the stats line, in the quiet colour, shrinking the text to fit the width (not below 22 px).
 
 ## Left to the builder

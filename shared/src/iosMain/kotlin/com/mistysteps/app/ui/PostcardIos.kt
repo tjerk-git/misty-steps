@@ -4,6 +4,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.window.ComposeUIViewController
+import com.mistysteps.app.character.Characters
 import com.mistysteps.app.resources.Res
 import com.mistysteps.app.resources.duration_h_min
 import com.mistysteps.app.resources.duration_min
@@ -86,6 +87,11 @@ object PostcardTexts {
 
     /** "with Misty": only used when you named your character. */
     fun with(name: String): String = runBlocking { getString(Res.string.postcard_with, name) }
+
+    /** "That is about 31,000 Trail Cat steps.": null for an unknown character or a walk without steps. */
+    fun steps(characterId: String, customName: String?, distanceM: Double): String? = runBlocking {
+        Characters.all.firstOrNull { it.id == characterId }?.let { postcardStepsLine(it, customName, distanceM) }
+    }
 
     /** "1,6 km", "17 min", "13,2 ha new mist": the walk's numbers in order. */
     fun parts(distanceM: Double, durationMs: Long?, newAreaM2: Double?): List<String> = runBlocking {

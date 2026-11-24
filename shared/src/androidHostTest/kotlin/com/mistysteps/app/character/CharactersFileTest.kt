@@ -47,4 +47,14 @@ class CharactersFileTest {
         val lines = File("../app/src/main/assets/characters.txt").readLines().filterNot { it.trim().startsWith("stride") }
         for (c in Characters.parse(lines)) assertEquals(WalkSteps.DEFAULT_STRIDE_M, c.strideM, "${c.id}")
     }
+
+    @Test
+    fun theStepsTextExistsInEnglishAndDutchWithBothPlaceholders() {
+        for (dir in listOf("values", "values-nl")) {
+            val xml = File("strings/$dir/strings.xml").readText()
+            val line = xml.lines().firstOrNull { it.contains("name=\"postcard_steps\"") }
+            assertTrue(line != null, "$dir/strings.xml is missing postcard_steps")
+            assertTrue("%1\$s" in line && "%2\$s" in line, "$dir postcard_steps needs %1\$s (the number) and %2\$s (the animal)")
+        }
+    }
 }

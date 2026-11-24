@@ -15,7 +15,7 @@
 - No emoji anywhere.
 - Stride values (metres per step): cat 0.2, blackcat 0.2, dog 0.4, otter 0.25, capybara 0.3, cow 0.8, horse 0.9, fox 0.35, duck 0.15, rat 0.05. Default when missing: 0.3.
 - Rounding: exact below 100 steps, two significant digits from 100 up.
-- String name `postcard_steps`: English "That is about %1$s %2$s steps." Dutch "Dat zijn zo'n %1$s stappen als %2$s."
+- String name `postcard_steps`: English "That is about %1$s %2$s steps." Dutch "Dat zijn ongeveer %1$s stappen als %2$s."
 - Work on branch `walk-steps`. Never push. Do not touch the user's phone while it is locked.
 
 ## Review Focus
