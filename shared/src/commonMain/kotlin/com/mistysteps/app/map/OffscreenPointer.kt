@@ -17,10 +17,10 @@ object OffscreenPointer {
     /** The hysteresis margin in dp; callers multiply by the screen density. */
     const val HYSTERESIS_DP = 24f
 
-    /** Keeps the pointer's centre clear of the sides, the header and hint cards (top) and the button column and start bar (bottom). */
-    private const val INSET_SIDE_DP = 16f
+    /** Keeps the whole pointer (circle and arrow reach 32 dp from its centre) on screen and clear of the header and hint cards (top) and the button column and start bar (bottom; the column starts about 342 dp from the bottom on a tall iPhone). */
+    private const val INSET_SIDE_DP = 36f
     private const val INSET_TOP_DP = 232f
-    private const val INSET_BOTTOM_DP = 340f
+    private const val INSET_BOTTOM_DP = 384f
 
     /** The insets for a screen with [density] pixels (or points) per dp. */
     fun insetsFor(density: Float) =

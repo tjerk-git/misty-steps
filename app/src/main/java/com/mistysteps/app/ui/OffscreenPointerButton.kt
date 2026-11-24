@@ -30,7 +30,7 @@ import com.mistysteps.app.map.PointerPlacement
 import kotlin.math.PI
 import kotlin.math.roundToInt
 
-private val Size = 56.dp
+private val Size = 64.dp
 
 /**
  * A small round pointer on the screen edge: your character's face and an arrow toward where it is, shown while the camera is
@@ -50,9 +50,9 @@ fun OffscreenPointerButton(placement: PointerPlacement, onClick: () -> Unit) {
         Canvas(Modifier.size(Size)) {
             val c = Offset(size.width / 2, size.height / 2)
             rotate(degrees = (placement.angleRad * 180.0 / PI).toFloat(), pivot = c) {
-                val tip = 27.dp.toPx()
-                val base = 20.dp.toPx()
-                val wing = 6.dp.toPx()
+                val tip = 32.dp.toPx()
+                val base = 21.dp.toPx()
+                val wing = 8.dp.toPx()
                 drawPath(
                     Path().apply {
                         moveTo(c.x + tip, c.y)

@@ -151,14 +151,16 @@ private struct PulsingDot: View {
 }
 
 /// Your character standing still, as on the Android button (40 pt, idle pose).
-private struct CharacterFace: View {
+struct CharacterFace: View {
+    var size: CGFloat = 40
+
     var body: some View {
         TimelineView(.periodic(from: .now, by: Double(Characters.shared.IDLE_FRAME_MS) / 1000)) { context in
             if let c = Characters.shared.selected.value as? Character {
                 let ms = Int64(context.date.timeIntervalSince1970 * 1000)
                 let pixels = Characters.shared.frameAt(c: c, walking: false, timeMs: ms)
                 if let image = PixelImage.make(pixels: pixels, n: 18, scale: 3) {
-                    Image(uiImage: image).interpolation(.none).resizable().frame(width: 40, height: 40)
+                    Image(uiImage: image).interpolation(.none).resizable().frame(width: size, height: size)
                 }
             }
         }
