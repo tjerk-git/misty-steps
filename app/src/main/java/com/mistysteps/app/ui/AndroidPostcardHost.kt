@@ -14,6 +14,7 @@ import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.PinStore
 import com.mistysteps.app.postcard.PostcardRenderer
 import com.mistysteps.app.postcard.PostcardShare
+import com.mistysteps.app.stats.AndroidStatsSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -26,6 +27,12 @@ private class AndroidPostcardHost(private val context: Context) : PostcardHost {
         val walk = withContext(Dispatchers.IO) { FogStore.loadWalk(walkId) }
         if (walk == null || walk.second.isEmpty()) return null
         return PostcardRenderer.render(context, walk.first, walk.second, Characters.selected.value, PinStore.forWalk(walkId)).asImageBitmap()
+    }
+
+    override suspend fun walkIds(startId: Long): List<Long> {
+        val sessions = AndroidStatsSource(context).sessions()
+        val withPins = PinStore.pins.value.mapNotNull { it.sessionId }.toSet()
+        return PostcardPaging.walkIds(sessions, withPins, startId)
     }
 
     override fun fileName(walkId: Long): String =

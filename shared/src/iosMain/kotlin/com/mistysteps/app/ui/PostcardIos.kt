@@ -2,6 +2,7 @@ package com.mistysteps.app.ui
 
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.window.ComposeUIViewController
 import com.mistysteps.app.resources.Res
@@ -21,8 +22,10 @@ import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import platform.Foundation.NSData
+import platform.Foundation.create
 import platform.UIKit.UIViewController
 import platform.posix.memcpy
 
@@ -39,6 +42,12 @@ interface PostcardPainter {
     fun saveToPhotos(png: NSData, done: (Boolean) -> Unit)
 
     fun share(png: NSData, name: String)
+
+    /** All the walks, for the list you can swipe through. */
+    fun postcardSessions(): List<com.mistysteps.app.data.Session>
+
+    /** The ids of the walks that have a pin. */
+    fun walkIdsWithPins(): List<Long>
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -48,26 +57,33 @@ private fun NSData.toByteArray(): ByteArray {
     return out
 }
 
-private class IosPostcardHost(private val painter: PostcardPainter) : PostcardHost {
-    private var png: NSData? = null
+/** The picture as PNG data for Photos and the share sheet, encoded when asked so no PNG is kept for walks you swiped past. */
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private fun ImageBitmap.toPngData(): NSData? {
+    val bytes = Image.makeFromBitmap(asSkiaBitmap()).encodeToData(EncodedImageFormat.PNG)?.bytes ?: return null
+    return bytes.usePinned { NSData.create(bytes = it.addressOf(0), length = bytes.size.toULong()) }
+}
 
+private class IosPostcardHost(private val painter: PostcardPainter) : PostcardHost {
     override suspend fun render(walkId: Long): ImageBitmap? = suspendCoroutine { cont ->
         painter.paint(walkId) { data ->
-            png = data
             cont.resume(data?.let { runCatching { Image.makeFromEncoded(it.toByteArray()).toComposeImageBitmap() }.getOrNull() })
         }
     }
 
+    override suspend fun walkIds(startId: Long): List<Long> =
+        PostcardPaging.walkIds(painter.postcardSessions(), painter.walkIdsWithPins().toSet(), startId)
+
     override fun fileName(walkId: Long): String = painter.fileName(walkId)
 
     override suspend fun save(card: ImageBitmap, name: String): String {
-        val data = png ?: return getString(Res.string.postcard_save_failed)
+        val data = card.toPngData() ?: return getString(Res.string.postcard_save_failed)
         val ok = suspendCoroutine { cont -> painter.saveToPhotos(data) { cont.resume(it) } }
         return getString(if (ok) Res.string.postcard_saved_photos else Res.string.postcard_save_failed)
     }
 
     override suspend fun share(card: ImageBitmap, name: String) {
-        png?.let { painter.share(it, name) }
+        card.toPngData()?.let { painter.share(it, name) }
     }
 }
 
