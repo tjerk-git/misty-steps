@@ -160,6 +160,9 @@ struct ContentView: View {
             if let target = pinSheet {
                 PinSheetHostView(book: pins.book, target: target, onDone: { pinSheet = nil }).ignoresSafeArea()
             }
+            if app.ratCardDue {
+                RatCardHostView(onTry: { app.finishRatCard(tryIt: true) }, onLater: { app.finishRatCard(tryIt: false) }).ignoresSafeArea()
+            }
             switch app.route {
             case .onboarding:
                 OnboardingHostView(onDone: { app.finishOnboarding(hasTrailPoints: fog.count > 0) },
