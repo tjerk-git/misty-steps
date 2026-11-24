@@ -1,5 +1,7 @@
 package com.mistysteps.app.character
 
+import com.mistysteps.app.stats.FactMeasure
+import com.mistysteps.app.stats.FunFacts
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,6 +61,19 @@ class CharactersFileTest {
             assertTrue(total != null, "$dir is missing pill_total_caption")
             assertTrue("%1\$s" in place && "%2\$s" in place, "$dir pill_place_line needs the place (%1\$s) and its share (%2\$s)")
             assertTrue(lines.none { it.contains("name=\"pill_place_caption\"") }, "$dir still has the old one-line pill_place_caption")
+        }
+    }
+
+    @Test
+    fun everyFunFactHasItsSentenceInEnglishAndDutch() {
+        val keys = FactMeasure.entries.flatMap { m -> FunFacts.references(m).map { FunFacts.stringKey(m, it) } } + "facts_title"
+        for (dir in listOf("values", "values-nl")) {
+            val lines = File("strings/$dir/strings.xml").readLines()
+            for (key in keys) {
+                val line = lines.firstOrNull { it.contains("name=\"$key\"") }
+                assertTrue(line != null, "$dir/strings.xml is missing $key")
+                if (key != "facts_title") assertTrue("%1\$s" in line, "$dir $key needs %1\$s (the number)")
+            }
         }
     }
 }

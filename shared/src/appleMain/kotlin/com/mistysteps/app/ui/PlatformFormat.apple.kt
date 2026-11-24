@@ -1,6 +1,7 @@
 package com.mistysteps.app.ui
 
 import platform.Foundation.NSDate
+import platform.Foundation.timeIntervalSince1970
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDateFormatterMediumStyle
 import platform.Foundation.NSDateFormatterNoStyle
@@ -34,3 +35,5 @@ actual fun formatDateTime(epochMs: Long): String = dateText(epochMs, time = true
 actual fun formatDate(epochMs: Long): String = dateText(epochMs, time = false)
 
 actual fun countryName(region: String): String = NSLocale.currentLocale.displayNameForKey(NSLocaleCountryCode, region) ?: ""
+
+actual fun currentEpochDay(): Long = (NSDate().timeIntervalSince1970 / 86_400.0).toLong()

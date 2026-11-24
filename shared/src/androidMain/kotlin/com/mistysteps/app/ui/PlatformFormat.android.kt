@@ -14,3 +14,5 @@ actual fun formatDate(epochMs: Long): String = DateFormat.getDateInstance(DateFo
 
 actual fun countryName(region: String): String =
     Locale.Builder().setRegion(region).build().getDisplayCountry(Locale.getDefault())
+
+actual fun currentEpochDay(): Long = System.currentTimeMillis() / 86_400_000L

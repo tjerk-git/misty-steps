@@ -274,4 +274,34 @@
     <string name="eraser_taste_used">That was your free taste. Want the whole eraser?</string>
     <string name="eraser_unavailable">The store is not answering right now. Try again in a minute.</string>
     <string name="eraser_thanks">Thank you. Go erase something.</string>
+
+    <!-- Fun facts on the stats page. %1$s is the number (590, 1.5, 0.017%). Each sentence is written for its own reference. -->
+    <string name="facts_title">Fun facts</string>
+    <string name="fact_distance_tennis_court">You wandered %1$s tennis courts, end to end.</string>
+    <string name="fact_distance_blue_whale">You wandered %1$s blue whales, nose to tail.</string>
+    <string name="fact_distance_football_pitch">You wandered %1$s football pitches, goal to goal.</string>
+    <string name="fact_distance_dom_tower">Stack %1$s Dom Towers: that is how far you wandered.</string>
+    <string name="fact_distance_eiffel">You wandered %1$s Eiffel Towers lying down.</string>
+    <string name="fact_distance_burj">You wandered %1$s Burj Khalifas lying down.</string>
+    <string name="fact_distance_marathon">You wandered %1$s marathons.</string>
+    <string name="fact_distance_afsluitdijk">You wandered the Afsluitdijk %1$s times.</string>
+    <string name="fact_distance_elfsteden">You wandered %1$s Elfstedentochten.</string>
+    <string name="fact_distance_moon">You are %1$s of the way to the moon.</string>
+    <string name="fact_area_parking_space">You cleared as much ground as %1$s parking spaces.</string>
+    <string name="fact_area_tennis_court">You cleared as much ground as %1$s tennis courts.</string>
+    <string name="fact_area_football_pitch">You cleared as much ground as %1$s football pitches.</string>
+    <string name="fact_area_vatican">You cleared %1$s times the Vatican City.</string>
+    <string name="fact_area_vondelpark">You cleared %1$s Vondelparks.</string>
+    <string name="fact_area_monaco">You cleared %1$s times Monaco.</string>
+    <string name="fact_area_schiermonnikoog">You cleared %1$s Schiermonnikoogs.</string>
+    <string name="fact_area_texel">You cleared %1$s Texels.</string>
+    <string name="fact_area_luxembourg">You cleared %1$s Luxembourgs.</string>
+    <string name="fact_area_friesland">You cleared %1$s Frieslands.</string>
+    <string name="fact_volume_bathtub">That is %1$s bathtubs of mist.</string>
+    <string name="fact_volume_garden_pool">That is %1$s garden pools of mist.</string>
+    <string name="fact_volume_olympic_pool">That is %1$s Olympic swimming pools of mist.</string>
+    <string name="fact_volume_empire_state">That is %1$s Empire State Buildings of mist.</string>
+    <string name="fact_volume_pyramid">That is %1$s Great Pyramids of mist.</string>
+    <string name="fact_volume_windermere">That is %1$s Lake Windermeres of mist.</string>
+    <string name="fact_volume_ijsselmeer">That is %1$s times the IJsselmeer, in mist.</string>
 </resources>
