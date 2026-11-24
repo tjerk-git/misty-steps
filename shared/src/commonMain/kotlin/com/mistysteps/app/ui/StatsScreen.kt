@@ -54,6 +54,7 @@ import com.mistysteps.app.resources.made_by_sub
 import com.mistysteps.app.resources.made_by_title
 import com.mistysteps.app.resources.maps_title
 import com.mistysteps.app.resources.pins_empty
+import com.mistysteps.app.resources.facts_title
 import com.mistysteps.app.resources.stat_cleared
 import com.mistysteps.app.resources.stat_wandered
 import com.mistysteps.app.resources.stats_measuring
@@ -109,6 +110,8 @@ fun StatsScreen(
     PlatformBackHandler(onBack = onClose)
     val repo = source
     var stats by remember { mutableStateOf<Stats?>(null) }
+    // Crazy comparisons for the numbers; the same all day, another tomorrow.
+    var facts by remember { mutableStateOf<List<String>>(emptyList()) }
     var walks by remember { mutableStateOf<List<Session>>(emptyList()) }
     var hood by remember { mutableStateOf<NeighbourhoodResult?>(null) }
     LaunchedEffect(here) {
@@ -119,6 +122,7 @@ fun StatsScreen(
     var streets by remember { mutableStateOf<StreetStats?>(null) }
     var streetsMissing by remember { mutableStateOf(false) }
     val hoodBoundary = hood?.stat?.boundary
+    LaunchedEffect(stats) { stats?.let { facts = funFactLines(it, currentEpochDay()) } }
     LaunchedEffect(hoodBoundary) {
         if (hoodBoundary == null) return@LaunchedEffect
         streets = repo.streets(hoodBoundary)
@@ -171,6 +175,10 @@ fun StatsScreen(
                     SmallStat(stringResource(Res.string.stat_cleared), formatArea(s.clearedM2), Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(16.dp))
+                if (facts.isNotEmpty()) {
+                    FunFactsCard(facts)
+                    Spacer(Modifier.height(12.dp))
+                }
                 if (here != null) {
                     NeighbourhoodCard(hood, streets, streetsMissing)
                     Spacer(Modifier.height(12.dp))
@@ -362,6 +370,20 @@ private fun YourPlaces(pins: List<Pin>, onOpenPin: (Long) -> Unit) {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Crazy comparisons for your numbers: how far you wandered, how much ground and mist you cleared, in things you know. */
+@Composable
+private fun FunFactsCard(lines: List<String>) {
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Frost, shadowElevation = 2.dp) {
+        Column(Modifier.padding(20.dp)) {
+            Text(stringResource(Res.string.facts_title).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
+            for (line in lines) {
+                Spacer(Modifier.height(10.dp))
+                Text(line, fontFamily = FontFamily.Serif, fontSize = 17.sp, lineHeight = 22.sp, color = Ink)
             }
         }
     }

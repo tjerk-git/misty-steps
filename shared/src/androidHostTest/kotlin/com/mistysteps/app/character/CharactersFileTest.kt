@@ -1,5 +1,7 @@
 package com.mistysteps.app.character
 
+import com.mistysteps.app.stats.FactMeasure
+import com.mistysteps.app.stats.FunFacts
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -60,5 +62,27 @@ class CharactersFileTest {
             assertTrue("%1\$s" in place && "%2\$s" in place, "$dir pill_place_line needs the place (%1\$s) and its share (%2\$s)")
             assertTrue(lines.none { it.contains("name=\"pill_place_caption\"") }, "$dir still has the old one-line pill_place_caption")
         }
+    }
+
+    @Test
+    fun everyFunFactHasItsSentenceInEnglishAndDutch() {
+        val keys = FactMeasure.entries.flatMap { m -> FunFacts.references(m).map { FunFacts.stringKey(m, it) } } + "facts_title"
+        for (dir in listOf("values", "values-nl")) {
+            val lines = File("strings/$dir/strings.xml").readLines()
+            for (key in keys) {
+                val line = lines.firstOrNull { it.contains("name=\"$key\"") }
+                assertTrue(line != null, "$dir/strings.xml is missing $key")
+                if (key != "facts_title") assertTrue("%1\$s" in line, "$dir $key needs %1\$s (the number)")
+            }
+        }
+    }
+
+    @Test
+    fun theReviewedFunFactSentencesReadNaturally() {
+        val en = File("strings/values/strings.xml").readText()
+        val nl = File("strings/values-nl/strings.xml").readText()
+        assertTrue("You cleared Monaco %1\$s times over." in en)
+        assertTrue("You cleared Vatican City %1\$s times over." in en)
+        assertTrue("Je hebt al %1\$s van de weg naar de maan afgelegd." in nl)
     }
 }

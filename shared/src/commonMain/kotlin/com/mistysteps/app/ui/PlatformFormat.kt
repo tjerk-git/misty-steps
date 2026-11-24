@@ -14,3 +14,6 @@ expect fun formatDate(epochMs: Long): String
 
 /** The name of the country with ISO [region] code in the phone's language, or blank when unknown. */
 expect fun countryName(region: String): String
+
+/** Days since 1 January 1970 in UTC: what the fun facts rotate by. */
+expect fun currentEpochDay(): Long

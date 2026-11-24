@@ -9,6 +9,9 @@ import kotlin.math.roundToLong
 object MistBuckets {
     const val PER_SQUARE_METRE = 200.0
 
+    /** Litres of mist over one square metre of ground: 2 m deep, 1000 litres a cubic metre. */
+    const val LITRES_PER_SQUARE_METRE = 2_000.0
+
     /** The buckets in [areaM2] square metres; 0 for no ground or numbers that are not real. */
     fun count(areaM2: Double): Long {
         if (!areaM2.isFinite() || areaM2 <= 0.0) return 0L

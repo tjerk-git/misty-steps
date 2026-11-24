@@ -273,4 +273,34 @@
     <string name="eraser_taste_used">Dat was je gratis proefstukje. Wil je de hele gum?</string>
     <string name="eraser_unavailable">De winkel antwoordt even niet. Probeer het over een minuut opnieuw.</string>
     <string name="eraser_thanks">Bedankt. Ga wat uitgummen.</string>
+
+    <!-- Weetjes op de statistiekenpagina. %1$s is het getal (590, 1,5, 0,017%). Elke zin is voor zijn eigen vergelijking geschreven. -->
+    <string name="facts_title">Weetjes</string>
+    <string name="fact_distance_tennis_court">Je liep %1$s tennisbanen achter elkaar.</string>
+    <string name="fact_distance_blue_whale">Je liep %1$s blauwe vinvissen, van neus tot staart.</string>
+    <string name="fact_distance_football_pitch">Je liep %1$s voetbalvelden, van doel tot doel.</string>
+    <string name="fact_distance_dom_tower">Stapel %1$s Domtorens op elkaar: zo ver liep je.</string>
+    <string name="fact_distance_eiffel">Je liep %1$s Eiffeltorens, plat op de grond.</string>
+    <string name="fact_distance_burj">Je liep %1$s Burj Khalifa’s, plat op de grond.</string>
+    <string name="fact_distance_marathon">Je liep %1$s marathons.</string>
+    <string name="fact_distance_afsluitdijk">Je liep %1$s keer de Afsluitdijk.</string>
+    <string name="fact_distance_elfsteden">Je liep %1$s Elfstedentochten.</string>
+    <string name="fact_distance_moon">Je hebt al %1$s van de weg naar de maan afgelegd.</string>
+    <string name="fact_area_parking_space">Je hebt zoveel grond opgeklaard als %1$s parkeerplaatsen.</string>
+    <string name="fact_area_tennis_court">Je hebt zoveel grond opgeklaard als %1$s tennisbanen.</string>
+    <string name="fact_area_football_pitch">Je hebt zoveel grond opgeklaard als %1$s voetbalvelden.</string>
+    <string name="fact_area_vatican">Je hebt %1$s keer Vaticaanstad opgeklaard.</string>
+    <string name="fact_area_vondelpark">Je hebt %1$s Vondelparken opgeklaard.</string>
+    <string name="fact_area_monaco">Je hebt %1$s keer Monaco opgeklaard.</string>
+    <string name="fact_area_schiermonnikoog">Je hebt %1$s Schiermonnikoogs opgeklaard.</string>
+    <string name="fact_area_texel">Je hebt %1$s Texels opgeklaard.</string>
+    <string name="fact_area_luxembourg">Je hebt %1$s keer Luxemburg opgeklaard.</string>
+    <string name="fact_area_friesland">Je hebt %1$s keer Friesland opgeklaard.</string>
+    <string name="fact_volume_bathtub">Dat zijn %1$s badkuipen mist.</string>
+    <string name="fact_volume_garden_pool">Dat zijn %1$s tuinzwembaden vol mist.</string>
+    <string name="fact_volume_olympic_pool">Dat zijn %1$s olympische zwembaden vol mist.</string>
+    <string name="fact_volume_empire_state">Dat zijn %1$s Empire State Buildings vol mist.</string>
+    <string name="fact_volume_pyramid">Dat zijn %1$s Grote Piramides vol mist.</string>
+    <string name="fact_volume_windermere">Dat zijn %1$s Windermeren vol mist.</string>
+    <string name="fact_volume_ijsselmeer">Dat is %1$s keer het IJsselmeer, vol mist.</string>
 </resources>
