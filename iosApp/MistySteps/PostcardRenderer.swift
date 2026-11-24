@@ -35,6 +35,8 @@ final class PostcardRenderer {
             if let character { drawCharacter(ctx, character: character, last: last, view: view) }
         }
 
+        // How far the walk would be in steps of your animal (a small joke; nil when there is no distance).
+        let stepsLine = character.flatMap { PostcardTexts.shared.steps(characterId: $0.id, customName: customName, distanceM: walk.distanceM) }
         let parts = PostcardTexts.shared.parts(distanceM: walk.distanceM,
                                                durationMs: walk.endTime.map { KotlinLong(value: $0.int64Value - walk.startTime) },
                                                newAreaM2: walk.newAreaM2)
@@ -44,7 +46,7 @@ final class PostcardRenderer {
             ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
             mapImage.draw(in: mapRect)
             pixelFrame(ctx, mapRect)
-            drawTexts(walk: walk, parts: parts as? [String] ?? [], customName: customName, mapRect: mapRect)
+            drawTexts(walk: walk, parts: parts as? [String] ?? [], stepsLine: stepsLine, customName: customName, mapRect: mapRect)
         }
     }
 
@@ -164,7 +166,7 @@ final class PostcardRenderer {
         }
     }
 
-    private func drawTexts(walk: Session, parts: [String], customName: String?, mapRect: CGRect) {
+    private func drawTexts(walk: Session, parts: [String], stepsLine: String?, customName: String?, mapRect: CGRect) {
         let y0 = mapRect.maxY + 92 // baseline, as on Android; UIKit draws from the top of the line
         func draw(_ text: String, font: UIFont, color: UIColor, x: CGFloat, baseline: CGFloat, kern: CGFloat = 0, right: Bool = false) {
             let s = NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .kern: kern])
@@ -182,6 +184,12 @@ final class PostcardRenderer {
         date.timeStyle = .short
         draw(date.string(from: Date(timeIntervalSince1970: Double(walk.startTime) / 1000)), font: mono34, color: dusk, x: margin, baseline: y0 + 56)
         draw(parts.joined(separator: "  ·  "), font: .monospacedSystemFont(ofSize: 44, weight: .bold), color: ember, x: margin, baseline: y0 + 132)
+        if let line = stepsLine { // quiet like the date, shrunk until it fits between the margins (Dutch with a long name is the widest)
+            var size: CGFloat = 34
+            func font(_ size: CGFloat) -> UIFont { .monospacedSystemFont(ofSize: size, weight: .regular) }
+            while size > 22 && NSAttributedString(string: line, attributes: [.font: font(size)]).size().width > width - 2 * margin { size -= 1 }
+            draw(line, font: font(size), color: dusk, x: margin, baseline: y0 + 196)
+        }
         draw(PostcardTexts.shared.credit(), font: .systemFont(ofSize: 22), color: dusk, x: width - margin, baseline: height - 30, right: true)
     }
 }
