@@ -13,7 +13,6 @@ import java.net.URL
 object Analytics {
     private const val PREFS = "misty"
     private const val KEY_OPT_IN = "analytics_opt_in"
-    private const val KEY_ASKED = "analytics_asked"
     private const val KEY_LAST_PING = "analytics_last_ping"
     private const val TIMEOUT_MS = 5_000
 
@@ -24,13 +23,6 @@ object Analytics {
     /** Switching on does not send anything by itself; the next app start does. */
     fun setOptedIn(context: Context, value: Boolean) {
         prefs(context).edit().putBoolean(KEY_OPT_IN, value).apply()
-    }
-
-    /** Whether the person has been shown the consent step (and answered it, either way). */
-    fun wasAsked(context: Context): Boolean = prefs(context).getBoolean(KEY_ASKED, false)
-
-    fun markAsked(context: Context) {
-        prefs(context).edit().putBoolean(KEY_ASKED, true).apply()
     }
 
     /** Called once at app start. Sends at most one ping per [OpenPing.MIN_GAP_MS], and only when opted in on a release build. */

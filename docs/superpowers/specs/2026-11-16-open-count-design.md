@@ -95,3 +95,9 @@ D1 is chosen because a counter table is all that is needed and the dashboard is 
 1. Whether the Free plan's Access (up to 50 users) and D1 fit: they should.
 2. That the Worker really stores nothing beyond the counter (read the deployed code and the D1 table after a test ping).
 3. That a debug build and an opted-out release build send nothing (watch the network with the phone in airplane mode plus a packet check, or the Worker's count).
+
+## Changed 2026-11-24
+
+The consent question in the first-run flow was removed (the count is anonymous and the owner does not want to ask). The count itself is
+unchanged: it stays off until someone turns on "Usage counts" in Settings (the You page), people who said yes before keep counting, and
+the "What is sent" sheet and the ping stay. Whether to remove the whole feature (the app stores report installs) is left for later.

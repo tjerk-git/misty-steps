@@ -19,7 +19,6 @@ fun UsageCountsSwitch() {
         onOptedInChange = {
             on = it
             Analytics.setOptedIn(context, it)
-            Analytics.markAsked(context)
         },
         versionName = BuildConfig.VERSION_NAME,
     )

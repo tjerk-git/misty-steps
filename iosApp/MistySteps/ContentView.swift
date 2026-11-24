@@ -167,8 +167,6 @@ struct ContentView: View {
             case .onboarding:
                 OnboardingHostView(onDone: { app.finishOnboarding(hasTrailPoints: fog.count > 0) },
                                    onSkip: { app.finishOnboarding(hasTrailPoints: fog.count > 0) }).ignoresSafeArea()
-            case .consent:
-                ConsentHostView { allowed in app.answerConsent(allowed, hasTrailPoints: fog.count > 0) }.ignoresSafeArea()
             case .picker:
                 PickerHostView(provinces: packs.provinces, packs: packs.manager, preselected: pickerPreselect, existingUser: fog.count > 0,
                                onDone: { app.finishPicker(hasTrailPoints: fog.count > 0) })

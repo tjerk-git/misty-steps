@@ -11,17 +11,6 @@ struct SharedHelloView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
 
-/// The shared Compose consent page, full screen.
-struct ConsentHostView: UIViewControllerRepresentable {
-    var onAnswer: (Bool) -> Void
-
-    func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.consentViewController(onAnswer: { allowed in onAnswer(allowed.boolValue) })
-    }
-
-    func updateUIViewController(_ controller: UIViewController, context: Context) {}
-}
-
 /// The shared Compose first-run pages, full screen.
 struct OnboardingHostView: UIViewControllerRepresentable {
     var onDone: () -> Void
