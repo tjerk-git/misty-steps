@@ -156,9 +156,6 @@ struct ContentView: View {
             }
         }
         .overlay {
-            if let id = postcardWalk {
-                PostcardHostView(walkId: id, painter: postcards, onClose: { postcardWalk = nil }).id(id).ignoresSafeArea()
-            }
             if let target = pinSheet {
                 PinSheetHostView(book: pins.book, target: target, onDone: { pinSheet = nil }).ignoresSafeArea()
             }
@@ -176,7 +173,7 @@ struct ContentView: View {
                     .ignoresSafeArea()
             case .stats:
                 StatsHostView(store: fog.store, here: location.coordinate ?? fog.lastKnown, pins: pins.book,
-                              onOpenWalk: { id in app.close(); postcardWalk = id },
+                              onOpenWalk: { id in postcardWalk = id },
                               onClose: { app.close() })
                     .ignoresSafeArea()
             case .you where backupHost != nil:
@@ -189,6 +186,10 @@ struct ContentView: View {
                 AboutHostView(onClose: { app.close() }).ignoresSafeArea()
             default:
                 EmptyView()
+            }
+            // The postcard is drawn above the pages (the stats page too), so leaving it brings that page back.
+            if let id = postcardWalk {
+                PostcardHostView(walkId: id, painter: postcards, onClose: { postcardWalk = nil }).id(id).ignoresSafeArea()
             }
         }
         .onAppear {

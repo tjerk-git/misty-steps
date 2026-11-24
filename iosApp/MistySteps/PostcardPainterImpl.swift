@@ -25,6 +25,16 @@ final class PostcardPainterImpl: NSObject, ObservableObject, PostcardPainter {
         }
     }
 
+    /// All the walks, for the list you can swipe through.
+    func postcardSessions() -> [Session] {
+        (store.loadSessions(limit: KotlinInt(value: 10_000)) as? [Session]) ?? []
+    }
+
+    /// The ids of the walks that have a pin.
+    func walkIdsWithPins() -> [KotlinLong] {
+        ((pins?.pins.value as? [Pin]) ?? []).compactMap { $0.sessionId }
+    }
+
     func fileName(walkId: Int64) -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd-HHmm"
