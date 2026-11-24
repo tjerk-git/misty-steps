@@ -49,27 +49,29 @@ struct AboutHostView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
 
-/// The shared Compose character picker, full screen.
-struct CharacterHostView: UIViewControllerRepresentable {
-    var onClose: () -> Void
-
-    func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.characterViewController(onClose: { onClose() })
-    }
-
-    func updateUIViewController(_ controller: UIViewController, context: Context) {}
-}
-
-/// The shared Compose stats page, counted from the trails stored on this phone.
-struct StatsHostView: UIViewControllerRepresentable {
-    let store: SQLiteTrailStore
-    let here: CLLocationCoordinate2D?
-    let pins: PinBook
+/// The shared Compose "You" page (your character and the settings), full screen.
+struct YouHostView: UIViewControllerRepresentable {
     let backup: BackupHost
     let packs: PackManager
     let provinces: [PackEntry]?
     var onOpenPicker: () -> Void
     var onOpenAbout: () -> Void
+    var onClose: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        StatsIosKt.youViewController(
+            versionName: appVersion, backup: backup, packs: packs, provinces: provinces,
+            onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onClose: { onClose() })
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
+/// The shared Compose stats page: the numbers counted from the trails on this device, full screen.
+struct StatsHostView: UIViewControllerRepresentable {
+    let store: SQLiteTrailStore
+    let here: CLLocationCoordinate2D?
+    let pins: PinBook
     var onOpenWalk: (Int64) -> Void
     var onClose: () -> Void
 
@@ -77,8 +79,7 @@ struct StatsHostView: UIViewControllerRepresentable {
         StatsIosKt.statsViewController(
             points: store, sessions: store,
             hereLat: here.map { KotlinDouble(value: $0.latitude) }, hereLon: here.map { KotlinDouble(value: $0.longitude) },
-            versionName: appVersion, pins: pins.pins, backup: backup, packs: packs, provinces: provinces,
-            onOpenPicker: { onOpenPicker() }, onOpenAbout: { onOpenAbout() }, onOpenWalk: { onOpenWalk($0.int64Value) }, onClose: { onClose() })
+            pins: pins.pins, onOpenWalk: { onOpenWalk($0.int64Value) }, onClose: { onClose() })
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}

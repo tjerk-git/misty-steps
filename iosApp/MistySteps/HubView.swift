@@ -16,7 +16,7 @@ struct HubView: View {
     let showPinTip: Bool
     let onDismissPinTip: () -> Void
     let onStats: () -> Void
-    let onCharacters: () -> Void
+    let onYou: () -> Void
     let onLocate: () -> Void
     let onPin: () -> Void
     let onRecord: () -> Void
@@ -79,8 +79,8 @@ struct HubView: View {
                     .padding(.top, 88)
             }
 
-            // Bottom left: your character (opens the picker) above the stats button.
-            round(action: onCharacters, label: "Characters") { CharacterFace() }
+            // Bottom left: your character (opens the "You" page) above the stats button.
+            round(action: onYou, label: "You") { CharacterFace() }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .padding(.leading, 20).padding(.bottom, 180)
             round(action: onStats, label: "Stats") { StatsBars() }
