@@ -12,7 +12,6 @@ class RatAnnouncementTest {
         assertTrue(RatAnnouncement.due(FirstRunStage.DONE, seen = false))
         assertFalse(RatAnnouncement.due(FirstRunStage.DONE, seen = true))
         assertFalse(RatAnnouncement.due(FirstRunStage.ONBOARDING, seen = false))
-        assertFalse(RatAnnouncement.due(FirstRunStage.CONSENT, seen = false))
         assertFalse(RatAnnouncement.due(FirstRunStage.PICKER, seen = false))
     }
 

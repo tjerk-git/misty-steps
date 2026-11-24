@@ -244,10 +244,6 @@
     </plurals>
 
     <!-- Anonymous open count -->
-    <string name="consent_title">Anoniem tellen hoe vaak de app opent?</string>
-    <string name="consent_body">Een klein bericht elke keer dat je de app opent: alleen dat hij is geopend en welke versie. Geen naam, geen ID, geen locatie, niets over je wandelingen. Je kunt dit altijd aanpassen op de Jij-pagina (tik op je dier op de kaart).</string>
-    <string name="consent_yes">Ja, tel mijn keren openen</string>
-    <string name="consent_no">Nee, bedankt</string>
     <!-- Usage counts card -->
     <string name="usage_title">Gebruikstellingen</string>
     <string name="usage_body">Tel anoniem hoe vaak de app wordt geopend.</string>
