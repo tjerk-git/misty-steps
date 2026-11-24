@@ -33,7 +33,7 @@ Private by design
 - Your walks, pins and settings stay on your phone
 - Your location is used on the phone only and never sent anywhere
 - No ads and no tracking
-- An optional, anonymous open count, off until you turn it on in Settings (the first-run question was removed 2026-11-24)
+- An optional, anonymous open count, off until you say yes
 - Back up your map to a file you keep yourself
 
 Free, and it stays free. All twelve provinces are free to download. If Misty Steps gets you out of the door, you are welcome to support it, but nothing is locked.
@@ -98,6 +98,7 @@ De eerste versie van Misty Steps voor iPhone.
 - Demo account: none.
 
 ## App Privacy (nutrition label)
+- CHANGED 2026-11-24: the first-run question about the open count was removed. The count is still off until the person turns on "Usage counts" on the You page, so the declaration and the store wording ("off until you say yes") stay true.
 - DECIDED 2026-11-19: declare the optional open count. (Earlier note: the optional anonymous open count sends app version, platform and a day count to stats.potloodgum.com only if the user says yes, with no identifier. Apple's rule counts anything sent off the device and kept as collected. Safest honest answer: declare Usage Data > Other Usage Data, "Not linked to the user", "Not used for tracking", purpose Analytics. If you declare it, add the same to `iosApp/MistySteps/PrivacyInfo.xcprivacy` (NSPrivacyCollectedDataTypes) in the next build so the two match. Done in the manifest.)
 - Tracking: No.
 
