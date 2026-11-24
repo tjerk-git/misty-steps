@@ -14,8 +14,11 @@ import org.jetbrains.compose.resources.getString
 suspend fun postcardStepsLine(character: Character, customName: String?, distanceM: Double): String? {
     val steps = WalkSteps.readable(WalkSteps.count(distanceM, character.strideM))
     if (steps <= 0L) return null
-    val animal = customName?.takeIf { it.isNotBlank() }
+    return getString(Res.string.postcard_steps, formatNumber(steps.toDouble(), 0, grouping = true), animalName(character, customName))
+}
+
+/** The name you gave your character, or else its (translated) species name. */
+internal suspend fun animalName(character: Character, customName: String?): String =
+    customName?.takeIf { it.isNotBlank() }
         ?: Res.allStringResources["character_${character.id}_name"]?.let { getString(it) }
         ?: character.name
-    return getString(Res.string.postcard_steps, formatNumber(steps.toDouble(), 0, grouping = true), animal)
-}

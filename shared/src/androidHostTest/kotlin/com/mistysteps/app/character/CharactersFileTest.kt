@@ -119,4 +119,13 @@ class CharactersFileTest {
             assertTrue("%1\$s" in line && "%2\$s" in line, "$dir postcard_steps needs %1\$s (the number) and %2\$s (the animal)")
         }
     }
+
+    @Test
+    fun theCharacterStepsFactExistsInEnglishAndDutch() {
+        for (dir in listOf("values", "values-nl")) {
+            val line = File("strings/$dir/strings.xml").readLines().firstOrNull { it.contains("name=\"fact_character_steps\"") }
+            assertTrue(line != null, "$dir/strings.xml is missing fact_character_steps")
+            assertTrue("%1\$s" in line && "%2\$s" in line, "$dir fact_character_steps needs the animal (%1\$s) and the number (%2\$s)")
+        }
+    }
 }
