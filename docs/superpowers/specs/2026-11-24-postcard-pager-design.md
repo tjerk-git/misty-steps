@@ -28,7 +28,7 @@ Tapping a walk in the stats log opens its postcard, and that is a dead end: to s
 
 - No emoji anywhere (project rule).
 - Painting a postcard is expensive (a map snapshot), so a page paints only when it is reached, and only the current page and its neighbours stay in memory.
-- The walks to cycle through are the ones the log shows (`walksToShow`: long enough, or with a pin, or still running), newest first, and the walk you opened is always among them.
+- The walks to cycle through are the ones the log shows (`walksToShow`: long enough, or with a pin; a walk still going cannot be opened from the log, so it is no page either), newest first, and the walk you opened is always among them.
 
 ## Approaches
 
@@ -41,7 +41,7 @@ Tapping a walk in the stats log opens its postcard, and that is a dead end: to s
 - `PostcardPaging.walkIds(walks, walksWithPins, startId)` (shared, pure): newest first (walk ids are start times), only the walks the log shows, the start walk always included.
 - `PostcardHost.walkIds(startId)` (suspend): Android reads the sessions and the pins; the iPhone painter gives the sessions and the pins' walk ids and the shared host calls `PostcardPaging`.
 - `PostcardScreen(walkId, host, onClose)` keeps its signature: it loads the list, then shows a `HorizontalPager` starting on the opened walk; each page paints itself when composed and caches the picture; pages more than one away are dropped from the cache.
-- iPhone host keeps the PNG of every painted walk by file name, so Save and Share use the right one.
+- The iPhone host encodes the PNG from the picture on screen when you tap Save or Share (it used to remember only the last painted one), so Save and Share always use the postcard you are looking at and no PNGs pile up.
 - Android: opening a postcard from the stats page no longer closes the stats page, so closing the postcard shows it again. iPhone: the same through the route and the overlay order (the postcard is drawn above the stats page).
 
 ## Left to the builder

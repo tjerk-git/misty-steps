@@ -24,7 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import com.mistysteps.app.resources.Res
-import com.mistysteps.app.resources.postcard_back
+import com.mistysteps.app.resources.postcard_close
 import com.mistysteps.app.resources.postcard_description
 import com.mistysteps.app.resources.postcard_failed
 import com.mistysteps.app.resources.postcard_painting
@@ -176,7 +176,7 @@ private fun PostcardPages(ids: List<Long>, startId: Long, host: PostcardHost, on
             ) { Text(stringResource(Res.string.share)) }
         }
         message?.let { Text(it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp)) }
-        TextButton(onClick = onClose) { Text(stringResource(Res.string.postcard_back), color = Color.White) }
+        TextButton(onClick = onClose) { Text(stringResource(Res.string.postcard_close), color = Color.White) }
     }
 }
 
@@ -196,7 +196,8 @@ private fun PostcardPage(
         }
         if (picture == null) failed[walkId] = true else cards[walkId] = picture
     }
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    // Inset, so the card and its shadow fit inside the pager's clip (it cuts a shadow off flush with the card's sides).
+    Box(Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 18.dp), contentAlignment = Alignment.Center) {
         val bmp = cards[walkId]
         when {
             bmp != null -> Image(

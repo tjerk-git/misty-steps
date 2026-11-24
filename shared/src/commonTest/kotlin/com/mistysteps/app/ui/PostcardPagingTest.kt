@@ -26,9 +26,16 @@ class PostcardPagingTest {
     }
 
     @Test
-    fun aRunningWalkStays() {
+    fun aRunningWalkIsLeftOut() {
+        // The log does not let you open a walk that is still going, so you cannot swipe to it either.
         val walks = listOf(walk(3, distance = 10.0, ended = false), walk(1))
-        assertEquals(listOf(3L, 1L), PostcardPaging.walkIds(walks, emptySet(), 1))
+        assertEquals(listOf(1L), PostcardPaging.walkIds(walks, emptySet(), 1))
+    }
+
+    @Test
+    fun aRunningWalkYouOpenedStays() {
+        val walks = listOf(walk(3, distance = 10.0, ended = false), walk(1))
+        assertEquals(listOf(3L, 1L), PostcardPaging.walkIds(walks, emptySet(), 3))
     }
 
     @Test

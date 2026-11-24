@@ -134,7 +134,7 @@
     <string name="postcard_saved">Bewaard in Afbeeldingen › Misty Steps</string>
     <string name="postcard_use_share">Gebruik Deel om hem op deze telefoon te bewaren</string>
     <string name="postcard_save_failed">Kon de ansichtkaart niet bewaren</string>
-    <string name="postcard_back">Terug naar de mist</string>
+    <string name="postcard_close">Terug</string>
     <string name="postcard_share_chooser">Deel je wandeling</string>
     <string name="osm_credit">© OpenStreetMap-bijdragers · © OpenMapTiles</string>
 

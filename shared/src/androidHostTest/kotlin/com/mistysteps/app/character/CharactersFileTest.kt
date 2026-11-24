@@ -85,4 +85,12 @@ class CharactersFileTest {
         assertTrue("You cleared Vatican City %1\$s times over." in en)
         assertTrue("Je hebt al %1\$s van de weg naar de maan afgelegd." in nl)
     }
+
+    @Test
+    fun thePostcardCloseButtonHasANeutralLabel() {
+        val en = File("strings/values/strings.xml").readText()
+        val nl = File("strings/values-nl/strings.xml").readText()
+        assertTrue("<string name=\"postcard_close\">Back</string>" in en)
+        assertTrue("<string name=\"postcard_close\">Terug</string>" in nl)
+    }
 }
