@@ -8,6 +8,8 @@ struct ContentView: View {
     @StateObject private var packs = PackStore()
     @State private var mapStatus = "loading"
     @State private var following = true
+    /// Held, not observed: the pointer moves with every map frame and only `OffscreenPointerLayer` should redraw for it.
+    @State private var pointerModel = PointerModel()
     @StateObject private var app = AppModel()
     @StateObject private var fog = FogModel(store: ContentView.store)
     @StateObject private var pins = PinsModel(storage: ContentView.store)
@@ -97,8 +99,9 @@ struct ContentView: View {
                     onOpenPin: { pinSheet = .open(id: $0) },
                     onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },
-                    status: $mapStatus, following: $following)
+                    status: $mapStatus, following: $following, pointerModel: pointerModel)
                 .ignoresSafeArea()
+            OffscreenPointerLayer(model: pointerModel, onTap: locate)
             if debugStrip {
                 Text("pack \(packText) | spots \(fog.count) | \(mapStatus)")
                     .font(.system(size: 10)).padding(6)
@@ -246,6 +249,8 @@ struct ContentView: View {
             location.start()
             // Test hooks: -autostart 1 begins a walk at launch, -autostop N ends it after N seconds.
             if UserDefaults.standard.integer(forKey: "autostart") > 0 { fog.beginWalk() }
+            // Test hook: -pointerdemo 1 starts with the camera not following you, so moving the simulated location off-screen shows the pointer.
+            if UserDefaults.standard.integer(forKey: "pointerdemo") > 0 { following = false }
             // Test hook (demo video): -demochar <id> picks that character after -demochardelay seconds (default 3), so the picker shows the choice move.
             if let id = UserDefaults.standard.string(forKey: "demochar") {
                 let delay = UserDefaults.standard.object(forKey: "demochardelay") != nil ? UserDefaults.standard.double(forKey: "demochardelay") : 3

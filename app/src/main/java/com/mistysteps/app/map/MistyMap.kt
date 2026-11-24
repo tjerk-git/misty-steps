@@ -81,6 +81,9 @@ class MistyMap(context: Context, private val packs: ProvincePacks, private val t
     var onLongPress: ((Float, Float) -> Boolean)? = null
 
     private var following = false
+
+    /** True while the camera is set to glide after you (a one-finger drag turns it off, the location button on again). */
+    val isFollowing: Boolean get() = following
     private var flyInPending = false
     private var resumed = false
     private var pausedAt = 0L
