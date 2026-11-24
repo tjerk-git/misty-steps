@@ -33,36 +33,47 @@ private fun bundledCityIndex(): CityIndex? {
     return runCatching { CityIndex.parse(text) }.getOrNull()
 }
 
-/**
- * The stats page counted from the trails on this device. [hereLat]/[hereLon] are where you are now (or null);
- * the maps card opens the province picker through [onOpenPicker].
- */
+/** The stats page counted from the trails on this device. [hereLat]/[hereLon] are where you are now (or null). */
 fun statsViewController(
     points: PointStore,
     sessions: SessionStore,
     hereLat: Double?,
     hereLon: Double?,
-    versionName: String,
     pins: StateFlow<List<Pin>>,
-    backup: BackupHost,
-    packs: PackManager,
-    provinces: List<PackEntry>?,
-    onOpenPicker: () -> Unit,
-    onOpenAbout: () -> Unit,
     onOpenWalk: (Long) -> Unit,
     onClose: () -> Unit,
 ): UIViewController = ComposeUIViewController {
     MistyTheme {
         val source = remember { LocalStatsSource(points, sessions, lazy { bundledCityIndex() }) }
-        val defaults = NSUserDefaults.standardUserDefaults
-        var optedIn by remember { mutableStateOf(defaults.boolForKey("analytics_opt_in")) }
         StatsScreen(
             source = source,
             pins = pins,
             here = if (hereLat != null && hereLon != null) hereLat to hereLon else null,
-            versionName = versionName,
             showBattery = false,
-            slots = StatsSlots(
+            onClose = onClose,
+            onOpenWalk = onOpenWalk,
+            onOpenPin = {},
+        )
+    }
+}
+
+/**
+ * The "You" page: your character and the settings. The maps card opens the province picker through [onOpenPicker].
+ */
+fun youViewController(
+    versionName: String,
+    backup: BackupHost,
+    packs: PackManager,
+    provinces: List<PackEntry>?,
+    onOpenPicker: () -> Unit,
+    onOpenAbout: () -> Unit,
+    onClose: () -> Unit,
+): UIViewController = ComposeUIViewController {
+    MistyTheme {
+        val defaults = NSUserDefaults.standardUserDefaults
+        var optedIn by remember { mutableStateOf(defaults.boolForKey("analytics_opt_in")) }
+        YouScreen(
+            slots = YouSlots(
                 mapsCard = { YourMapsCard(provinces, packs, onOpenPicker) },
                 backupCard = { onImported -> BackupCard(backup, onImported) },
                 usageCard = {
@@ -81,10 +92,9 @@ fun statsViewController(
                     NSURL.URLWithString(mail)?.let { UIApplication.sharedApplication.openURL(it) }
                 },
             ),
+            versionName = versionName,
             onClose = onClose,
-            onOpenWalk = onOpenWalk,
             onOpenAbout = onOpenAbout,
-            onOpenPin = {},
         )
     }
 }

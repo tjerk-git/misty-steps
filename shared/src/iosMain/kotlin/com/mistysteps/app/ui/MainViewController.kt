@@ -29,10 +29,6 @@ fun usageCardViewController(versionName: String): UIViewController = ComposeUIVi
     }
 }
 
-/** The "choose your wanderer" page. */
-fun characterViewController(onClose: () -> Unit): UIViewController =
-    ComposeUIViewController { MistyTheme { CharacterScreen(onClose) } }
-
 /** "Which provinces do you want to explore?"; [provinces] null means the catalog could not be loaded. */
 fun provincePickerViewController(
     provinces: List<com.mistysteps.app.maps.PackEntry>?,

@@ -138,6 +138,12 @@
     <!-- Personages -->
     <string name="characters_title">Wie loopt door de mist?</string>
     <string name="characters_sub">Kies je wandelmaatje. Het loopt met je mee op de kaart.</string>
+
+    <!-- De "Jij"-pagina: je personage en de instellingen. -->
+    <string name="you_title">Jij</string>
+    <string name="you_settings_header">Instellingen</string>
+    <string name="you_about_header">Over</string>
+    <string name="you_change_character">Verander van dier</string>
     <string name="character_cat_name">Wandelkat</string>
     <string name="character_cat_blurb">Negen levens, geen spijt.</string>
     <string name="character_dog_name">Padvinderhond</string>

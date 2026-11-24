@@ -139,6 +139,12 @@
     <!-- Characters. The name and blurb in assets/characters.txt are the fallback. -->
     <string name="characters_title">Who walks the mist?</string>
     <string name="characters_sub">Pick your wanderer. They’ll walk with you on the map.</string>
+
+    <!-- The "You" page: your character and the settings. -->
+    <string name="you_title">You</string>
+    <string name="you_settings_header">Settings</string>
+    <string name="you_about_header">About</string>
+    <string name="you_change_character">Change character</string>
     <string name="character_cat_name">Trail Cat</string>
     <string name="character_cat_blurb">Nine lives, zero regrets.</string>
     <string name="character_dog_name">Scout Dog</string>

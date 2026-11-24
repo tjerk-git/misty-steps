@@ -92,30 +92,18 @@ import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.max
 
-/** The parts of the stats page that differ by platform: cards that need files, sharing or downloads, and feedback. */
-class StatsSlots(
-    val mapsCard: @Composable () -> Unit,
-    /** The backup card; call [onImported] after data was added, so everything is counted again. */
-    val backupCard: @Composable (onImported: () -> Unit) -> Unit,
-    val usageCard: @Composable () -> Unit,
-    val onFeedback: () -> Unit,
-)
-
 /**
- * How far you got, the walk log, your pins and the settings cards. [source] counts, [pins] are all your pins,
- * [versionName] is shown under "made by", [showBattery] adds battery use to the walk log (test builds).
+ * How far you got, the walk log and your pins. [source] counts, [pins] are all your pins, [showBattery] adds battery
+ * use to the walk log (test builds). The settings live on the "You" page ([YouScreen]).
  */
 @Composable
 fun StatsScreen(
     source: StatsSource,
     pins: StateFlow<List<Pin>>,
     here: Pair<Double, Double>?,
-    versionName: String,
     showBattery: Boolean,
-    slots: StatsSlots,
     onClose: () -> Unit,
     onOpenWalk: (Long) -> Unit,
-    onOpenAbout: () -> Unit,
     onOpenPin: (Long) -> Unit,
 ) {
     PlatformBackHandler(onBack = onClose)
@@ -123,9 +111,7 @@ fun StatsScreen(
     var stats by remember { mutableStateOf<Stats?>(null) }
     var walks by remember { mutableStateOf<List<Session>>(emptyList()) }
     var hood by remember { mutableStateOf<NeighbourhoodResult?>(null) }
-    // Bumped after an import, so everything is counted again.
-    var refresh by remember { mutableStateOf(0) }
-    LaunchedEffect(here, refresh) {
+    LaunchedEffect(here) {
         stats = repo.compute(here?.first, here?.second)
         if (here != null) hood = repo.neighbourhood(here.first, here.second)
     }
@@ -133,12 +119,12 @@ fun StatsScreen(
     var streets by remember { mutableStateOf<StreetStats?>(null) }
     var streetsMissing by remember { mutableStateOf(false) }
     val hoodBoundary = hood?.stat?.boundary
-    LaunchedEffect(hoodBoundary, refresh) {
+    LaunchedEffect(hoodBoundary) {
         if (hoodBoundary == null) return@LaunchedEffect
         streets = repo.streets(hoodBoundary)
         streetsMissing = streets == null
     }
-    LaunchedEffect(refresh) { walks = source.sessions() }
+    LaunchedEffect(Unit) { walks = source.sessions() }
     val allPins by pins.collectAsState()
     val pinsByWalk = remember(allPins) {
         allPins.filter { it.sessionId != null }.sortedBy { it.time }.groupBy { it.sessionId!! }
@@ -209,28 +195,7 @@ fun StatsScreen(
                 Text(stringResource(Res.string.stats_places_header).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
                 Spacer(Modifier.height(8.dp))
                 YourPlaces(allPins, onOpenPin)
-                Spacer(Modifier.height(24.dp))
-                Text(stringResource(Res.string.maps_title).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
-                Spacer(Modifier.height(8.dp))
-                slots.mapsCard()
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    stringResource(Res.string.stats_privacy),
-                    color = Dusk,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp,
-                )
             }
-            Spacer(Modifier.height(32.dp))
-            Text(stringResource(Res.string.stats_more_header).uppercase(), fontSize = 11.sp, letterSpacing = 1.5.sp, color = Dusk)
-            Spacer(Modifier.height(8.dp))
-            slots.backupCard { refresh++ }
-            Spacer(Modifier.height(12.dp))
-            slots.usageCard()
-            Spacer(Modifier.height(12.dp))
-            MadeBy(versionName, onOpenAbout)
-            Spacer(Modifier.height(12.dp))
-            FeedbackRow(slots.onFeedback)
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -238,7 +203,7 @@ fun StatsScreen(
 
 /** A bug or an idea: straight to the maker's inbox. */
 @Composable
-private fun FeedbackRow(onFeedback: () -> Unit) {
+internal fun FeedbackRow(onFeedback: () -> Unit) {
     Surface(
         onClick = onFeedback,
         modifier = Modifier.fillMaxWidth(),
@@ -258,7 +223,7 @@ private fun FeedbackRow(onFeedback: () -> Unit) {
 
 /** Who made this, and a way to say thanks. */
 @Composable
-private fun MadeBy(versionName: String, onClick: () -> Unit) {
+internal fun MadeBy(versionName: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),

@@ -31,4 +31,13 @@ class CharactersFileTest {
             for (key in keys) assertTrue(xml.contains("name=\"$key\""), "$dir/strings.xml is missing $key")
         }
     }
+
+    @Test
+    fun theYouPageTextsExistInEnglishAndDutch() {
+        val keys = listOf("you_title", "you_settings_header", "you_about_header", "you_change_character")
+        for (dir in listOf("values", "values-nl")) {
+            val xml = File("strings/$dir/strings.xml").readText()
+            for (key in keys) assertTrue(xml.contains("name=\"$key\""), "$dir/strings.xml is missing $key")
+        }
+    }
 }
