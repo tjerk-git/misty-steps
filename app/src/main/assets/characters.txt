@@ -5,11 +5,13 @@
 # rows 13-15. On frames 2 and 4 the body bobs one pixel down. A 1 px dark outline is
 # added automatically around the whole sprite.
 # Palette letters are per character: `X:rrggbb`.
+# `stride` = metres per step, for the postcard's "steps" line (a playful approximation, not biology).
 # Legs: `s`/`f` = near/far paw, `l` = near paw highlight, `B`/`d` = near/far paw. Bare paws, no boots.
 
 [cat]
 name = Trail Cat
 blurb = Nine lives, zero regrets.
+stride = 0.2
 palette = G:8a8aa6 g:62627e w:dcdcea E:23232f P:f4a3bd H:62627e h:8a8aa6 R:8a8aa6 r:62627e s:8a8aa6 f:62627e B:8a8aa6 l:8a8aa6 d:62627e W:ffffff b:e695b3
 body =
 ................
@@ -48,6 +50,7 @@ legs =
 [dog]
 name = Scout Dog
 blurb = Has sniffed every lamppost. Wants to sniff more.
+stride = 0.4
 palette = D:d39a52 e:a8723a w:f3dcb4 E:23232f N:3a2a24 K:d39a52 k:a8723a R:d39a52 r:a8723a s:d39a52 f:a8723a B:d39a52 l:d39a52 d:a8723a
 body =
 ................
@@ -86,6 +89,7 @@ legs =
 [otter]
 name = Sea Otter
 blurb = Left the sea for a stroll. Isn't going back.
+stride = 0.25
 palette = O:8a5a3a o:6a4028 w:e6d2b8 E:1e1e28 N:2a1e1a Y:8a5a3a y:6a4028 s:8a5a3a f:6a4028 B:8a5a3a l:8a5a3a d:6a4028
 body =
 ................
@@ -124,6 +128,7 @@ legs =
 [capybara]
 name = Capybara
 blurb = Unbothered. Moisturised. Zero cares given.
+stride = 0.3
 palette = C:a8784a c:86592f E:1e1e28 N:4a3020 M:a8784a m:86592f K:a8784a k:86592f s:a8784a f:86592f B:a8784a l:a8784a d:86592f
 body =
 ................
@@ -162,6 +167,7 @@ legs =
 [cow]
 name = Wander Cow
 blurb = Mooved out to see the world.
+stride = 0.8
 palette = W:f6f6f6 k:2a2a33 E:1e1e28 P:f4a3bd p:d97f9a T:e8d8b0 S:f6f6f6 z:2a2a33 s:f6f6f6 f:2a2a33 B:f6f6f6 l:f6f6f6 d:2a2a33
 body =
 ................
@@ -200,6 +206,7 @@ legs =
 [horse]
 name = Trek Horse
 blurb = Walks everywhere. Refuses to carry you.
+stride = 0.9
 palette = H:b0663a h:8a4c26 M:4a2e1e E:1e1e28 N:3a2620 Q:b0663a q:8a4c26 Y:8a4c26 s:b0663a f:8a4c26 B:b0663a l:b0663a d:8a4c26
 body =
 ...........MM...
@@ -238,6 +245,7 @@ legs =
 [blackcat]
 name = Black Cat
 blurb = Bad luck not included.
+stride = 0.2
 palette = G:2b2b35 g:1a1a21 w:45454f E:e8c84a P:f4a3bd H:1a1a21 h:2b2b35 R:2b2b35 r:1a1a21 s:2b2b35 f:1a1a21 B:2b2b35 l:2b2b35 d:1a1a21 W:ffffff b:e695b3
 body =
 ................
@@ -276,6 +284,7 @@ legs =
 [fox]
 name = Fox
 blurb = Raids bins at midnight. No shame about it.
+stride = 0.35
 palette = F:c9703c o:9a4f25 W:f6ece0 E:1c1c22 N:14100e K:201d22 k:111116 s:201d22 f:111116 B:201d22 l:201d22 d:111116
 body =
 ................
@@ -314,6 +323,7 @@ legs =
 [duck]
 name = Waddle Duck
 blurb = An Indian runner duck: upright, two feet, always in a hurry to a puddle.
+stride = 0.15
 palette = g:c08c4e G:8f5f2c W:f6f1e4 w:cdbf9f E:23232f b:f0a830 s:f0a830 f:d08818 B:f0a830 l:f0a830 d:d08818
 body =
 ................
@@ -352,6 +362,7 @@ legs =
 [rat]
 name = Santa Rat
 blurb = On the nice list, mostly.
+stride = 0.05
 palette = G:9a9088 g:6f665f L:d6cdc2 E:23232f P:f0a0b0 t:e08898 R:d8353b r:a82a30 W:ffffff s:9a9088 f:6f665f B:f0a0b0 l:b8aea4 d:6f665f
 body =
 ................

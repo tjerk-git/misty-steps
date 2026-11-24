@@ -1,5 +1,6 @@
 package com.mistysteps.app.character
 
+import com.mistysteps.app.postcard.WalkSteps
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +14,8 @@ class Character(
     val walk: List<IntArray>,
     /** Two standing frames: a gentle breathing bob. */
     val idle: List<IntArray>,
+    /** Metres per step, for the "steps" line on the walk postcard (a playful approximation). */
+    val strideM: Double = WalkSteps.DEFAULT_STRIDE_M,
 )
 
 /** Where small settings are kept: SharedPreferences on Android, NSUserDefaults on iOS. */
@@ -141,6 +144,7 @@ object Characters {
             blurb = raw.props["blurb"] ?: "",
             walk = walk,
             idle = idle,
+            strideM = raw.props["stride"]?.toDoubleOrNull() ?: WalkSteps.DEFAULT_STRIDE_M,
         )
     }
 
