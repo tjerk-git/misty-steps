@@ -48,4 +48,16 @@ class CharactersFileTest {
             assertTrue("name=\"consent_" !in xml, "$dir/strings.xml still has consent strings")
         }
     }
+
+    @Test
+    fun thePillTextsExistInEnglishAndDutch() {
+        for (dir in listOf("values", "values-nl")) {
+            val lines = File("strings/$dir/strings.xml").readLines()
+            val place = lines.firstOrNull { it.contains("name=\"pill_place_caption\"") }
+            val total = lines.firstOrNull { it.contains("name=\"pill_total_caption\"") }
+            assertTrue(place != null, "$dir is missing pill_place_caption")
+            assertTrue(total != null, "$dir is missing pill_total_caption")
+            assertTrue("%1\$s" in place && "%2\$s" in place, "$dir pill_place_caption needs the place (%1\$s) and its share (%2\$s)")
+        }
+    }
 }

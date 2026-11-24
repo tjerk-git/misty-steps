@@ -15,7 +15,12 @@ import com.mistysteps.app.pin.Pin
 import com.mistysteps.app.stats.LocalStatsSource
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import platform.Foundation.NSBundle
 import platform.Foundation.NSString
 import platform.Foundation.NSURL
@@ -95,5 +100,25 @@ fun youViewController(
             onClose = onClose,
             onOpenAbout = onOpenAbout,
         )
+    }
+}
+
+/**
+ * The pill at the top of the map on iPhone: counts off the main thread and hands the text back on it. When a count fails
+ * nothing is sent, so the pill keeps its last text.
+ */
+class PillSource(points: PointStore, sessions: SessionStore) {
+    private val source = LocalStatsSource(points, sessions, lazy { bundledCityIndex() })
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    fun refresh(lat: Double?, lon: Double?, onResult: (PillContent) -> Unit) {
+        scope.launch {
+            val content = try {
+                pillContent(source.compute(lat, lon))
+            } catch (e: Exception) {
+                return@launch
+            }
+            withContext(Dispatchers.Main) { onResult(content) }
+        }
     }
 }
