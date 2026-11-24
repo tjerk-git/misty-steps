@@ -40,4 +40,15 @@ class CharactersFileTest {
             for (key in keys) assertTrue(xml.contains("name=\"$key\""), "$dir/strings.xml is missing $key")
         }
     }
+
+    @Test
+    fun theConsentTextSendsPeopleToTheYouPageNotTheOldStatsMore() {
+        val wanted = mapOf("values" to "You page", "values-nl" to "Jij-pagina")
+        val gone = listOf("stats page", "statistiekenpagina", "under More", "onder Meer")
+        for ((dir, phrase) in wanted) {
+            val line = File("strings/$dir/strings.xml").readLines().first { it.contains("name=\"consent_body\"") }
+            assertTrue(phrase in line, "$dir consent_body should point to the $phrase")
+            for (old in gone) assertTrue(old !in line, "$dir consent_body still says '$old'")
+        }
+    }
 }

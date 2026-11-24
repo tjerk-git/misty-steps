@@ -82,6 +82,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -370,7 +372,7 @@ fun MistyScreen() {
                 )
             }
 
-            // Your character: opens character select
+            // Your character: opens the You page
             CharacterButton(
                 onClick = { showYou = true },
                 modifier = Modifier
@@ -682,9 +684,11 @@ private fun CharacterButton(onClick: () -> Unit, modifier: Modifier = Modifier) 
     val frames = remember(character) { character?.let { SpriteFrames(it) } }
     // Always standing here, and the idle pose only changes every IDLE_FRAME_MS: no need to redraw more often.
     val ticker = rememberTicker(stepMs = Characters.IDLE_FRAME_MS)
+    // This button opens the "You" page, where the settings live: a screen reader needs to hear that.
+    val label = stringResource(R.string.you_title)
     FloatingActionButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = label },
         containerColor = MaterialTheme.colorScheme.surface,
         shape = CircleShape,
     ) {

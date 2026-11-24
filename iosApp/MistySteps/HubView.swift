@@ -80,7 +80,7 @@ struct HubView: View {
             }
 
             // Bottom left: your character (opens the "You" page) above the stats button.
-            round(action: onYou, label: "You") { CharacterFace() }
+            round(action: onYou, label: IosTextsKt.youTitleText()) { CharacterFace() }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .padding(.leading, 20).padding(.bottom, 180)
             round(action: onStats, label: "Stats") { StatsBars() }
