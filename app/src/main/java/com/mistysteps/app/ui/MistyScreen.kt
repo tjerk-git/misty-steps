@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -90,6 +91,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import com.mistysteps.app.stats.PillRefresh
+import com.mistysteps.app.stats.AndroidStatsSource
+import androidx.lifecycle.repeatOnLifecycle
 import com.mistysteps.app.announce.RatAnnouncement
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
@@ -289,6 +295,31 @@ fun MistyScreen() {
         map.setCovered(showStats || showYou || showAbout || showPicker || postcardWalk != null || firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.PICKER.name)
     }
 
+    // The pill at the top: buckets of mist cleared in your city or town. Recounted while the map is on screen, off the main
+    // thread; a failed count keeps the old text.
+    var pill by remember { mutableStateOf<PillContent?>(null) }
+    val pageOpen = showStats || showYou || showAbout || showPicker || postcardWalk != null ||
+        firstRun == FirstRunStage.ONBOARDING.name || firstRun == FirstRunStage.PICKER.name
+    val pillLifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(pageOpen) {
+        if (pageOpen) return@LaunchedEffect
+        pillLifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            val source = AndroidStatsSource(context)
+            while (true) {
+                val here = currentPlace()
+                val content = try {
+                    pillContent(source.compute(here?.first, here?.second))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    null
+                }
+                if (content != null) pill = content
+                delay(PillRefresh.INTERVAL_MS)
+            }
+        }
+    }
+
     // The eraser: wire what it may do, put it down when another page covers the map, keep it in step with the state.
     LaunchedEffect(Unit) {
         if (EraserAccessHolder.debugOverride(context) == 2) { tasteLedger.reset(); tasteUsedM = 0.0 }
@@ -328,32 +359,36 @@ fun MistyScreen() {
 
         // Controls stay clear of status bar, navigation bar and camera cutouts.
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            // Title + distance (tap for stats)
-            Surface(
-                onClick = { showStats = true },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 12.dp),
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 6.dp,
-            ) {
-                Column(
-                    Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            // Buckets of mist cleared where you are (tap for stats); nothing until the first count is in.
+            pill?.let { p ->
+                Surface(
+                    onClick = { showStats = true },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 6.dp,
                 ) {
-                    Text(
-                        "Misty Steps",
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        letterSpacing = 1.5.sp,
-                    )
-                    Text(
-                        stringResource(R.string.mist_cleared, formatDistance(distance)),
-                        fontSize = 12.sp,
-                        color = Dusk,
-                    )
+                    Column(
+                        Modifier.widthIn(max = 320.dp).padding(horizontal = 24.dp, vertical = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            p.value,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 26.sp,
+                            color = Ink,
+                        )
+                        Text(
+                            p.caption,
+                            fontSize = 12.sp,
+                            lineHeight = 15.sp,
+                            color = Dusk,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
 
