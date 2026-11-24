@@ -29,4 +29,12 @@ class FormatTest {
         assertEquals("54,000,000", formatOneIn(1.85e-8))
         assertEquals("1,200", formatOneIn(8.3e-4))
     }
+
+    @Test
+    fun nothingClearedIsZeroPercentNotOneInNaN() {
+        Locale.setDefault(Locale.US)
+        assertEquals("0%", formatShare(0.0) { "1 in $it" })
+        assertEquals("1 in 54,000,000", formatShare(1.85e-8) { "1 in $it" })
+        assertEquals("12%", formatShare(0.12) { "1 in $it" })
+    }
 }
