@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Misty Steps: strings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --ink:#2E3550; --dusk:#5B6B8C; --ember:#B4536A; --frost:#FAFBFF; --line:#D3D9E8; --ok:#3b7d5a; --warn:#b07a1f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#EEF0F7; color:var(--ink); font:15px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:#EEF0F7; border-bottom:1px solid var(--line); padding:12px 20px 10px; }
+  h1 { font:600 20px Georgia, serif; margin:0 0 8px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .chip { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:16px; padding:4px 12px; font:inherit; font-size:13px; cursor:pointer; }
+  .chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .chip b { font-weight:700; }
+  input[type=search], select { font:inherit; font-size:13px; padding:5px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); }
+  input[type=search] { width:240px; }
+  .spacer { flex:1; }
+  #state { font-size:13px; color:var(--dusk); min-width:120px; text-align:right; }
+  #state.err { color:#c0392b; font-weight:600; }
+  main { padding:14px 20px 80px; max-width:1500px; margin:0 auto; }
+  .group { font:600 12px/1 -apple-system, sans-serif; letter-spacing:1.4px; text-transform:uppercase; color:var(--dusk); margin:22px 2px 8px; }
+  .row { display:grid; grid-template-columns: 210px 1fr 1fr 230px; gap:14px; background:var(--frost); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:0 1px 3px rgba(40,50,80,.12); border-left:5px solid transparent; }
+  .row.s-ok { border-left-color:var(--ok); } .row.s-flag { border-left-color:var(--ember); } .row.s-changed { border-left-color:var(--warn); }
+  .id { font:12px ui-monospace, Menlo, monospace; color:var(--ink); word-break:break-all; }
+  .hint { font-size:12px; color:var(--dusk); margin-top:4px; }
+  .badges { margin-top:6px; display:flex; flex-wrap:wrap; gap:4px; }
+  .badge { font-size:11px; font-weight:600; padding:1px 7px; border-radius:9px; background:#f3dfe4; color:#8d2f47; }
+  .badge.soft { background:#f4ecd6; color:#7a5712; }
+  label { display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--dusk); margin-bottom:3px; }
+  textarea { width:100%; font:inherit; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 9px; resize:none; overflow:hidden; background:#fff; min-height:36px; }
+  textarea:focus { outline:2px solid #8fa0cf; border-color:transparent; }
+  textarea.missing { background:#fbeaee; border-color:var(--ember); }
+  textarea.bad { border-color:#c0392b; background:#fff3f1; }
+  .side button { font:inherit; font-size:13px; border:1px solid var(--line); background:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; margin:0 4px 6px 0; color:var(--ink); }
+  .side button.on-ok { background:var(--ok); color:#fff; border-color:var(--ok); }
+  .side button.on-flag { background:var(--ember); color:#fff; border-color:var(--ember); }
+  .side input { width:100%; font:inherit; font-size:13px; border:1px solid var(--line); border-radius:8px; padding:5px 8px; background:#fff; color:var(--ink); }
+  .st { font-size:12px; color:var(--dusk); margin-bottom:6px; }
+  body.read textarea { font:19px/1.5 Georgia, serif; border-color:transparent; background:transparent; pointer-events:none; }
+  body.read .row { grid-template-columns: 150px 1fr 1fr 200px; }
+  .empty { text-align:center; color:var(--dusk); padding:60px 0; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Misty Steps: strings</h1>
+  <div class="bar" id="chips"></div>
+  <div class="bar" style="margin-top:8px">
+    <input type="search" id="q" placeholder="Search key or text">
+    <select id="group"></select>
+    <button class="chip" id="read">Read mode</button>
+    <span class="spacer"></span>
+    <span id="state"></span>
+  </div>
+</header>
+<main id="list"></main>
+<script>
+const TOKEN = "__TOKEN__";
+let rows = [], filter = "all", read = false;
+const FILTERS = [
+  ["all", "All", () => true],
+  ["problems", "Problems", r => r.checks.length > 0],
+  ["missing", "Missing", r => r.checks.some(c => c.startsWith("missing"))],
+  ["todo", "Not reviewed", r => r.status === "none"],
+  ["changed", "Changed since review", r => r.status === "changed"],
+  ["flag", "Flagged", r => r.status === "flag"],
+  ["ok", "Reviewed", r => r.status === "ok"],
+];
+const BADGES = {
+  missing_en: ["Missing English", 0], missing_nl: ["Missing Dutch", 0], placeholders: ["Placeholders differ", 0],
+  untranslated: ["Same in both languages", 1], long_nl: ["Dutch much longer", 1], short_nl: ["Dutch much shorter", 1],
+  apostrophe: ["Straight apostrophe", 1], spaces: ["Odd spacing", 1],
+};
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+let stateTimer;
+function say(msg, err) { const s = $("#state"); s.textContent = msg; s.className = err ? "err" : ""; clearTimeout(stateTimer); if (!err) stateTimer = setTimeout(() => s.textContent = "", 2500); }
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "X-Token": TOKEN, "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.status);
+  return j;
+}
+
+function chips() {
+  $("#chips").innerHTML = FILTERS.map(([k, label, fn]) =>
+    `<button class="chip ${k === filter ? "on" : ""}" data-f="${k}">${label} <b>${rows.filter(fn).length}</b></button>`).join("");
+  $("#chips").querySelectorAll("button").forEach(b => b.onclick = () => { filter = b.dataset.f; render(); });
+}
+
+function visible() {
+  const fn = FILTERS.find(f => f[0] === filter)[2], q = $("#q").value.trim().toLowerCase(), g = $("#group").value;
+  return rows.filter(r => fn(r) && (!g || r.group === g) && (!q || (r.id + " " + r.en + " " + r.nl + " " + r.comment).toLowerCase().includes(q)));
+}
+
+function rowHtml(r) {
+  const badges = r.checks.map(c => `<span class="badge ${BADGES[c][1] ? "soft" : ""}">${BADGES[c][0]}</span>`).join("");
+  const stLabel = { none: "Not reviewed", ok: "Reviewed", flag: "Flagged", changed: "Changed since review" }[r.status];
+  return `<div class="row s-${r.status}" data-id="${esc(r.id)}">
+    <div><div class="id">${esc(r.id)}</div>${r.comment ? `<div class="hint">${esc(r.comment)}</div>` : ""}<div class="badges">${badges}</div></div>
+    <div><label>English</label><textarea data-lang="en" class="${r.checks.includes("missing_en") ? "missing" : ""}">${esc(r.en)}</textarea></div>
+    <div><label>Dutch</label><textarea data-lang="nl" class="${r.checks.includes("missing_nl") ? "missing" : ""}">${esc(r.nl)}</textarea></div>
+    <div class="side"><div class="st">${stLabel}</div>
+      <button data-act="ok" class="${r.status === "ok" ? "on-ok" : ""}">Reviewed</button><button data-act="flag" class="${r.status === "flag" ? "on-flag" : ""}">Flag</button>
+      <input placeholder="Note" value="${esc(r.note)}" data-act="note"></div>
+  </div>`;
+}
+
+function render() {
+  chips();
+  const list = visible();
+  let html = "", last = null;
+  for (const r of list) { if (r.group !== last) { html += `<div class="group">${esc(r.group)}</div>`; last = r.group; } html += rowHtml(r); }
+  $("#list").innerHTML = html || `<div class="empty">Nothing matches.</div>`;
+  document.querySelectorAll("textarea").forEach(grow);
+  document.body.classList.toggle("read", read);
+  $("#read").classList.toggle("on", read);
+}
+
+function grow(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; }
+function replaceRow(row) {
+  const i = rows.findIndex(r => r.id === row.id); rows[i] = row;
+  const el = document.querySelector(`.row[data-id="${CSS.escape(row.id)}"]`);
+  const focus = document.activeElement;
+  if (el && !(focus && el.contains(focus) && focus.tagName === "TEXTAREA")) { el.outerHTML = rowHtml(row); const n = document.querySelector(`.row[data-id="${CSS.escape(row.id)}"] textarea`); document.querySelectorAll(".row[data-id] textarea").forEach(grow); }
+  chips();
+}
+
+document.addEventListener("input", e => { if (e.target.tagName === "TEXTAREA") { grow(e.target); e.target.classList.remove("bad"); } });
+document.addEventListener("focusout", async e => {
+  const t = e.target; if (t.tagName === "TEXTAREA") {
+    const rowEl = t.closest(".row"), id = rowEl.dataset.id, lang = t.dataset.lang, r = rows.find(x => x.id === id);
+    if (t.value === r[lang]) return;
+    try { const row = await api("/api/save", { id, lang, raw: t.value }); say("Saved " + id); rows[rows.findIndex(x => x.id === id)] = row; refreshRow(rowEl, row); }
+    catch (err) { t.classList.add("bad"); say("Not saved: " + err.message, true); }
+  } else if (t.dataset && t.dataset.act === "note") {
+    const id = t.closest(".row").dataset.id, r = rows.find(x => x.id === id);
+    if (t.value === r.note) return;
+    review(id, r.status === "none" ? "none" : r.status, t.value);
+  }
+});
+function refreshRow(rowEl, row) {
+  // keep the textareas as typed (they match the file now); update status, badges and counts around them
+  rowEl.className = "row s-" + row.status;
+  rowEl.querySelector(".badges").innerHTML = row.checks.map(c => `<span class="badge ${BADGES[c][1] ? "soft" : ""}">${BADGES[c][0]}</span>`).join("");
+  rowEl.querySelector(".st").textContent = { none: "Not reviewed", ok: "Reviewed", flag: "Flagged", changed: "Changed since review" }[row.status];
+  rowEl.querySelectorAll("textarea").forEach(t => t.classList.toggle("missing", row.checks.includes("missing_" + t.dataset.lang)));
+  rowEl.querySelectorAll("[data-act=ok],[data-act=flag]").forEach(b => b.className = row.status === b.dataset.act ? "on-" + b.dataset.act : "");
+  chips();
+}
+async function review(id, status, note) {
+  try { const row = await api("/api/review", { id, status, note }); rows[rows.findIndex(x => x.id === id)] = row; refreshRow(document.querySelector(`.row[data-id="${CSS.escape(id)}"]`), row); say("Review saved"); }
+  catch (err) { say("Not saved: " + err.message, true); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"); if (!b || b.dataset.act === "note") return;
+  const rowEl = b.closest(".row"), id = rowEl.dataset.id, r = rows.find(x => x.id === id);
+  const note = rowEl.querySelector("input[data-act=note]").value;
+  review(id, r.status === b.dataset.act ? "none" : b.dataset.act, note);
+});
+$("#q").oninput = render; $("#group").onchange = render;
+$("#read").onclick = () => { read = !read; render(); };
+window.addEventListener("resize", () => document.querySelectorAll("textarea").forEach(grow));
+
+(async () => {
+  rows = await api("/api/rows");
+  const groups = [...new Set(rows.map(r => r.group))];
+  $("#group").innerHTML = `<option value="">All screens</option>` + groups.map(g => `<option>${esc(g)}</option>`).join("");
+  render();
+})();
+</script>
+</body>
+</html>
