@@ -143,4 +143,15 @@ class CharactersFileTest {
             assertTrue(!last.contains("pin", ignoreCase = true), "$dir page 4 should stay the privacy page, was: $last")
         }
     }
+
+    @Test
+    fun everyCharacterInTheSheetHasANameAndBlurbInEnglishAndDutch() {
+        val ids = Characters.parse(File("../app/src/main/assets/characters.txt").readLines()).map { it.id }
+        for (dir in listOf("values", "values-nl")) {
+            val text = File("strings/$dir/strings.xml").readText()
+            for (id in ids) for (part in listOf("name", "blurb")) {
+                assertTrue("name=\"character_${id}_$part\"" in text, "$dir/strings.xml is missing character_${id}_$part")
+            }
+        }
+    }
 }

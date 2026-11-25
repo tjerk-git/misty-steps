@@ -26,8 +26,8 @@
     <!-- The pill at the top of the map: %1$s is the place, %2$s the share of it you cleared (0.066%). -->
     <string name="pill_place_line">in %1$s (%2$s)</string>
     <string name="pill_total_caption">buckets of mist cleared</string>
-    <string name="banner_pin_tip">Tip: long-press ground you’ve cleared to leave a pin there. Tap to close.</string>
-    <string name="banner_start">Tap Start wandering and go outside. The mist lifts wherever you walk.</string>
+    <string name="banner_pin_tip">Tip: long-press the map to leave a pin there. Tap to close.</string>
+    <string name="banner_start">Tap Start wandering and go outside!</string>
     <string name="toast_pin_fog">Pins go on cleared ground. Walk here first.</string>
     <string name="toast_looking">Looking for you in the mist…</string>
     <string name="toast_precise">Precise location is needed to clear the mist</string>
@@ -61,7 +61,7 @@
     <string name="walk_new_mist">%1$s new mist</string>
     <string name="walks_show_fewer">Show fewer</string>
     <string name="walks_show_all">Show all %1$d walks</string>
-    <string name="pins_empty">Leave a pin when something catches your eye: tap the pin button while you wander, or long-press ground you’ve already cleared.</string>
+    <string name="pins_empty">Leave a pin when something catches your eye: tap the pin button while you wander.</string>
     <string name="streets_counting">Counting streets…</string>
     <string name="hood_finding">Finding your neighbourhood…</string>
     <string name="streets_header">Streets</string>
@@ -82,7 +82,7 @@
 
     <!-- Backup -->
     <string name="backup_title">Your trails</string>
-    <string name="backup_intro">Save all your trails and walks to a file, or add them from one: for a backup or a new phone. The file is plain text, so it’s yours to keep.</string>
+    <string name="backup_intro">Save all your trails and walks to a file, or add them from one: for a backup or a new phone. </string>
     <string name="backup_export">Export</string>
     <string name="backup_import">Import</string>
     <string name="backup_stop_to_import">Stop wandering to import.</string>
@@ -164,6 +164,10 @@
     <string name="character_duck_blurb">An Indian runner duck: upright, two feet, always in a hurry to a puddle.</string>
     <string name="character_rat_name">Santa Rat</string>
     <string name="character_rat_blurb">On the nice list, mostly.</string>
+    <string name="character_blackcat_name">Black Cat</string>
+    <string name="character_blackcat_blurb">Bad luck not included.</string>
+    <string name="character_fox_name">Fox</string>
+    <string name="character_fox_blurb">Raids bins at midnight. No shame about it.</string>
 
     <!-- The one-time Christmas card that offers the Santa Rat. -->
     <string name="rat_card_title">Merry Christmas!</string>
