@@ -78,7 +78,7 @@ fun RatCard(onTry: () -> Unit, onLater: () -> Unit) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
-                Button(onClick = { once(onTry) }) { Text(stringResource(Res.string.rat_card_try)) }
+                Button(onClick = { once(onTry) }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Accent)) { Text(stringResource(Res.string.rat_card_try)) }
                 TextButton(onClick = { once(onLater) }) { Text(stringResource(Res.string.rat_card_later), color = Dusk) }
             }
         }

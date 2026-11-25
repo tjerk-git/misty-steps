@@ -21,11 +21,16 @@
     <string name="stop_wandering">Stop wandeling</string>
     <string name="show_my_location">Toon mijn locatie</string>
     <string name="drop_a_pin">Zet een speld</string>
+    <string name="place_a_pin">Zet een pin op de kaart</string>
+    <string name="place_pin_hint">Schuif de kaart naar de plek.</string>
+    <string name="place_pin_confirm">Zet hier</string>
+    <string name="pin_next_spot">Kies de plek</string>
+    <string name="place_pin_cancel">Annuleer</string>
     <string name="mist_cleared">%1$s mist opgeklaard</string>
     <!-- De pil bovenaan de kaart: %1$s is de plaats, %2$s het deel ervan dat je hebt opgeklaard (0,066%). -->
     <string name="pill_place_line">in %1$s (%2$s)</string>
     <string name="pill_total_caption">emmers mist opgeklaard</string>
-    <string name="banner_pin_tip">Tip: druk lang op de kaart om daar een pin te zetten. Tik om te sluiten.</string>
+    <string name="banner_pin_tip">Tip: tik op de knoopknop of druk lang op de kaart om een pin te zetten. Tik om te sluiten.</string>
     <string name="banner_start">Tik op Start wandeling en ga naar buiten!</string>
     <string name="toast_pin_fog">Pins kun je alleen op opgeklaarde grond zetten. Loop hier eerst heen.</string>
     <string name="toast_looking">Op zoek naar jou in de mist…</string>

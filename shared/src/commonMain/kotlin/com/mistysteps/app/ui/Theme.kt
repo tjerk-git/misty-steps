@@ -10,6 +10,9 @@ val Dusk = Color(0xFF5B6B8C)
 val Frost = Color(0xF2FAFBFF)
 val Ember = Color(0xFFB4536A)
 
+/** The one accent: the main button on a screen or sheet (start wandering, place, save, continue). Teal, white text reads at 4.8:1. */
+val Accent = Color(0xFF18806F)
+
 @Composable
 fun MistyTheme(content: @Composable () -> Unit) {
     MaterialTheme(

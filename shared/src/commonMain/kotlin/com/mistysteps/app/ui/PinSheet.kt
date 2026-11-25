@@ -81,7 +81,11 @@ private val SheetColor = Frost.copy(alpha = 1f)
 /** "Leave a pin": pick a label, maybe add a note. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewPinSheet(onPlace: (labelKey: String, note: String?) -> Unit, onDismiss: () -> Unit) {
+fun NewPinSheet(
+    onPlace: (labelKey: String, note: String?) -> Unit,
+    onDismiss: () -> Unit,
+    confirmText: String? = null,
+) {
     var label by remember { mutableStateOf<PinLabel?>(null) }
     var note by remember { mutableStateOf("") }
     ModalBottomSheet(
@@ -95,8 +99,8 @@ fun NewPinSheet(onPlace: (labelKey: String, note: String?) -> Unit, onDismiss: (
                 Button(
                     onClick = { if (chosen != null) onPlace(chosen.key, PinRules.cleanNote(note)) },
                     enabled = chosen != null && PinRules.canPlace(chosen, PinRules.cleanNote(note)),
-                    colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                ) { Text(stringResource(Res.string.pin_place)) }
+                    colors = ButtonDefaults.buttonColors(containerColor = Accent),
+                ) { Text(confirmText ?: stringResource(Res.string.pin_place)) }
             },
         ) {
             SheetTitle(stringResource(Res.string.pin_leave))
@@ -161,7 +165,7 @@ fun PinDetailSheet(
                     Button(
                         onClick = { onSave(PinRules.keyAfterEdit(pin.labelKey, picked), PinRules.cleanNote(note)) },
                         enabled = PinRules.canPlace(shown, PinRules.cleanNote(note)),
-                        colors = ButtonDefaults.buttonColors(containerColor = Ink),
+                        colors = ButtonDefaults.buttonColors(containerColor = Accent),
                     ) { Text(stringResource(Res.string.save)) }
                 },
             ) {
@@ -245,7 +249,7 @@ private fun LabelTile(label: PinLabel, selected: Boolean, modifier: Modifier, on
     Column(
         modifier
             .background(if (selected) Color.White else Color.Transparent, shape)
-            .border(if (selected) 2.dp else 1.dp, if (selected) Ember else Color(0xFFDCE1EE), shape)
+            .border(if (selected) 2.dp else 1.dp, if (selected) Accent else Color(0xFFDCE1EE), shape)
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
