@@ -212,8 +212,10 @@
     <string name="onboarding_1_body">Misty Steps hides the Netherlands in mist.</string>
     <string name="onboarding_2_title">Your steps clear it</string>
     <string name="onboarding_2_body">Tap Start wandering and walk, run or cycle. Your steps clear about 50 m around you.\n\nRiding in a car or train does not count!</string>
-    <string name="onboarding_3_title">Yours alone</string>
-    <string name="onboarding_3_body">Misty Steps works offline, with downloaded maps and only your GPS. That way I don’t have to run any servers, and your trails never leave your phone.\n\nIt keeps going with the screen off, so put your phone away and enjoy the walk, but don’t forget to end it.\n\nFor now it only works in the Netherlands: download your province and get going!</string>
+    <string name="onboarding_3_title">Leave a pin</string>
+    <string name="onboarding_3_body">Long-press ground you’ve cleared to leave a pin: a bench, a view, a friendly dog. While you wander you can also tap the pin button.\n\nIn the mist? Walk there first: pins go on cleared ground.</string>
+    <string name="onboarding_4_title">Yours alone</string>
+    <string name="onboarding_4_body">Misty Steps works offline, with downloaded maps and only your GPS. That way I don’t have to run any servers, and your trails never leave your phone.\n\nIt keeps going with the screen off, so put your phone away and enjoy the walk, but don’t forget to end it.\n\nFor now it only works in the Netherlands: download your province and get going!</string>
     <string name="picker_title">Which provinces do you want to explore?</string>
     <string name="picker_total">Total: %1$s</string>
     <string name="picker_skip">Skip for now</string>
