@@ -12,21 +12,21 @@
     <string name="back">Terug</string>
     <string name="back_to_map">Terug naar de kaart</string>
     <string name="cancel">Annuleren</string>
-    <string name="save">Bewaar</string>
-    <string name="share">Deel</string>
+    <string name="save">Bewaren</string>
+    <string name="share">Delen</string>
     <string name="not_now">Niet nu</string>
 
     <!-- Kaartscherm -->
     <string name="start_wandering">Start wandeling</string>
     <string name="stop_wandering">Stop wandeling</string>
     <string name="show_my_location">Toon mijn locatie</string>
-    <string name="drop_a_pin">Zet een pin</string>
+    <string name="drop_a_pin">Zet een speld</string>
     <string name="mist_cleared">%1$s mist opgeklaard</string>
     <!-- De pil bovenaan de kaart: %1$s is de plaats, %2$s het deel ervan dat je hebt opgeklaard (0,066%). -->
     <string name="pill_place_line">in %1$s (%2$s)</string>
     <string name="pill_total_caption">emmers mist opgeklaard</string>
-    <string name="banner_pin_tip">Tip: druk lang op grond die je hebt opgeklaard om daar een pin te zetten. Tik om te sluiten.</string>
-    <string name="banner_start">Tik op Start wandeling en ga naar buiten. De mist trekt op waar je loopt.</string>
+    <string name="banner_pin_tip">Tip: druk lang op de kaart om daar een pin te zetten. Tik om te sluiten.</string>
+    <string name="banner_start">Tik op Start wandeling en ga naar buiten!</string>
     <string name="toast_pin_fog">Pins kun je alleen op opgeklaarde grond zetten. Loop hier eerst heen.</string>
     <string name="toast_looking">Op zoek naar jou in de mist…</string>
     <string name="toast_precise">Nauwkeurige locatie is nodig om de mist weg te halen</string>
@@ -51,7 +51,7 @@
     <string name="stats_note_outside">Stads- en landstatistieken gelden voorlopig alleen voor Nederland.</string>
     <string name="stats_note_unknown">Start één keer een wandeling, dan verschijnen hier de cijfers van je stad en land.</string>
     <string name="feedback_row_title">Stuur feedback</string>
-    <string name="feedback_row_sub">Een bug, een idee, een straat die niet klopt: ik lees alles</string>
+    <string name="feedback_row_sub">Een bug, een idee, ik lees alles.</string>
     <string name="made_by_title">Gemaakt door Potloodgum</string>
     <string name="made_by_sub">Wie dit maakte, en waarom</string>
     <string name="version_app">Misty Steps %1$s</string>
@@ -60,7 +60,7 @@
     <string name="walk_new_mist">%1$s nieuwe mist</string>
     <string name="walks_show_fewer">Toon minder</string>
     <string name="walks_show_all">Toon alle %1$d wandelingen</string>
-    <string name="pins_empty">Zet een pin als iets je opvalt: tik op de pinknop tijdens je wandeling, of druk lang op grond die je al hebt opgeklaard.</string>
+    <string name="pins_empty">Zet een pin als iets je opvalt: tik op de pinknop tijdens je wandeling, </string>
     <string name="streets_counting">Straten tellen…</string>
     <string name="hood_finding">Je buurt zoeken…</string>
     <string name="streets_header">Straten</string>
@@ -81,7 +81,7 @@
 
     <!-- Back-up -->
     <string name="backup_title">Je routes</string>
-    <string name="backup_intro">Bewaar al je routes en wandelingen in een bestand, of voeg ze toe vanuit een bestand: voor een back-up of een nieuwe telefoon. Het bestand is gewone tekst, dus het blijft van jou.</string>
+    <string name="backup_intro">Bewaar al je routes en wandelingen in een bestand, of voeg ze toe vanuit een bestand: voor een back-up of een nieuwe telefoon.</string>
     <string name="backup_export">Exporteer</string>
     <string name="backup_import">Importeer</string>
     <string name="backup_stop_to_import">Stop je wandeling om te importeren.</string>
@@ -129,7 +129,7 @@
     <string name="postcard_title">Je wandeling</string>
     <string name="postcard_description">Ansichtkaart van je wandeling</string>
     <string name="postcard_failed">Kon deze wandeling niet tekenen.</string>
-    <string name="postcard_painting">Je ansichtkaart wordt geschilderd…</string>
+    <string name="postcard_painting">Je ansichtkaart wordt gemaakt…</string>
     <string name="postcard_saved_photos">Bewaard in Foto’s</string>
     <string name="postcard_saved">Bewaard in Afbeeldingen › Misty Steps</string>
     <string name="postcard_use_share">Gebruik Deel om hem op deze telefoon te bewaren</string>
@@ -148,21 +148,21 @@
     <string name="you_about_header">Over</string>
     <string name="you_change_character">Verander van dier</string>
     <string name="character_cat_name">Wandelkat</string>
-    <string name="character_cat_blurb">Negen levens, geen spijt.</string>
+    <string name="character_cat_blurb">Loopt eerst enthousiast naar je toe en dan opeens niet meer.</string>
     <string name="character_dog_name">Padvinderhond</string>
-    <string name="character_dog_blurb">Heeft elke lantaarnpaal besnuffeld. Wil er nog meer.</string>
+    <string name="character_dog_blurb">Heeft een missie. </string>
     <string name="character_otter_name">Zeeotter</string>
     <string name="character_otter_blurb">Verliet de zee voor een wandelingetje. Gaat niet meer terug.</string>
     <string name="character_capybara_name">Capibara</string>
     <string name="character_capybara_blurb">Onverstoorbaar. Gehydrateerd. Maakt zich nergens druk om.</string>
     <string name="character_cow_name">Zwerfkoe</string>
-    <string name="character_cow_blurb">De wijde wereld in. Moooi!</string>
+    <string name="character_cow_blurb">De wijde wereld in.</string>
     <string name="character_horse_name">Trekpaard</string>
     <string name="character_horse_blurb">Loopt overal naartoe. Weigert jou te dragen.</string>
     <string name="character_duck_name">Indische loopeend</string>
-    <string name="character_duck_blurb">Rechtopgaand, op twee poten, altijd haast naar de volgende plas.</string>
+    <string name="character_duck_blurb">Zo loop jij stiekem ook.</string>
     <string name="character_rat_name">Kerstrat</string>
-    <string name="character_rat_blurb">Staat op de brave lijst. Meestal.</string>
+    <string name="character_rat_blurb">Ja, een rat met een kerstmuts op.</string>
 
     <!-- De kaart die de Kerstrat eenmalig aanbiedt. -->
     <string name="rat_card_title">Fijne feestdagen!</string>

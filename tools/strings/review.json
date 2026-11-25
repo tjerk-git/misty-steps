@@ -1,0 +1,836 @@
+{
+ "area_city": {
+  "en": "4271627f4f",
+  "nl": "6c58a09c90",
+  "note": "",
+  "status": "ok"
+ },
+ "area_cleared_of": {
+  "en": "ca0cbdce46",
+  "nl": "4176966ec6",
+  "note": "",
+  "status": "ok"
+ },
+ "area_country": {
+  "en": "d523ebbd10",
+  "nl": "d9df90d800",
+  "note": "",
+  "status": "ok"
+ },
+ "area_earth": {
+  "en": "a074430f35",
+  "nl": "8407ff5d79",
+  "note": "",
+  "status": "ok"
+ },
+ "area_neighbourhood": {
+  "en": "6bab1f2d7c",
+  "nl": "db3523bb53",
+  "note": "",
+  "status": "ok"
+ },
+ "area_one_in": {
+  "en": "68ef800e3e",
+  "nl": "4f96219e9a",
+  "note": "",
+  "status": "ok"
+ },
+ "area_world": {
+  "en": "70c07ec18e",
+  "nl": "848d0f6556",
+  "note": "",
+  "status": "ok"
+ },
+ "back": {
+  "en": "b52b36b726",
+  "nl": "3856e3fbfc",
+  "note": "",
+  "status": "ok"
+ },
+ "back_to_map": {
+  "en": "8ee408fc31",
+  "nl": "fb8db0ee46",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_add_body": {
+  "en": "7c8757033f",
+  "nl": "40cea1295c",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_add_button": {
+  "en": "bacde5af05",
+  "nl": "3b816976d9",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_add_failed": {
+  "en": "675e94e524",
+  "nl": "55e27b6bbe",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_add_title": {
+  "en": "5856698c8b",
+  "nl": "fbb49e0601",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_added": {
+  "en": "76044af121",
+  "nl": "b13fbc97de",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_broken_pin": {
+  "en": "3df71ee8df",
+  "nl": "26bd24fd6c",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_broken_point": {
+  "en": "35ff48ece6",
+  "nl": "cb6ec0da3c",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_counts": {
+  "en": "2f2b12ec31",
+  "nl": "e7030f6a6e",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_export": {
+  "en": "f3e4fadb9e",
+  "nl": "7f4d90c8b7",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_import": {
+  "en": "d6fbc9d2bd",
+  "nl": "481b9e60dd",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_intro": {
+  "en": "c39b5bc587",
+  "nl": "51c1e30968",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_newer": {
+  "en": "356cb0c8bc",
+  "nl": "990e85447f",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_not_a_backup": {
+  "en": "f4ceede00c",
+  "nl": "2c8d38dc42",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_pins#one": {
+  "en": "b950099d67",
+  "nl": "b950099d67",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_pins#other": {
+  "en": "143f1bdcd5",
+  "nl": "143f1bdcd5",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_points#one": {
+  "en": "cf1cf4a455",
+  "nl": "c9db0dcb17",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_points#other": {
+  "en": "ab53c65d01",
+  "nl": "27cd0de164",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_read_failed": {
+  "en": "b8dab6a681",
+  "nl": "31ec158be6",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_save_failed": {
+  "en": "078c005c90",
+  "nl": "acedf72633",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_saved": {
+  "en": "52af3b3a1d",
+  "nl": "da3ae1c47a",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_stop_to_import": {
+  "en": "0bf87f2232",
+  "nl": "5bf9840dc8",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_title": {
+  "en": "37f412e577",
+  "nl": "14d4d66293",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_walks#one": {
+  "en": "4c08ff472a",
+  "nl": "481d7e982d",
+  "note": "",
+  "status": "ok"
+ },
+ "backup_walks#other": {
+  "en": "d931e115e9",
+  "nl": "8e2a09f7f2",
+  "note": "",
+  "status": "ok"
+ },
+ "banner_pin_tip": {
+  "en": "4374909053",
+  "nl": "d6e256489b",
+  "note": "",
+  "status": "ok"
+ },
+ "banner_start": {
+  "en": "cc478d27a7",
+  "nl": "5b188afde8",
+  "note": "",
+  "status": "ok"
+ },
+ "cancel": {
+  "en": "77dfd2135f",
+  "nl": "c2fbda4ee9",
+  "note": "",
+  "status": "ok"
+ },
+ "channel_name": {
+  "en": "b3832040cc",
+  "nl": "ce3b557dd6",
+  "note": "",
+  "status": "ok"
+ },
+ "character_capybara_blurb": {
+  "en": "4ea7dc1fde",
+  "nl": "edd6ae9303",
+  "note": "",
+  "status": "ok"
+ },
+ "character_capybara_name": {
+  "en": "d3eba3caf8",
+  "nl": "2e2a1ecc51",
+  "note": "",
+  "status": "ok"
+ },
+ "character_cat_blurb": {
+  "en": "d3c29b0b06",
+  "nl": "10d15544bf",
+  "note": "",
+  "status": "ok"
+ },
+ "character_cat_name": {
+  "en": "21f682047e",
+  "nl": "50e1d9419c",
+  "note": "",
+  "status": "ok"
+ },
+ "character_cow_blurb": {
+  "en": "fe885f8c9d",
+  "nl": "da428ee508",
+  "note": "",
+  "status": "ok"
+ },
+ "character_cow_name": {
+  "en": "55e279fbea",
+  "nl": "b36bd3fc54",
+  "note": "",
+  "status": "ok"
+ },
+ "character_dog_blurb": {
+  "en": "9467265c9c",
+  "nl": "fb5682bf23",
+  "note": "",
+  "status": "ok"
+ },
+ "character_dog_name": {
+  "en": "a13be68d15",
+  "nl": "77d89dd4a3",
+  "note": "",
+  "status": "ok"
+ },
+ "character_duck_blurb": {
+  "en": "2400717008",
+  "nl": "5661f95381",
+  "note": "",
+  "status": "ok"
+ },
+ "character_duck_name": {
+  "en": "f721c962a8",
+  "nl": "1c0e6a3d0d",
+  "note": "",
+  "status": "ok"
+ },
+ "character_horse_blurb": {
+  "en": "6cbf50c7c7",
+  "nl": "045ea46ab2",
+  "note": "",
+  "status": "ok"
+ },
+ "character_horse_name": {
+  "en": "66e5f13f42",
+  "nl": "aebf870db7",
+  "note": "",
+  "status": "ok"
+ },
+ "character_otter_blurb": {
+  "en": "f49158cbab",
+  "nl": "6912959248",
+  "note": "",
+  "status": "ok"
+ },
+ "character_otter_name": {
+  "en": "791dc0ca08",
+  "nl": "4683e029f7",
+  "note": "",
+  "status": "ok"
+ },
+ "character_rat_blurb": {
+  "en": "357b735f2d",
+  "nl": "a7a6911990",
+  "note": "",
+  "status": "ok"
+ },
+ "character_rat_name": {
+  "en": "a7ca890bf9",
+  "nl": "cd9e4ada17",
+  "note": "",
+  "status": "ok"
+ },
+ "characters_sub": {
+  "en": "e30898f2fa",
+  "nl": "40bda261c6",
+  "note": "",
+  "status": "ok"
+ },
+ "characters_title": {
+  "en": "4cf994c6de",
+  "nl": "a58615c15b",
+  "note": "",
+  "status": "ok"
+ },
+ "dialog_continue": {
+  "en": "2e02623966",
+  "nl": "7971d69950",
+  "note": "",
+  "status": "ok"
+ },
+ "dialog_rationale_text": {
+  "en": "42a94496bf",
+  "nl": "cbf4d5947e",
+  "note": "",
+  "status": "ok"
+ },
+ "dialog_rationale_title": {
+  "en": "253ac62f88",
+  "nl": "03e9f14f42",
+  "note": "",
+  "status": "ok"
+ },
+ "dialog_settings_text": {
+  "en": "a407914a8f",
+  "nl": "4209d13e4b",
+  "note": "",
+  "status": "ok"
+ },
+ "dialog_settings_title": {
+  "en": "3f1770f336",
+  "nl": "6b50bc1520",
+  "note": "",
+  "status": "ok"
+ },
+ "drop_a_pin": {
+  "en": "1d84446791",
+  "nl": "87611b9d99",
+  "note": "",
+  "status": "ok"
+ },
+ "duration_h_min": {
+  "en": "1beec832c9",
+  "nl": "ebe1915fd1",
+  "note": "",
+  "status": "ok"
+ },
+ "duration_min": {
+  "en": "32b259a068",
+  "nl": "32b259a068",
+  "note": "",
+  "status": "ok"
+ },
+ "duration_under_minute": {
+  "en": "2c4f87a8f2",
+  "nl": "aa9875108e",
+  "note": "",
+  "status": "ok"
+ },
+ "feedback_row_sub": {
+  "en": "b8f03c60b9",
+  "nl": "1c3a8f19a2",
+  "note": "",
+  "status": "ok"
+ },
+ "feedback_row_title": {
+  "en": "c431a26258",
+  "nl": "ce4d17ef73",
+  "note": "",
+  "status": "ok"
+ },
+ "hood_finding": {
+  "en": "4ae8bbeefc",
+  "nl": "022bab6ea0",
+  "note": "",
+  "status": "ok"
+ },
+ "made_by_sub": {
+  "en": "bbe79baf7b",
+  "nl": "158a73b1ea",
+  "note": "",
+  "status": "ok"
+ },
+ "made_by_title": {
+  "en": "c3bb63051d",
+  "nl": "7c4d01c920",
+  "note": "",
+  "status": "ok"
+ },
+ "not_now": {
+  "en": "e457149073",
+  "nl": "e8a0664ddc",
+  "note": "",
+  "status": "ok"
+ },
+ "notif_stop": {
+  "en": "9e253470c8",
+  "nl": "9e253470c8",
+  "note": "",
+  "status": "ok"
+ },
+ "notif_text": {
+  "en": "716a94d662",
+  "nl": "03e9f14f42",
+  "note": "",
+  "status": "ok"
+ },
+ "notif_text_vehicle": {
+  "en": "0e691281aa",
+  "nl": "afffd3a941",
+  "note": "",
+  "status": "ok"
+ },
+ "notif_title": {
+  "en": "7ddd29a9aa",
+  "nl": "a303374566",
+  "note": "",
+  "status": "ok"
+ },
+ "open_settings": {
+  "en": "fd7108f831",
+  "nl": "ac4aeb39ea",
+  "note": "",
+  "status": "ok"
+ },
+ "osm_credit": {
+  "en": "cc3a869d97",
+  "nl": "85e8cf1d19",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_delete": {
+  "en": "f6fdbe48dc",
+  "nl": "cefd1f94dc",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_edit": {
+  "en": "5301648dcf",
+  "nl": "6d62fd5a01",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_edit_title": {
+  "en": "650101af24",
+  "nl": "2fa9ba2e99",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_keep": {
+  "en": "466fc49274",
+  "nl": "5252a94edc",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_leave": {
+  "en": "1e27423ba4",
+  "nl": "87611b9d99",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_note": {
+  "en": "2c924e3088",
+  "nl": "44f932bbb0",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_note_hint": {
+  "en": "304cda2865",
+  "nl": "67224cd74a",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_note_optional": {
+  "en": "4e39567064",
+  "nl": "d111dfbcca",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_on_walk": {
+  "en": "adb4bf8441",
+  "nl": "20e6fd46c7",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_place": {
+  "en": "2482abcc13",
+  "nl": "5b34d483f6",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_remove": {
+  "en": "e963907dac",
+  "nl": "cefd1f94dc",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_remove_title": {
+  "en": "d50aa5bdb5",
+  "nl": "df1923363b",
+  "note": "",
+  "status": "ok"
+ },
+ "pins_empty": {
+  "en": "305fa7920c",
+  "nl": "78a640c673",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_close": {
+  "en": "b52b36b726",
+  "nl": "3856e3fbfc",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_description": {
+  "en": "df037db7fe",
+  "nl": "8bb31f9a28",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_failed": {
+  "en": "6fef169f7d",
+  "nl": "239db3b8d8",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_painting": {
+  "en": "82646905d0",
+  "nl": "131f08b17b",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_save_failed": {
+  "en": "535b23d830",
+  "nl": "16cb7e940f",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_saved": {
+  "en": "16336bf7f0",
+  "nl": "ad1b9371dc",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_saved_photos": {
+  "en": "f36b536881",
+  "nl": "9c2368cf26",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_share_chooser": {
+  "en": "95af82b038",
+  "nl": "26dc0f43c9",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_title": {
+  "en": "3851141868",
+  "nl": "d979a2260b",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_use_share": {
+  "en": "223afe8c6c",
+  "nl": "e73951f392",
+  "note": "",
+  "status": "ok"
+ },
+ "rat_card_body": {
+  "en": "d742bf7e8d",
+  "nl": "570de42482",
+  "note": "",
+  "status": "ok"
+ },
+ "rat_card_later": {
+  "en": "e457149073",
+  "nl": "e8a0664ddc",
+  "note": "",
+  "status": "ok"
+ },
+ "rat_card_title": {
+  "en": "767024003f",
+  "nl": "461124170f",
+  "note": "",
+  "status": "ok"
+ },
+ "rat_card_try": {
+  "en": "e2b3b7212b",
+  "nl": "6d44c4e4e2",
+  "note": "",
+  "status": "ok"
+ },
+ "save": {
+  "en": "efc007a393",
+  "nl": "a4db8803f1",
+  "note": "",
+  "status": "ok"
+ },
+ "share": {
+  "en": "09ca55ca52",
+  "nl": "9e6fd67b38",
+  "note": "",
+  "status": "ok"
+ },
+ "show_my_location": {
+  "en": "63f49819a7",
+  "nl": "6cf9031a67",
+  "note": "",
+  "status": "ok"
+ },
+ "start_wandering": {
+  "en": "02ed4b6f01",
+  "nl": "ba8e30b13c",
+  "note": "",
+  "status": "ok"
+ },
+ "stat_cleared": {
+  "en": "a5654a3791",
+  "nl": "4f5076da02",
+  "note": "",
+  "status": "ok"
+ },
+ "stat_wandered": {
+  "en": "853033c6ef",
+  "nl": "7658b6d271",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_measuring": {
+  "en": "4cc4aeafef",
+  "nl": "d4f93230ce",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_more_header": {
+  "en": "4bab2d8fe1",
+  "nl": "be9491a982",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_note_outside": {
+  "en": "7987724cfa",
+  "nl": "cf152d561e",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_note_unknown": {
+  "en": "0a3d8a5e00",
+  "nl": "49cb58c105",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_places_header": {
+  "en": "be897f7b00",
+  "nl": "c571d5b834",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_plenty_left": {
+  "en": "4ccb41e748",
+  "nl": "3778521ddd",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_privacy": {
+  "en": "541b992402",
+  "nl": "c39d676250",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_title": {
+  "en": "bb849343dc",
+  "nl": "0526760c85",
+  "note": "",
+  "status": "ok"
+ },
+ "stats_walks_header": {
+  "en": "6d32cc2f15",
+  "nl": "fe82e505c2",
+  "note": "",
+  "status": "ok"
+ },
+ "stop_wandering": {
+  "en": "bdfe1bca6d",
+  "nl": "b1ebb90c61",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_counting": {
+  "en": "ec01db1f8b",
+  "nl": "d3755887d1",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_header": {
+  "en": "6710418d50",
+  "nl": "dd22a9ac60",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_more": {
+  "en": "3b238ccaf4",
+  "nl": "c61b6c3316",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_pct_walked": {
+  "en": "73aa275794",
+  "nl": "3eea9958e3",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_still": {
+  "en": "0525ae3c89",
+  "nl": "cff2c9a030",
+  "note": "",
+  "status": "ok"
+ },
+ "streets_walked": {
+  "en": "5f86c9e399",
+  "nl": "aa774ddad8",
+  "note": "",
+  "status": "ok"
+ },
+ "toast_location_off": {
+  "en": "7a394d130c",
+  "nl": "e153a42416",
+  "note": "",
+  "status": "ok"
+ },
+ "toast_looking": {
+  "en": "c8fc9f2109",
+  "nl": "5c9f1ea1ca",
+  "note": "",
+  "status": "ok"
+ },
+ "toast_pin_fog": {
+  "en": "9a37a3cb5f",
+  "nl": "b797c54b70",
+  "note": "",
+  "status": "ok"
+ },
+ "toast_precise": {
+  "en": "0bb3e1e537",
+  "nl": "323f886644",
+  "note": "",
+  "status": "ok"
+ },
+ "version_app": {
+  "en": "7f0de5eb48",
+  "nl": "7f0de5eb48",
+  "note": "",
+  "status": "ok"
+ },
+ "version_plain": {
+  "en": "d2f210e660",
+  "nl": "35e040a51e",
+  "note": "",
+  "status": "ok"
+ },
+ "walk_new_mist": {
+  "en": "2f5f91238d",
+  "nl": "200a0890a7",
+  "note": "",
+  "status": "ok"
+ },
+ "walk_now": {
+  "en": "b20ca01a41",
+  "nl": "f6952c00d0",
+  "note": "",
+  "status": "ok"
+ },
+ "walks_show_all": {
+  "en": "d178330f8b",
+  "nl": "7f67af2988",
+  "note": "",
+  "status": "ok"
+ },
+ "walks_show_fewer": {
+  "en": "d94dfbe577",
+  "nl": "b653b4e034",
+  "note": "",
+  "status": "ok"
+ },
+ "you_about_header": {
+  "en": "6b21fb791a",
+  "nl": "18a63f5512",
+  "note": "",
+  "status": "ok"
+ },
+ "you_change_character": {
+  "en": "9c6cc8d34b",
+  "nl": "f65f4e2776",
+  "note": "",
+  "status": "ok"
+ },
+ "you_settings_header": {
+  "en": "c7f73bb54d",
+  "nl": "fd08ea9c59",
+  "note": "",
+  "status": "ok"
+ },
+ "you_title": {
+  "en": "905cb326c7",
+  "nl": "b9cfdeacc8",
+  "note": "",
+  "status": "ok"
+ }
+}
