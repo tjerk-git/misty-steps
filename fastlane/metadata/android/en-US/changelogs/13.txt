@@ -1,0 +1,8 @@
+- New knot button: choose a pin, then move the map and drop it exactly where you want. Long-press still works
+- A new You page for your character and settings
+- The top of the map counts buckets of mist cleared in your city
+- Fun facts on the stats page, including how many steps your animal needed
+- Swipe through your postcards
+- Your animal's steps on each postcard
+- A friendlier first run, with a card about leaving pins
+- A new teal accent on the main buttons
