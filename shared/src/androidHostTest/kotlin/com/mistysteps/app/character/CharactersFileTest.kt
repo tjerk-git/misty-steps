@@ -128,4 +128,15 @@ class CharactersFileTest {
             assertTrue("%1\$s" in line && "%2\$s" in line, "$dir fact_character_steps needs the animal (%1\$s) and the number (%2\$s)")
         }
     }
+
+    @Test
+    fun everyCharacterInTheSheetHasANameAndBlurbInEnglishAndDutch() {
+        val ids = Characters.parse(File("../app/src/main/assets/characters.txt").readLines()).map { it.id }
+        for (dir in listOf("values", "values-nl")) {
+            val text = File("strings/$dir/strings.xml").readText()
+            for (id in ids) for (part in listOf("name", "blurb")) {
+                assertTrue("name=\"character_${id}_$part\"" in text, "$dir/strings.xml is missing character_${id}_$part")
+            }
+        }
+    }
 }

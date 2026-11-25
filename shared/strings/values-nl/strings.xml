@@ -163,6 +163,10 @@
     <string name="character_duck_blurb">Zo loop jij stiekem ook.</string>
     <string name="character_rat_name">Kerstrat</string>
     <string name="character_rat_blurb">Ja, een rat met een kerstmuts op.</string>
+    <string name="character_blackcat_name">Zwarte Kat</string>
+    <string name="character_blackcat_blurb">Ongeluk niet inbegrepen.</string>
+    <string name="character_fox_name">Vos</string>
+    <string name="character_fox_blurb">Plundert om middernacht de vuilnisbakken. Zonder schaamte.</string>
 
     <!-- De kaart die de Kerstrat eenmalig aanbiedt. -->
     <string name="rat_card_title">Fijne feestdagen!</string>

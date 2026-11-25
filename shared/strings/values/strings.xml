@@ -164,6 +164,10 @@
     <string name="character_duck_blurb">An Indian runner duck: upright, two feet, always in a hurry to a puddle.</string>
     <string name="character_rat_name">Santa Rat</string>
     <string name="character_rat_blurb">On the nice list, mostly.</string>
+    <string name="character_blackcat_name">Black Cat</string>
+    <string name="character_blackcat_blurb">Bad luck not included.</string>
+    <string name="character_fox_name">Fox</string>
+    <string name="character_fox_blurb">Raids bins at midnight. No shame about it.</string>
 
     <!-- The one-time Christmas card that offers the Santa Rat. -->
     <string name="rat_card_title">Merry Christmas!</string>
