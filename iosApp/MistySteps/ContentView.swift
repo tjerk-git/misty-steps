@@ -17,6 +17,10 @@ struct ContentView: View {
     @StateObject private var pins = PinsModel(storage: ContentView.store)
     @StateObject private var eraser = EraserModel()
     @State private var pinSheet: PinSheetTarget?
+    /// The knot button: first the sheet to choose a pin, then the pin hangs on the middle of the map until you drop it.
+    @State private var choosingPin = false
+    @State private var pendingPin: PendingPin?
+    private let centerProbe = MapCenterProbe()
     @StateObject private var postcards = PostcardPainterImpl(store: ContentView.store)
     @State private var postcardWalk: Int64?
     @State private var backupHost: IosBackupHost?
@@ -45,6 +49,19 @@ struct ContentView: View {
     }
 
     private var packText: String { "\(packs.manager.mapFiles().count) packs" }
+
+    /// Drops the pin chosen with the knot button where the middle of the map is, on cleared ground only.
+    private func dropPendingPin() {
+        guard let pending = pendingPin, let at = centerProbe.center() else { return }
+        if PinRules.shared.isCleared(index: fog.index, lat: at.latitude, lon: at.longitude) {
+            _ = pins.book.add(lat: at.latitude, lon: at.longitude, labelKey: pending.key, note: pending.note, sessionId: nil,
+                              nowMs: Int64(Date().timeIntervalSince1970 * 1000))
+            if showPinTip { dismissPinTip() }
+            pendingPin = nil
+        } else {
+            showHint(IosTextsKt.pinFogHint())
+        }
+    }
 
     /// "Leave a pin" while walking: at the newest good fix, if it is fresh.
     private func dropPin() {
@@ -101,7 +118,7 @@ struct ContentView: View {
                     onOpenPin: { pinSheet = .open(id: $0) },
                     onNewPin: { pinSheet = .new(lat: $0.latitude, lon: $0.longitude, sessionId: nil) },
                     onFogPress: { showHint(IosTextsKt.pinFogHint()) },
-                    status: $mapStatus, following: $following, pointerModel: pointerModel)
+                    status: $mapStatus, following: $following, pointerModel: pointerModel, centerProbe: centerProbe)
                 .ignoresSafeArea()
             OffscreenPointerLayer(model: pointerModel, onTap: locate)
             if debugStrip {
@@ -112,7 +129,10 @@ struct ContentView: View {
             }
             HubView(fog: fog, pill: pillModel, showPinTip: showPinTip, onDismissPinTip: dismissPinTip,
                     onStats: { app.route = .stats }, onYou: { app.route = .you },
-                    onLocate: locate, onPin: dropPin, onRecord: record, eraser: eraser)
+                    onLocate: locate, onPin: dropPin, onRecord: record, eraser: eraser,
+                    pendingPinKey: pendingPin?.key,
+                    onKnot: { if pendingPin != nil { pendingPin = nil } else { choosingPin = true } },
+                    onCancelPlacing: { pendingPin = nil }, onDropPin: dropPendingPin)
             if let d = packs.active {
                 Button { pickerPreselect = []; app.route = .picker } label: {
                     VStack(alignment: .leading, spacing: 6) {
@@ -156,6 +176,10 @@ struct ContentView: View {
             }
         }
         .overlay {
+            if choosingPin {
+                PinChooseHostView(onChosen: { key, note in pendingPin = PendingPin(key: key, note: note); choosingPin = false },
+                                  onDone: { choosingPin = false }).ignoresSafeArea()
+            }
             if let target = pinSheet {
                 PinSheetHostView(book: pins.book, target: target, onDone: { pinSheet = nil }).ignoresSafeArea()
             }
@@ -242,6 +266,12 @@ struct ContentView: View {
                     _ = pins.book.add(lat: c.latitude + 0.0008, lon: c.longitude, labelKey: "cat", note: nil, sessionId: nil, nowMs: Int64(Date().timeIntervalSince1970 * 1000))
                 }
             }
+            // Test hook: -knotdemo choose opens the knot button's pin menu; -knotdemo place hangs a cat on the middle of the map.
+            switch UserDefaults.standard.string(forKey: "knotdemo") {
+            case "choose": choosingPin = true
+            case "place": pendingPin = PendingPin(key: "cat", note: nil)
+            default: break
+            }
             switch UserDefaults.standard.string(forKey: "pinsheet") {
             case "new": pinSheet = .new(lat: 53.2012, lon: 5.7936, sessionId: nil)
             case "open": if let first = pins.all.first { pinSheet = .open(id: first.id) }
@@ -270,6 +300,7 @@ struct ContentView: View {
         }
         .task { eraser.purchases.start() }
         .sheet(isPresented: $eraser.showSheet) { EraserSheet(eraser: eraser, purchases: eraser.purchases) }
+        .onChange(of: eraser.active) { _, active in if active { pendingPin = nil; choosingPin = false } }
         .onChange(of: eraser.hint) { _, h in if let h { showHint(h); eraser.hint = nil } }
         .onChange(of: app.route == nil) { _, mapShown in
             if !mapShown { eraser.mapCovered() }
@@ -313,4 +344,10 @@ struct ContentView: View {
             }
         }
     }
+}
+
+/// A pin picked with the knot button that is waiting to be dropped on the map.
+struct PendingPin {
+    let key: String
+    let note: String?
 }

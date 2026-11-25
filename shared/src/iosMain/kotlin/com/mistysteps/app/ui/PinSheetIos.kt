@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.window.ComposeUIViewController
 import com.mistysteps.app.pin.PinBook
+import com.mistysteps.app.resources.Res
+import com.mistysteps.app.resources.pin_next_spot
 import platform.Foundation.NSDate
 import platform.Foundation.timeIntervalSince1970
 import platform.UIKit.UIViewController
@@ -17,6 +19,22 @@ import platform.UIKit.UIViewController
 fun pinSheetViewController(book: PinBook, state: PinSheetState, onDone: () -> Unit): UIViewController =
     ComposeUIViewController(configure = { opaque = false }) {
         MistyTheme { PinSheets(book, state, onDone) }
+    }
+
+/**
+ * The first step of the knot button: pick a pin (and maybe a note). [onChosen] gets the label key and note, then the
+ * Swift side shows the pin on the middle of the map for the person to drop; [onDone] is called when the sheet should go.
+ */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+fun pinChooseViewController(onChosen: (String, String?) -> Unit, onDone: () -> Unit): UIViewController =
+    ComposeUIViewController(configure = { opaque = false }) {
+        MistyTheme {
+            NewPinSheet(
+                onPlace = { key, note -> onChosen(key, note) },
+                onDismiss = onDone,
+                confirmText = org.jetbrains.compose.resources.stringResource(Res.string.pin_next_spot),
+            )
+        }
     }
 
 @Composable
