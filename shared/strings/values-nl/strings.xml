@@ -60,7 +60,7 @@
     <string name="walk_new_mist">%1$s nieuwe mist</string>
     <string name="walks_show_fewer">Toon minder</string>
     <string name="walks_show_all">Toon alle %1$d wandelingen</string>
-    <string name="pins_empty">Zet een pin als iets je opvalt: tik op de pinknop tijdens je wandeling, </string>
+    <string name="pins_empty">Zet een pin als iets je opvalt: tik op de pinknop tijdens je wandeling.</string>
     <string name="streets_counting">Straten tellen…</string>
     <string name="hood_finding">Je buurt zoeken…</string>
     <string name="streets_header">Straten</string>
@@ -81,7 +81,7 @@
 
     <!-- Back-up -->
     <string name="backup_title">Je routes</string>
-    <string name="backup_intro">Bewaar al je routes en wandelingen in een bestand, of voeg ze toe vanuit een bestand: voor een back-up of een nieuwe telefoon.</string>
+    <string name="backup_intro">Bewaar al je routes en wandelingen in een bestand, of voeg ze toe vanuit een bestand.</string>
     <string name="backup_export">Exporteer</string>
     <string name="backup_import">Importeer</string>
     <string name="backup_stop_to_import">Stop je wandeling om te importeren.</string>
@@ -150,7 +150,7 @@
     <string name="character_cat_name">Wandelkat</string>
     <string name="character_cat_blurb">Loopt eerst enthousiast naar je toe en dan opeens niet meer.</string>
     <string name="character_dog_name">Padvinderhond</string>
-    <string name="character_dog_blurb">Heeft een missie. </string>
+    <string name="character_dog_blurb">Heeft een missie.</string>
     <string name="character_otter_name">Zeeotter</string>
     <string name="character_otter_blurb">Verliet de zee voor een wandelingetje. Gaat niet meer terug.</string>
     <string name="character_capybara_name">Capibara</string>
@@ -164,9 +164,9 @@
     <string name="character_rat_name">Kerstrat</string>
     <string name="character_rat_blurb">Ja, een rat met een kerstmuts op.</string>
     <string name="character_blackcat_name">Zwarte Kat</string>
-    <string name="character_blackcat_blurb">Ongeluk niet inbegrepen.</string>
+    <string name="character_blackcat_blurb">Hij heet Atlas.</string>
     <string name="character_fox_name">Vos</string>
-    <string name="character_fox_blurb">Plundert om middernacht de vuilnisbakken. Zonder schaamte.</string>
+    <string name="character_fox_blurb">Ik vertrouw deze niet.</string>
 
     <!-- De kaart die de Kerstrat eenmalig aanbiedt. -->
     <string name="rat_card_title">Fijne feestdagen!</string>
@@ -176,7 +176,7 @@
 
     <!-- Over -->
     <string name="about_title">Over Misty Steps</string>
-    <string name="about_maker">Gemaakt door Tjerk bij Potloodgum, een eenmansstudio in Leeuwarden. De wereld repareren in kleine stapjes.</string>
+    <string name="about_maker">Gemaakt door Tjerk bij Potloodgum, een eenmansstudio in Leeuwarden.</string>
     <string name="about_why">Ik wilde een reden om door straten te lopen waar ik nog nooit was. Misty Steps verandert je eigen buurt in een kaart om te ontdekken, stap voor stap (of trap voor trap).</string>
     <string name="about_promise">Geen advertenties, geen accounts. Je routes verlaten je telefoon nooit. Als je dat toestaat, telt de app hoe vaak hij wordt geopend, zonder iets dat zegt wie je bent.</string>
     <string name="about_feedback_text">Een bug gevonden, of een idee? Laat het me weten. Ik lees alles.</string>
@@ -204,7 +204,7 @@
     <string name="pin_other">Iets anders</string>
 
     <!-- Map downloads -->
-    <string name="maps_downloads_channel">Kaartdownloads</string>
+    <string name="maps_downloads_channel">Kaart downloads</string>
     <string name="maps_downloading_notif">%1$s wordt gedownload</string>
 
     <!-- Onboarding, province picker and map downloads -->
@@ -212,8 +212,8 @@
     <string name="onboarding_next">Volgende</string>
     <string name="onboarding_choose">Kies provincies</string>
     <string name="onboarding_1_title">De mist bedekt de kaart</string>
-    <string name="onboarding_1_body">Misty Steps verbergt Nederland in de mist.</string>
-    <string name="onboarding_2_title">Jouw stappen ruimen hem op</string>
+    <string name="onboarding_1_body">Misty Steps verhult Nederland in de mist.</string>
+    <string name="onboarding_2_title">De enige manier om de mist op te klaren is om te gaan wandelen.</string>
     <string name="onboarding_2_body">Tik op Start wandeling en loop, ren of fiets. Je stappen ruimen de mist op binnen zo’n 50 m om je heen.\n\nMeerijden in een auto of trein telt niet mee!</string>
     <string name="onboarding_3_title">Alleen van jou</string>
     <string name="onboarding_3_body">Misty Steps werkt offline, met gedownloade kaarten en alleen je gps. Zo hoef ik geen servers te draaien en verlaten je routes je telefoon nooit.\n\nHet werkt ook met een gesloten scherm, dus stop je telefoon weg en geniet van de wandeling, maar vergeet hem niet te beëindigen.\n\nVoorlopig werkt het alleen in Nederland: download je provincie en ga op pad!</string>
@@ -255,7 +255,7 @@
     <string name="usage_title">Gebruikstellingen</string>
     <string name="usage_body">Tel anoniem hoe vaak de app wordt geopend.</string>
     <string name="usage_what">Wat wordt verstuurd</string>
-    <string name="usage_sent_note">Er wordt niets anders verstuurd: geen ID, geen locatie, geen wandelingen.</string>
+    <string name="usage_sent_note">Er wordt niets anders verstuurd.</string>
     <string name="usage_close">Sluiten</string>
     <!-- Naming characters -->
     <string name="character_rename_title">Geef je wandelmaatje een naam</string>
@@ -273,7 +273,7 @@
     <string name="eraser_done">Leg neer</string>
     <string name="eraser_undo">Ongedaan maken</string>
     <string name="eraser_sheet_title">De Magische Gum</string>
-    <string name="eraser_sheet_body">Voor de completionists en de moeilijk bereikbare hoekjes: met de gum wrijf je de mist weg die je... gemist hebt. Als je hem koopt, is dat ook een gift aan de app. Misty Steps wordt gemaakt, onderhouden en gehost door één man, dus je steun helpt echt!</string>
+    <string name="eraser_sheet_body">Voor de perfectionisten en de moeilijk bereikbare hoekjes: met de gum wrijf je de mist weg die je... gemist hebt, hehe.. Misty Steps wordt gemaakt, onderhouden en gehost door één dude. Dus deze belachelijke aankoop helpt!</string>
     <string name="eraser_sheet_buy">Koop hem voor %1$s</string>
     <string name="eraser_sheet_not_now">Nu niet</string>
     <string name="eraser_taste_used">Dat was je gratis proefstukje. Wil je de hele gum?</string>
@@ -306,7 +306,7 @@
     <string name="fact_volume_garden_pool">Dat zijn %1$s tuinzwembaden vol mist.</string>
     <string name="fact_volume_olympic_pool">Dat zijn %1$s olympische zwembaden vol mist.</string>
     <string name="fact_volume_empire_state">Dat zijn %1$s Empire State Buildings vol mist.</string>
-    <string name="fact_volume_pyramid">Dat zijn %1$s Grote Piramides vol mist.</string>
+    <string name="fact_volume_pyramid">Dat zijn %1$s Piramides vol mist.</string>
     <string name="fact_volume_windermere">Dat zijn %1$s Windermeren vol mist.</string>
     <string name="fact_volume_ijsselmeer">Dat is %1$s keer het IJsselmeer, vol mist.</string>
     <!-- Weetjes: de stappen die je gekozen dier nodig had voor al je afstand. %1$s is de naam, %2$s het getal. -->

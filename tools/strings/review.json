@@ -1,4 +1,46 @@
 {
+ "about_credits": {
+  "en": "c28814cbcd",
+  "nl": "610d2e0cca",
+  "note": "",
+  "status": "ok"
+ },
+ "about_feedback_button": {
+  "en": "c431a26258",
+  "nl": "ce4d17ef73",
+  "note": "",
+  "status": "ok"
+ },
+ "about_feedback_text": {
+  "en": "9e658add9c",
+  "nl": "22ebfd4444",
+  "note": "",
+  "status": "ok"
+ },
+ "about_maker": {
+  "en": "85e8d25548",
+  "nl": "a7e34be7cb",
+  "note": "",
+  "status": "ok"
+ },
+ "about_promise": {
+  "en": "99502ea96e",
+  "nl": "05bdd8e0f5",
+  "note": "",
+  "status": "ok"
+ },
+ "about_title": {
+  "en": "9be240dd99",
+  "nl": "b388c50e76",
+  "note": "",
+  "status": "ok"
+ },
+ "about_why": {
+  "en": "365b017694",
+  "nl": "6f409c1f9f",
+  "note": "",
+  "status": "ok"
+ },
  "area_city": {
   "en": "4271627f4f",
   "nl": "6c58a09c90",
@@ -221,6 +263,18 @@
   "note": "",
   "status": "ok"
  },
+ "character_blackcat_blurb": {
+  "en": "92ed80e116",
+  "nl": "b92073fce0",
+  "note": "",
+  "status": "ok"
+ },
+ "character_blackcat_name": {
+  "en": "3cc157a242",
+  "nl": "aeafc124d7",
+  "note": "",
+  "status": "ok"
+ },
  "character_capybara_blurb": {
   "en": "4ea7dc1fde",
   "nl": "edd6ae9303",
@@ -247,7 +301,7 @@
  },
  "character_cow_blurb": {
   "en": "fe885f8c9d",
-  "nl": "da428ee508",
+  "nl": "2b77b54992",
   "note": "",
   "status": "ok"
  },
@@ -271,13 +325,25 @@
  },
  "character_duck_blurb": {
   "en": "2400717008",
-  "nl": "5661f95381",
+  "nl": "7b52c6cab1",
   "note": "",
   "status": "ok"
  },
  "character_duck_name": {
   "en": "f721c962a8",
   "nl": "1c0e6a3d0d",
+  "note": "",
+  "status": "ok"
+ },
+ "character_fox_blurb": {
+  "en": "fc3ec9c021",
+  "nl": "2d3d7b6490",
+  "note": "",
+  "status": "ok"
+ },
+ "character_fox_name": {
+  "en": "dfcd3454bb",
+  "nl": "6dbf4f12d5",
   "note": "",
   "status": "ok"
  },
@@ -317,6 +383,30 @@
   "note": "",
   "status": "ok"
  },
+ "character_rename_cd": {
+  "en": "d49dbcddb7",
+  "nl": "27184930d2",
+  "note": "",
+  "status": "ok"
+ },
+ "character_rename_empty": {
+  "en": "03f582f73f",
+  "nl": "5a47dd1f13",
+  "note": "",
+  "status": "ok"
+ },
+ "character_rename_hint": {
+  "en": "709a23220f",
+  "nl": "263d579c6b",
+  "note": "",
+  "status": "ok"
+ },
+ "character_rename_title": {
+  "en": "a25ae4d249",
+  "nl": "faa0e6f332",
+  "note": "",
+  "status": "ok"
+ },
  "characters_sub": {
   "en": "e30898f2fa",
   "nl": "40bda261c6",
@@ -326,6 +416,24 @@
  "characters_title": {
   "en": "4cf994c6de",
   "nl": "a58615c15b",
+  "note": "",
+  "status": "ok"
+ },
+ "data_download": {
+  "en": "a479c9c34e",
+  "nl": "a479c9c34e",
+  "note": "",
+  "status": "ok"
+ },
+ "data_wait_wifi": {
+  "en": "ed8fa57334",
+  "nl": "9ce7ee8534",
+  "note": "",
+  "status": "ok"
+ },
+ "data_warning": {
+  "en": "3df04912e1",
+  "nl": "88d1182beb",
   "note": "",
   "status": "ok"
  },
@@ -359,6 +467,42 @@
   "note": "",
   "status": "ok"
  },
+ "download_detail": {
+  "en": "d4a51c1ed9",
+  "nl": "f85ffbc9fc",
+  "note": "",
+  "status": "ok"
+ },
+ "download_eta_min": {
+  "en": "7b8bcb47d0",
+  "nl": "31cfd2d779",
+  "note": "",
+  "status": "ok"
+ },
+ "download_eta_sec": {
+  "en": "1c85af70de",
+  "nl": "a0267c16fe",
+  "note": "",
+  "status": "ok"
+ },
+ "download_pill": {
+  "en": "43b1af134a",
+  "nl": "5c1e2e276e",
+  "note": "",
+  "status": "ok"
+ },
+ "download_speed": {
+  "en": "0a8c7fa0a0",
+  "nl": "0a8c7fa0a0",
+  "note": "",
+  "status": "ok"
+ },
+ "download_starting": {
+  "en": "e5f58095ac",
+  "nl": "c30b0d293e",
+  "note": "",
+  "status": "ok"
+ },
  "drop_a_pin": {
   "en": "1d84446791",
   "nl": "87611b9d99",
@@ -383,6 +527,246 @@
   "note": "",
   "status": "ok"
  },
+ "eraser_button": {
+  "en": "0679fabc3c",
+  "nl": "f08c4413c0",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_done": {
+  "en": "383cc6b9f7",
+  "nl": "13ba6a94e9",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_hint_zoom": {
+  "en": "2d19c407fe",
+  "nl": "fbece4478e",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_sheet_body": {
+  "en": "a8ce062958",
+  "nl": "bb287de9b5",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_sheet_buy": {
+  "en": "f89f0d57bd",
+  "nl": "5e280d479c",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_sheet_not_now": {
+  "en": "e457149073",
+  "nl": "c2a6ccc957",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_sheet_title": {
+  "en": "9985e0ac2e",
+  "nl": "e6428e2b35",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_taste_used": {
+  "en": "d246e927cc",
+  "nl": "8a03522836",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_thanks": {
+  "en": "62fd98f1da",
+  "nl": "ef8d425e48",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_unavailable": {
+  "en": "b47942a8d8",
+  "nl": "da1fe4e062",
+  "note": "",
+  "status": "ok"
+ },
+ "eraser_undo": {
+  "en": "39fc721248",
+  "nl": "7066cd24d2",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_football_pitch": {
+  "en": "151e2ec782",
+  "nl": "63d08804e2",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_friesland": {
+  "en": "dac102e1a6",
+  "nl": "2ff2ff0608",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_luxembourg": {
+  "en": "e57b2be9e5",
+  "nl": "043e5116d1",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_monaco": {
+  "en": "b6f65e03cc",
+  "nl": "4bbcf842c8",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_parking_space": {
+  "en": "1cf2479e66",
+  "nl": "a8a3a6f351",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_schiermonnikoog": {
+  "en": "11585760c4",
+  "nl": "ae65f5041c",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_tennis_court": {
+  "en": "2cb2f72f3e",
+  "nl": "4c7b6011aa",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_texel": {
+  "en": "63d12ae6b6",
+  "nl": "f9cc0baf87",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_vatican": {
+  "en": "93bf99a3a7",
+  "nl": "adaa5d349a",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_area_vondelpark": {
+  "en": "e8baf2e25b",
+  "nl": "953431ddd4",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_character_steps": {
+  "en": "33de860c68",
+  "nl": "b86a536365",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_afsluitdijk": {
+  "en": "d31f5d4411",
+  "nl": "479c3670eb",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_blue_whale": {
+  "en": "e6d3f0b3a6",
+  "nl": "5a67aca0f4",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_burj": {
+  "en": "8eec38fa81",
+  "nl": "6315ddfa79",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_dom_tower": {
+  "en": "752f3079af",
+  "nl": "f2559c577b",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_eiffel": {
+  "en": "887b5d79cb",
+  "nl": "45b144d3c3",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_elfsteden": {
+  "en": "a502b2bb61",
+  "nl": "9659e0dad4",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_football_pitch": {
+  "en": "99d8cc0b49",
+  "nl": "ac74252fc4",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_marathon": {
+  "en": "698584e827",
+  "nl": "c8dcc73ca6",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_moon": {
+  "en": "9eaf51e0bb",
+  "nl": "18ee0f2be5",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_distance_tennis_court": {
+  "en": "2b4b19bf7b",
+  "nl": "f153178c86",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_bathtub": {
+  "en": "e470cdb0fd",
+  "nl": "18b25b7e99",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_empire_state": {
+  "en": "83438f32f5",
+  "nl": "614455df6d",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_garden_pool": {
+  "en": "f46dd77d96",
+  "nl": "e91cdc3303",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_ijsselmeer": {
+  "en": "3902031d22",
+  "nl": "f14d74691e",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_olympic_pool": {
+  "en": "00959b8307",
+  "nl": "4329e91e3f",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_pyramid": {
+  "en": "1cf7df8ce6",
+  "nl": "696e50140b",
+  "note": "",
+  "status": "ok"
+ },
+ "fact_volume_windermere": {
+  "en": "c1722be534",
+  "nl": "278d91e700",
+  "note": "",
+  "status": "ok"
+ },
+ "facts_title": {
+  "en": "743f422cc5",
+  "nl": "f6e6fbcca4",
+  "note": "",
+  "status": "ok"
+ },
  "feedback_row_sub": {
   "en": "b8f03c60b9",
   "nl": "1c3a8f19a2",
@@ -401,6 +785,12 @@
   "note": "",
   "status": "ok"
  },
+ "ios_dialog_settings_text": {
+  "en": "74b9588e03",
+  "nl": "5ca355665c",
+  "note": "",
+  "status": "ok"
+ },
  "made_by_sub": {
   "en": "bbe79baf7b",
   "nl": "158a73b1ea",
@@ -410,6 +800,84 @@
  "made_by_title": {
   "en": "c3bb63051d",
   "nl": "7c4d01c920",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_add": {
+  "en": "0fd0f92b72",
+  "nl": "cce8ac0c12",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_data_year": {
+  "en": "b6a00a2910",
+  "nl": "1bc49ddb8b",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_downloading": {
+  "en": "841a5cc4c6",
+  "nl": "c2d0c773c8",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_downloading_notif": {
+  "en": "43b1af134a",
+  "nl": "5c1e2e276e",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_downloads_channel": {
+  "en": "9a333c74ce",
+  "nl": "19b4a05a8b",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_failed": {
+  "en": "6dda10a907",
+  "nl": "e1e48985dd",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_no_space": {
+  "en": "1e23e0741d",
+  "nl": "9501624bbe",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_remove": {
+  "en": "e963907dac",
+  "nl": "cefd1f94dc",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_streets_ready": {
+  "en": "d0d811310a",
+  "nl": "ee69d6c541",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_title": {
+  "en": "b81ffd45c2",
+  "nl": "042962c815",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_update": {
+  "en": "fb91e24fa5",
+  "nl": "36dc3ecd80",
+  "note": "",
+  "status": "ok"
+ },
+ "maps_update_app": {
+  "en": "fc7c94bf97",
+  "nl": "6c19db88ba",
+  "note": "",
+  "status": "ok"
+ },
+ "no_mail_app": {
+  "en": "8cbc117157",
+  "nl": "a7f80356f9",
   "note": "",
   "status": "ok"
  },
@@ -443,6 +911,66 @@
   "note": "",
   "status": "ok"
  },
+ "offer_card": {
+  "en": "eeec89e5ef",
+  "nl": "0cb73f4c3e",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_1_body": {
+  "en": "e42fe510e0",
+  "nl": "50672977c1",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_1_title": {
+  "en": "f060c16283",
+  "nl": "3b2a5780fa",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_2_body": {
+  "en": "4f660f450a",
+  "nl": "0e9b4671f5",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_2_title": {
+  "en": "276f91a8fa",
+  "nl": "4b5c69d5d9",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_3_body": {
+  "en": "bd6386cfef",
+  "nl": "09df58ce81",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_3_title": {
+  "en": "7dcee0604b",
+  "nl": "a2a8218eb4",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_choose": {
+  "en": "837849bf56",
+  "nl": "16cbf6231b",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_next": {
+  "en": "bc981983e7",
+  "nl": "590b534c8f",
+  "note": "",
+  "status": "ok"
+ },
+ "onboarding_skip": {
+  "en": "3da474537a",
+  "nl": "25028a0a38",
+  "note": "",
+  "status": "ok"
+ },
  "open_settings": {
   "en": "fd7108f831",
   "nl": "ac4aeb39ea",
@@ -455,9 +983,99 @@
   "note": "",
   "status": "ok"
  },
+ "picker_continue": {
+  "en": "2e02623966",
+  "nl": "94556afc39",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_download#one": {
+  "en": "c80a042748",
+  "nl": "c49fb4c603",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_download#other": {
+  "en": "5b72676a66",
+  "nl": "5aa16d4725",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_existing": {
+  "en": "f12b674f84",
+  "nl": "02eaf9d6bf",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_keep_going": {
+  "en": "5180bac135",
+  "nl": "dcc7468497",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_later": {
+  "en": "f40e5ec562",
+  "nl": "be30482d4b",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_offline": {
+  "en": "f89203afdc",
+  "nl": "d936091bd1",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_skip": {
+  "en": "6fc09607ae",
+  "nl": "6d113f4d90",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_title": {
+  "en": "4d40b0e7eb",
+  "nl": "5de7743ffe",
+  "note": "",
+  "status": "ok"
+ },
+ "picker_total": {
+  "en": "60b9c87e29",
+  "nl": "5ef1304d7f",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_birdsong": {
+  "en": "551552fc15",
+  "nl": "a5222b7074",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_building": {
+  "en": "eb7512e89b",
+  "nl": "2457e0a36f",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_cat": {
+  "en": "47ee7fcc31",
+  "nl": "39a1fb93eb",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_crow": {
+  "en": "550aeade42",
+  "nl": "a849dd8382",
+  "note": "",
+  "status": "ok"
+ },
  "pin_delete": {
   "en": "f6fdbe48dc",
   "nl": "cefd1f94dc",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_ducks": {
+  "en": "3e0e2eaf8e",
+  "nl": "9323b74527",
   "note": "",
   "status": "ok"
  },
@@ -470,6 +1088,30 @@
  "pin_edit_title": {
   "en": "650101af24",
   "nl": "2fa9ba2e99",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_group_animals": {
+  "en": "1780ecaa16",
+  "nl": "9b0037fae6",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_group_finds": {
+  "en": "833003dd5d",
+  "nl": "7a19f713ee",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_group_rest": {
+  "en": "b79e5f4822",
+  "nl": "e2ae20d9ae",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_group_senses": {
+  "en": "f01eaf131a",
+  "nl": "ad91f6d104",
   "note": "",
   "status": "ok"
  },
@@ -509,9 +1151,27 @@
   "note": "",
   "status": "ok"
  },
+ "pin_other": {
+  "en": "48f88ac322",
+  "nl": "5cbad757a5",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_path": {
+  "en": "f73b419ab4",
+  "nl": "39386dc0ec",
+  "note": "",
+  "status": "ok"
+ },
  "pin_place": {
   "en": "2482abcc13",
   "nl": "5b34d483f6",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_quiet": {
+  "en": "c28cadeb2b",
+  "nl": "34f1afa545",
   "note": "",
   "status": "ok"
  },
@@ -524,6 +1184,36 @@
  "pin_remove_title": {
   "en": "d50aa5bdb5",
   "nl": "df1923363b",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_shelter": {
+  "en": "ac42a3f4f7",
+  "nl": "7930df48e5",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_sit": {
+  "en": "8592f332e2",
+  "nl": "89927d0055",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_smell": {
+  "en": "b50cb3316f",
+  "nl": "edbe47e076",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_tree": {
+  "en": "37aab76b83",
+  "nl": "a47d8f21b5",
+  "note": "",
+  "status": "ok"
+ },
+ "pin_view": {
+  "en": "2396e13573",
+  "nl": "41bc33967a",
   "note": "",
   "status": "ok"
  },
@@ -581,6 +1271,12 @@
   "note": "",
   "status": "ok"
  },
+ "postcard_steps": {
+  "en": "c45ca82276",
+  "nl": "7d53817722",
+  "note": "",
+  "status": "ok"
+ },
  "postcard_title": {
   "en": "3851141868",
   "nl": "d979a2260b",
@@ -590,6 +1286,12 @@
  "postcard_use_share": {
   "en": "223afe8c6c",
   "nl": "e73951f392",
+  "note": "",
+  "status": "ok"
+ },
+ "postcard_with": {
+  "en": "82a9dc1d2d",
+  "nl": "2e56162881",
   "note": "",
   "status": "ok"
  },
@@ -770,6 +1472,36 @@
  "toast_precise": {
   "en": "0bb3e1e537",
   "nl": "323f886644",
+  "note": "",
+  "status": "ok"
+ },
+ "usage_body": {
+  "en": "720328f462",
+  "nl": "aa477f3b4a",
+  "note": "",
+  "status": "ok"
+ },
+ "usage_close": {
+  "en": "bbfa773e5a",
+  "nl": "fe55d21027",
+  "note": "",
+  "status": "ok"
+ },
+ "usage_sent_note": {
+  "en": "a05d497a64",
+  "nl": "3121bcc613",
+  "note": "",
+  "status": "ok"
+ },
+ "usage_title": {
+  "en": "7c37492741",
+  "nl": "65987a1176",
+  "note": "",
+  "status": "ok"
+ },
+ "usage_what": {
+  "en": "b280fbae6e",
+  "nl": "43ec0e0230",
   "note": "",
   "status": "ok"
  },
