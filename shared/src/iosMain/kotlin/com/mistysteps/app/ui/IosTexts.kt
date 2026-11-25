@@ -42,6 +42,10 @@ import com.mistysteps.app.resources.toast_precise
 import com.mistysteps.app.resources.mist_cleared
 import com.mistysteps.app.resources.toast_looking
 import com.mistysteps.app.resources.toast_pin_fog
+import com.mistysteps.app.resources.place_a_pin
+import com.mistysteps.app.resources.place_pin_hint
+import com.mistysteps.app.resources.place_pin_confirm
+import com.mistysteps.app.resources.place_pin_cancel
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 
@@ -60,6 +64,14 @@ fun showMyLocationText(): String = runBlocking { getString(Res.string.show_my_lo
 fun youTitleText(): String = runBlocking { getString(Res.string.you_title) }
 
 fun dropAPinText(): String = runBlocking { getString(Res.string.drop_a_pin) }
+
+fun placeAPinText(): String = runBlocking { getString(Res.string.place_a_pin) }
+
+fun placePinHintText(): String = runBlocking { getString(Res.string.place_pin_hint) }
+
+fun placePinConfirmText(): String = runBlocking { getString(Res.string.place_pin_confirm) }
+
+fun placePinCancelText(): String = runBlocking { getString(Res.string.place_pin_cancel) }
 
 fun bannerPinTipText(): String = runBlocking { getString(Res.string.banner_pin_tip) }
 

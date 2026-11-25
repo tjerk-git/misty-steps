@@ -105,6 +105,20 @@ struct PinSheetHostView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
 
+/// The first step of the knot button: the shared "Leave a pin" sheet, whose button says "Choose the spot".
+struct PinChooseHostView: UIViewControllerRepresentable {
+    var onChosen: (String, String?) -> Void
+    var onDone: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = PinSheetIosKt.pinChooseViewController(onChosen: { key, note in onChosen(key, note) }, onDone: { onDone() })
+        controller.view.backgroundColor = .clear
+        return controller
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
 /// The shared Compose postcard page, full screen; the picture is painted by [painter].
 struct PostcardHostView: UIViewControllerRepresentable {
     let walkId: Int64

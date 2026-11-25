@@ -4,6 +4,11 @@ import Shared
 import SwiftUI
 
 /// The map, drawn from the Misty style over a downloaded province pack, with the fog on top.
+/// Lets the SwiftUI screen ask the map for the spot under the middle of the screen (where the knot button drops a pin).
+final class MapCenterProbe {
+    var center: () -> CLLocationCoordinate2D? = { nil }
+}
+
 struct MapView: UIViewRepresentable {
     var coordinate: CLLocationCoordinate2D?
     let locationModel: LocationModel
@@ -18,6 +23,7 @@ struct MapView: UIViewRepresentable {
     @Binding var following: Bool
     /// Where the pointer to your character goes while it is off-screen (nil while hidden); see OffscreenPointer in the shared module.
     let pointerModel: PointerModel
+    let centerProbe: MapCenterProbe
 
     func makeUIView(context: Context) -> MLNMapView {
         let map = MLNMapView(frame: .zero)
@@ -36,6 +42,7 @@ struct MapView: UIViewRepresentable {
         context.coordinator.character = character
         locationModel.observeFixes { [weak character] in character?.offer($0) }
         context.coordinator.model = fogModel
+        centerProbe.center = { [weak map] in map?.centerCoordinate }
         context.coordinator.pinsModel = pinsModel
         context.coordinator.eraser = eraser
         eraser.attach(map: map, fog: fogModel)
