@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -103,6 +104,7 @@ import com.mistysteps.app.announce.RatAnnouncement
 import com.mistysteps.app.character.Characters
 import com.mistysteps.app.data.FogStore
 import com.mistysteps.app.data.PinStore
+import com.mistysteps.app.pin.PinLabel
 import com.mistysteps.app.pin.PinRules
 import com.mistysteps.app.record.RecordingService
 
@@ -151,6 +153,10 @@ fun MistyScreen() {
     var afterGrant by remember { mutableStateOf(AfterGrant.WANDER) }
     // A pin being placed or looked at. Not saved: a half-made pin is lost if the app is killed.
     var pinSheet by remember { mutableStateOf<PinSheetState?>(null) }
+    // Knot button: first pick what to leave (the sheet), then pan the map under the pin and drop it.
+    var choosingPin by remember { mutableStateOf(false) }
+    var pending by remember { mutableStateOf<Pair<String, String?>?>(null) }
+    val placing = pending != null
 
     // The magic eraser: what you may do with it, whether it is in hand, and the purchase sheet.
     val eraserScope = androidx.compose.runtime.rememberCoroutineScope()
@@ -357,6 +363,12 @@ fun MistyScreen() {
     LaunchedEffect(showStats, showYou, showAbout, showPicker, postcardWalk) {
         if (showStats || showYou || showAbout || showPicker || postcardWalk != null) eraserActive = false
     }
+    LaunchedEffect(showStats, showYou, showAbout, showPicker, postcardWalk, eraserActive) {
+        if (showStats || showYou || showAbout || showPicker || postcardWalk != null || eraserActive) {
+            pending = null
+            choosingPin = false
+        }
+    }
 
     // The location button and the pointer to your character (shown when it is off-screen) do the same thing.
     val locate: () -> Unit = {
@@ -442,12 +454,25 @@ fun MistyScreen() {
                 onClick = locate,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 108.dp),
+                    .padding(end = 20.dp, bottom = 180.dp),
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = Ink,
                 shape = CircleShape,
             ) {
                 Icon(painterResource(R.drawable.ic_my_location), contentDescription = stringResource(R.string.show_my_location))
+            }
+
+            // Place a pin anywhere on cleared ground: pan the map under the marker, then confirm.
+            FloatingActionButton(
+                onClick = { if (placing) pending = null else choosingPin = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 108.dp),
+                containerColor = if (placing) Accent else MaterialTheme.colorScheme.surface,
+                contentColor = if (placing) Color.White else Ink,
+                shape = CircleShape,
+            ) {
+                Icon(painterResource(R.drawable.ic_bowen_knot), contentDescription = stringResource(R.string.place_a_pin))
             }
 
             // Drop a pin where you stand (only while wandering).
@@ -456,7 +481,7 @@ fun MistyScreen() {
                     onClick = ::dropPin,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 20.dp, bottom = 180.dp),
+                        .padding(end = 20.dp, bottom = 252.dp),
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = Ink,
                     shape = CircleShape,
@@ -467,7 +492,7 @@ fun MistyScreen() {
 
             // One message at a time under the title: in a vehicle, the pin tip, or a welcome for a new map.
             val banner: Pair<String, (() -> Unit)?>? = when {
-                eraserActive -> null
+                eraserActive || placing -> null
                 // In a car, train or bus: clearing is paused until you're moving under your own power again.
                 recording && inVehicle -> stringResource(R.string.notif_text_vehicle) to null
                 showPinTip && !recording -> stringResource(R.string.banner_pin_tip) to ::dismissPinTip
@@ -493,6 +518,58 @@ fun MistyScreen() {
                         color = Ink,
                         textAlign = TextAlign.Center,
                     )
+                }
+            }
+
+            if (placing) {
+                // The pin you chose, hanging on the middle of the map: its foot is the spot.
+                pending?.let { (key, _) ->
+                    PinIcon(PinLabel.of(key), 48, Modifier.align(Alignment.Center).offset(y = (-24).dp))
+                }
+                // Bottom middle, where Start wandering sits: say what to do, then finish it in the accent colour.
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 28.dp, start = 84.dp, end = 84.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface, shadowElevation = 4.dp) {
+                        Text(
+                            stringResource(R.string.place_pin_hint),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp,
+                            color = Ink,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            onClick = { pending = null },
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.surface,
+                            shadowElevation = 4.dp,
+                        ) {
+                            Text(stringResource(R.string.place_pin_cancel), modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), color = Dusk, fontSize = 15.sp)
+                        }
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                val at = map.centerLatLon()
+                                val chosen = pending
+                                if (chosen != null && PinRules.isCleared(FogStore.index, at.lat, at.lon)) {
+                                    PinStore.add(at.lat, at.lon, chosen.first, chosen.second, null)
+                                    if (showPinTip) dismissPinTip()
+                                    pending = null
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.toast_pin_fog), Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            containerColor = Accent,
+                            contentColor = Color.White,
+                            shape = RoundedCornerShape(50),
+                        ) { Text(stringResource(R.string.place_pin_confirm), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+                    }
                 }
             }
 
@@ -524,14 +601,14 @@ fun MistyScreen() {
                 )
             }
 
-            // Start / stop wandering
-            ExtendedFloatingActionButton(
+            // Start / stop wandering (its place is taken by the drop bar while you place a pin)
+            if (!placing) ExtendedFloatingActionButton(
                 onClick = ::onRecordClick,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 28.dp),
-                containerColor = if (recording) Ember else Ink,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = if (recording) Ember else Accent,
+                contentColor = Color.White,
                 shape = RoundedCornerShape(50),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -646,6 +723,14 @@ fun MistyScreen() {
                 markRatSeen()
             },
             onLater = ::markRatSeen,
+        )
+    }
+
+    if (choosingPin) {
+        NewPinSheet(
+            onPlace = { key, note -> pending = key to note; choosingPin = false },
+            onDismiss = { choosingPin = false },
+            confirmText = stringResource(R.string.pin_next_spot),
         )
     }
 

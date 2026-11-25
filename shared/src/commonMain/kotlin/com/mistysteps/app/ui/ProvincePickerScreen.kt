@@ -177,7 +177,7 @@ fun ProvincePickerScreen(
                     Button(
                         onClick = onDone,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White),
                     ) {
                         Text(stringResource(Res.string.picker_continue), fontSize = 16.sp)
                     }
@@ -195,7 +195,7 @@ fun ProvincePickerScreen(
                         },
                         enabled = toDownload.isNotEmpty(),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White),
                     ) {
                         Text(pluralStringResource(Res.plurals.picker_download, toDownload.size, toDownload.size), fontSize = 16.sp)
                     }

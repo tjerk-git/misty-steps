@@ -148,6 +148,9 @@ class MapController(context: Context) {
     /** Looks at a place on the map; stops following you. */
     fun flyTo(lat: Double, lon: Double, zoom: Double = 16.0) = map.flyTo(lat, lon, zoom)
 
+    /** The spot under the middle of the screen, where a pin goes in "place a pin" mode. */
+    fun centerLatLon(): LatLon = map.projection.fromScreen(mapView.width / 2f, mapView.height / 2f)
+
     /** Redraws what sits above the map (the mist, pins) after the pins or the cleared ground changed. */
     fun refresh() {
         fog.moved()

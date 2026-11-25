@@ -117,7 +117,7 @@ fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit, startPage: Int = 0)
             Button(
                 onClick = { if (page < PAGES - 1) page++ else onDone() },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color.White),
+                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White),
             ) {
                 Text(
                     stringResource(if (page < PAGES - 1) Res.string.onboarding_next else Res.string.onboarding_choose),
