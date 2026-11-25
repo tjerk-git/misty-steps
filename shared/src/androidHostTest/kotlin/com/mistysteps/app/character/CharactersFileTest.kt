@@ -128,4 +128,19 @@ class CharactersFileTest {
             assertTrue("%1\$s" in line && "%2\$s" in line, "$dir fact_character_steps needs the animal (%1\$s) and the number (%2\$s)")
         }
     }
+
+    @Test
+    fun theOnboardingHasFourPagesWithThePinCardThird() {
+        for (dir in listOf("values", "values-nl")) {
+            val text = File("strings/$dir/strings.xml").readText()
+            for (n in 1..4) {
+                assertTrue("name=\"onboarding_${n}_title\"" in text, "$dir is missing onboarding_${n}_title")
+                assertTrue("name=\"onboarding_${n}_body\"" in text, "$dir is missing onboarding_${n}_body")
+            }
+            val third = Regex("name=\"onboarding_3_title\">([^<]*)<").find(text)!!.groupValues[1]
+            assertTrue(third.contains("pin", ignoreCase = true), "$dir page 3 should be the pin card, was: $third")
+            val last = Regex("name=\"onboarding_4_title\">([^<]*)<").find(text)!!.groupValues[1]
+            assertTrue(!last.contains("pin", ignoreCase = true), "$dir page 4 should stay the privacy page, was: $last")
+        }
+    }
 }

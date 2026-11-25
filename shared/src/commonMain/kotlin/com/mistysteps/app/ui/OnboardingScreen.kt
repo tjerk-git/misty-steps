@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -45,26 +46,31 @@ import com.mistysteps.app.resources.onboarding_2_body
 import com.mistysteps.app.resources.onboarding_2_title
 import com.mistysteps.app.resources.onboarding_3_body
 import com.mistysteps.app.resources.onboarding_3_title
+import com.mistysteps.app.resources.onboarding_4_body
+import com.mistysteps.app.resources.onboarding_4_title
 import com.mistysteps.app.resources.onboarding_choose
 import com.mistysteps.app.resources.onboarding_next
 import com.mistysteps.app.resources.onboarding_skip
 import org.jetbrains.compose.resources.stringResource
 import com.mistysteps.app.character.Characters
 
-private const val PAGES = 3
+private const val PAGES = 4
+
+/** The page that explains the long-press pin; the one after it is the privacy page. */
+private const val PIN_PAGE = 2
 
 /**
- * Three short screens for a new install: what the app is, how it works and the privacy promise.
+ * Four short screens for a new install: what the app is, how it works, how to leave a pin and the privacy promise.
  * [onDone] runs after the last page ("Choose provinces"), [onSkip] from the Skip link; the caller shows the
  * province picker after either.
  */
 @Composable
-fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit) {
-    var page by rememberSaveable { mutableIntStateOf(0) }
+fun OnboardingScreen(onDone: () -> Unit, onSkip: () -> Unit, startPage: Int = 0) {
+    var page by rememberSaveable { mutableIntStateOf(startPage.coerceIn(0, PAGES - 1)) }
     PlatformBackHandler { if (page > 0) page-- else onSkip() }
 
-    val titles = listOf(Res.string.onboarding_1_title, Res.string.onboarding_2_title, Res.string.onboarding_3_title)
-    val bodies = listOf(Res.string.onboarding_1_body, Res.string.onboarding_2_body, Res.string.onboarding_3_body)
+    val titles = listOf(Res.string.onboarding_1_title, Res.string.onboarding_2_title, Res.string.onboarding_3_title, Res.string.onboarding_4_title)
+    val bodies = listOf(Res.string.onboarding_1_body, Res.string.onboarding_2_body, Res.string.onboarding_3_body, Res.string.onboarding_4_body)
 
     Box(
         Modifier
@@ -144,6 +150,10 @@ private fun Illustration(page: Int) {
             return
         }
     }
+    if (page == PIN_PAGE) {
+        PinScene(frames, ticker.value)
+        return
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Box(
         Modifier
@@ -174,5 +184,61 @@ private fun Illustration(page: Int) {
         CarScene(width = 140.dp)
         Spacer(Modifier.height(28.dp))
     }
+    }
+}
+
+/**
+ * The pin page: your character on a patch of cleared ground, a pin standing on it, and two rings where a finger holds the map.
+ * A little fog at the edge says why a pin needs cleared ground.
+ */
+@Composable
+private fun PinScene(frames: SpriteFrames?, timeMs: Long) {
+    Box(
+        Modifier
+            .size(220.dp)
+            .drawBehind {
+                drawCircle(
+                    Brush.radialGradient(listOf(Color(0xE6FFFFFF), Color(0x00FFFFFF)), center = center, radius = size.minDimension / 2),
+                    radius = size.minDimension / 2,
+                )
+                // The cleared ground, as on the map.
+                drawCircle(Color(0xFFEDE9DD), radius = size.minDimension * 0.36f, center = Offset(center.x, center.y + 16.dp.toPx()))
+                // Fog at the edge of it.
+                drawCircle(
+                    Brush.radialGradient(
+                        listOf(Color(0xE6BEC6E1), Color(0x00BEC6E1)),
+                        center = Offset(center.x + 58.dp.toPx(), center.y + 36.dp.toPx()),
+                        radius = 38.dp.toPx(),
+                    ),
+                    radius = 38.dp.toPx(),
+                    center = Offset(center.x + 58.dp.toPx(), center.y + 36.dp.toPx()),
+                )
+                // Two rings where the finger holds the map, a touch point in the middle.
+                val press = Offset(center.x + 4.dp.toPx(), center.y - 34.dp.toPx())
+                drawCircle(Ember.copy(alpha = 0.28f), radius = 44.dp.toPx(), center = press, style = Stroke(width = 3.dp.toPx()))
+                drawCircle(Ember.copy(alpha = 0.55f), radius = 29.dp.toPx(), center = press, style = Stroke(width = 3.dp.toPx()))
+                drawCircle(Color(0x59 shl 24 or 0x2E3550), radius = 7.dp.toPx(), center = press)
+                // The pin: a round head with a white dot, pointing at the touch point.
+                val tip = Offset(press.x, press.y + 8.dp.toPx())
+                val head = Offset(tip.x, tip.y - 26.dp.toPx())
+                drawOval(Color(0x2E000000), topLeft = Offset(tip.x - 8.dp.toPx(), tip.y - 2.dp.toPx()), size = androidx.compose.ui.geometry.Size(16.dp.toPx(), 5.dp.toPx()))
+                val path = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(tip.x, tip.y)
+                    lineTo(head.x - 11.dp.toPx(), head.y + 6.dp.toPx())
+                    lineTo(head.x + 11.dp.toPx(), head.y + 6.dp.toPx())
+                    close()
+                }
+                drawPath(path, Ember)
+                drawCircle(Ember, radius = 13.dp.toPx(), center = head)
+                drawCircle(Color.White, radius = 5.dp.toPx(), center = head)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier
+                .offset(x = (-26).dp, y = 30.dp)
+                .size(80.dp)
+                .drawBehind { frames?.let { drawSprite(it.at(walking = false, timeMs = timeMs)) } },
+        )
     }
 }

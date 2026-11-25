@@ -10,7 +10,7 @@ fun sharedHelloViewController(): UIViewController = ComposeUIViewController { Sh
 
 /** The three first-run pages; [onDone] after the last page, [onSkip] from the Skip link. */
 fun onboardingViewController(onDone: () -> Unit, onSkip: () -> Unit): UIViewController =
-    ComposeUIViewController { MistyTheme { OnboardingScreen(onDone, onSkip) } }
+    ComposeUIViewController { MistyTheme { OnboardingScreen(onDone, onSkip, startPage = platform.Foundation.NSUserDefaults.standardUserDefaults.integerForKey("onboardingpage").toInt()) } }
 
 /** The about page; [versionName] and [feedbackDetails] come from the app (version, device model). */
 fun aboutViewController(versionName: String, feedbackDetails: String, onClose: () -> Unit): UIViewController =

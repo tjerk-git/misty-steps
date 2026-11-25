@@ -211,8 +211,10 @@
     <string name="onboarding_1_body">Misty Steps verbergt Nederland in de mist.</string>
     <string name="onboarding_2_title">Jouw stappen ruimen hem op</string>
     <string name="onboarding_2_body">Tik op Start wandeling en loop, ren of fiets. Je stappen ruimen de mist op binnen zo’n 50 m om je heen.\n\nMeerijden in een auto of trein telt niet mee!</string>
-    <string name="onboarding_3_title">Alleen van jou</string>
-    <string name="onboarding_3_body">Misty Steps werkt offline, met gedownloade kaarten en alleen je gps. Zo hoef ik geen servers te draaien en verlaten je routes je telefoon nooit.\n\nHet werkt ook met een gesloten scherm, dus stop je telefoon weg en geniet van de wandeling, maar vergeet hem niet te beëindigen.\n\nVoorlopig werkt het alleen in Nederland: download je provincie en ga op pad!</string>
+    <string name="onboarding_3_title">Laat een pin achter</string>
+    <string name="onboarding_3_body">Houd ingedrukt op grond die je al hebt opgeruimd om een pin achter te laten: een bankje, een uitzicht, een vriendelijke hond. Tijdens het wandelen kun je ook op de pinknop tikken.\n\nStaat het nog in de mist? Loop er eerst heen: pins kunnen alleen op opgeruimde grond.</string>
+    <string name="onboarding_4_title">Alleen van jou</string>
+    <string name="onboarding_4_body">Misty Steps werkt offline, met gedownloade kaarten en alleen je gps. Zo hoef ik geen servers te draaien en verlaten je routes je telefoon nooit.\n\nHet werkt ook met een gesloten scherm, dus stop je telefoon weg en geniet van de wandeling, maar vergeet hem niet te beëindigen.\n\nVoorlopig werkt het alleen in Nederland: download je provincie en ga op pad!</string>
     <string name="picker_title">Welke provincies wil je verkennen?</string>
     <string name="picker_total">Totaal: %1$s</string>
     <string name="picker_skip">Nu overslaan</string>
