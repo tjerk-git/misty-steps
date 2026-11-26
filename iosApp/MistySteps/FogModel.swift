@@ -79,6 +79,7 @@ final class FogModel: ObservableObject {
         let s = Session(id: now, startTime: now, endTime: nil, distanceM: 0, points: 0,
                         batteryStart: nil, batteryEnd: nil, newAreaM2: nil)
         recorder.begin()
+        StillReminder.begin()
         session = s; distanceM = 0; sessionPoints = 0; inVehicle = false
         writer.async { [store] in store.startSession(s: s) }
         notify()
@@ -88,6 +89,7 @@ final class FogModel: ObservableObject {
     func endWalk() {
         guard let s = session else { return }
         recorder.end()
+        StillReminder.end()
         let done = Session(id: s.id, startTime: s.startTime, endTime: KotlinLong(value: Int64(Date().timeIntervalSince1970 * 1000)),
                            distanceM: distanceM, points: sessionPoints, batteryStart: s.batteryStart, batteryEnd: nil, newAreaM2: nil)
         session = nil; inVehicle = false
@@ -118,6 +120,7 @@ final class FogModel: ObservableObject {
         let step = recorder.onFix(fix: fix, sessionId: KotlinLong(value: s.id))
         if recorder.inVehicle != inVehicle { inVehicle = recorder.inVehicle }
         guard let step else { return }
+        StillReminder.moved()
         for (i, p) in step.points.enumerated() {
             index.add(lat: p.lat, lon: p.lon, radiusMeters: p.radius)
             trails.add(p: p, newSegment: step.newSegment && i == 0)
