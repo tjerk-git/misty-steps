@@ -845,6 +845,7 @@ private fun startWandering(context: Context) {
         context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
     }
     RecordingService.start(context)
+    Toast.makeText(context, context.getString(R.string.toast_pocket), Toast.LENGTH_LONG).show()
 }
 
 private fun openAppSettings(context: Context) {

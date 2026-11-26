@@ -7,6 +7,10 @@
     <string name="notif_text">Je stappen laten de mist optrekken</string>
     <string name="notif_text_vehicle">Je gaat te snel. De mist trekt alleen op als je loopt, rent of fietst.</string>
     <string name="notif_stop">Stop</string>
+    <string name="channel_still_name">Herinneringen</string>
+    <string name="notif_still_title">Je wandeling wordt nog opgenomen</string>
+    <string name="notif_still_text">Je hebt je 10 minuten niet verplaatst. Tik om de app te openen, of stop de wandeling.</string>
+    <string name="toast_pocket">Vergrendel je telefoon en stop hem in je zak. Het blijft opnemen.</string>
 
     <!-- Algemeen -->
     <string name="back">Terug</string>
@@ -289,32 +293,48 @@
 
     <!-- Weetjes op de statistiekenpagina. %1$s is het getal (590, 1,5, 0,017%). Elke zin is voor zijn eigen vergelijking geschreven. -->
     <string name="facts_title">Weetjes</string>
+    <string name="fact_distance_swan">Je liep %1$s knobbelzwanen, van snavel tot staart.</string>
+    <string name="fact_distance_bike">Je liep %1$s Hollandse fietsen, wiel aan wiel.</string>
+    <string name="fact_distance_seal">Je liep %1$s Waddenzeehonden, van neus tot staart.</string>
+    <string name="fact_distance_frisian_horse">Je liep %1$s Friese paarden, van neus tot staart.</string>
+    <string name="fact_distance_humpback">Je liep %1$s bultruggen, van neus tot staart.</string>
     <string name="fact_distance_tennis_court">Je liep %1$s tennisbanen achter elkaar.</string>
     <string name="fact_distance_blue_whale">Je liep %1$s blauwe vinvissen, van neus tot staart.</string>
+    <string name="fact_distance_oldehove">Je liep %1$s scheve Oldehoves, plat op de grond.</string>
     <string name="fact_distance_football_pitch">Je liep %1$s voetbalvelden, van doel tot doel.</string>
     <string name="fact_distance_dom_tower">Stapel %1$s Domtorens op elkaar: zo ver liep je.</string>
-    <string name="fact_distance_eiffel">Je liep %1$s Eiffeltorens, plat op de grond.</string>
-    <string name="fact_distance_burj">Je liep %1$s Burj Khalifa’s, plat op de grond.</string>
-    <string name="fact_distance_marathon">Je liep %1$s marathons.</string>
+    <string name="fact_distance_euromast">Je liep %1$s Euromasten, plat op de grond.</string>
+    <string name="fact_distance_erasmusbrug">Je liep %1$s keer de Erasmusbrug, van oever tot oever.</string>
+    <string name="fact_distance_zeelandbrug">Je liep %1$s keer de Zeelandbrug.</string>
+    <string name="fact_distance_oosterschelde">Je liep %1$s keer de Oosterscheldekering.</string>
     <string name="fact_distance_afsluitdijk">Je liep %1$s keer de Afsluitdijk.</string>
+    <string name="fact_distance_marathon">Je liep %1$s marathons.</string>
     <string name="fact_distance_elfsteden">Je liep %1$s Elfstedentochten.</string>
-    <string name="fact_distance_moon">Je hebt al %1$s van de weg naar de maan afgelegd.</string>
     <string name="fact_area_parking_space">Je hebt zoveel grond opgeklaard als %1$s parkeerplaatsen.</string>
     <string name="fact_area_tennis_court">Je hebt zoveel grond opgeklaard als %1$s tennisbanen.</string>
     <string name="fact_area_football_pitch">Je hebt zoveel grond opgeklaard als %1$s voetbalvelden.</string>
-    <string name="fact_area_vatican">Je hebt %1$s keer Vaticaanstad opgeklaard.</string>
+    <string name="fact_area_madurodam">Je hebt %1$s Madurodams opgeklaard.</string>
+    <string name="fact_area_keukenhof">Je hebt %1$s Keukenhoven opgeklaard.</string>
     <string name="fact_area_vondelpark">Je hebt %1$s Vondelparken opgeklaard.</string>
-    <string name="fact_area_monaco">Je hebt %1$s keer Monaco opgeklaard.</string>
+    <string name="fact_area_vlieland">Je hebt %1$s keer Vlieland opgeklaard.</string>
     <string name="fact_area_schiermonnikoog">Je hebt %1$s Schiermonnikoogs opgeklaard.</string>
+    <string name="fact_area_hoge_veluwe">Je hebt %1$s keer de Hoge Veluwe opgeklaard.</string>
+    <string name="fact_area_ameland">Je hebt %1$s keer Ameland opgeklaard.</string>
     <string name="fact_area_texel">Je hebt %1$s Texels opgeklaard.</string>
-    <string name="fact_area_luxembourg">Je hebt %1$s keer Luxemburg opgeklaard.</string>
+    <string name="fact_area_flevoland">Je hebt %1$s keer Flevoland opgeklaard.</string>
     <string name="fact_area_friesland">Je hebt %1$s keer Friesland opgeklaard.</string>
     <string name="fact_volume_bathtub">Dat zijn %1$s badkuipen mist.</string>
+    <string name="fact_volume_frisian_horse">Dat zijn %1$s Friese paarden vol mist.</string>
+    <string name="fact_volume_elephant">Dat zijn %1$s olifanten vol mist.</string>
     <string name="fact_volume_garden_pool">Dat zijn %1$s tuinzwembaden vol mist.</string>
+    <string name="fact_volume_blue_whale">Dat zijn %1$s blauwe vinvissen vol mist.</string>
     <string name="fact_volume_olympic_pool">Dat zijn %1$s olympische zwembaden vol mist.</string>
-    <string name="fact_volume_empire_state">Dat zijn %1$s Empire State Buildings vol mist.</string>
-    <string name="fact_volume_pyramid">Dat zijn %1$s Piramides vol mist.</string>
-    <string name="fact_volume_windermere">Dat zijn %1$s Windermeren vol mist.</string>
+    <string name="fact_volume_madurodam">Dat zijn %1$s Madurodams vol mist, 2 meter diep.</string>
+    <string name="fact_volume_keukenhof">Dat zijn %1$s Keukenhoven vol mist, 2 meter diep.</string>
+    <string name="fact_volume_vondelpark">Dat zijn %1$s Vondelparken vol mist, 2 meter diep.</string>
+    <string name="fact_volume_schiermonnikoog">Dat zijn %1$s Schiermonnikoogs vol mist, 2 meter diep.</string>
+    <string name="fact_volume_texel">Dat zijn %1$s Texels vol mist, 2 meter diep.</string>
+    <string name="fact_volume_markermeer">Dat is %1$s keer het Markermeer, vol mist.</string>
     <string name="fact_volume_ijsselmeer">Dat is %1$s keer het IJsselmeer, vol mist.</string>
     <!-- Weetjes: de stappen die je gekozen dier nodig had voor al je afstand. %1$s is de naam, %2$s het getal. -->
     <string name="fact_character_steps">Jouw %1$s had daar ongeveer %2$s stappen voor nodig.</string>

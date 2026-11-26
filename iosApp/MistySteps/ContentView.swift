@@ -104,7 +104,7 @@ struct ContentView: View {
     private func grantedAction(_ what: AfterGrant) {
         location.start()
         following = true
-        if what == .wander { fog.beginWalk() } else if location.coordinate == nil { showHint(IosTextsKt.pinLookingHint()) }
+        if what == .wander { fog.beginWalk(); showHint(IosTextsKt.pocketHintText()) } else if location.coordinate == nil { showHint(IosTextsKt.pinLookingHint()) }
     }
 
     private func showHint(_ text: String) {

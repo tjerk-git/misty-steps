@@ -42,6 +42,9 @@ import com.mistysteps.app.resources.toast_precise
 import com.mistysteps.app.resources.mist_cleared
 import com.mistysteps.app.resources.toast_looking
 import com.mistysteps.app.resources.toast_pin_fog
+import com.mistysteps.app.resources.toast_pocket
+import com.mistysteps.app.resources.notif_still_title
+import com.mistysteps.app.resources.notif_still_text
 import com.mistysteps.app.resources.place_a_pin
 import com.mistysteps.app.resources.place_pin_hint
 import com.mistysteps.app.resources.place_pin_confirm
@@ -53,6 +56,12 @@ import org.jetbrains.compose.resources.getString
 fun pinFogHint(): String = runBlocking { getString(Res.string.toast_pin_fog) }
 
 fun pinLookingHint(): String = runBlocking { getString(Res.string.toast_looking) }
+
+fun pocketHintText(): String = runBlocking { getString(Res.string.toast_pocket) }
+
+fun stillTitleText(): String = runBlocking { getString(Res.string.notif_still_title) }
+
+fun stillBodyText(): String = runBlocking { getString(Res.string.notif_still_text) }
 
 fun startWanderingText(): String = runBlocking { getString(Res.string.start_wandering) }
 
