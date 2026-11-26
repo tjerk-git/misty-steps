@@ -62,6 +62,13 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-dev"
             resValue("string", "app_name", "Misty Steps Dev")
+            // ./gradlew installDebug -PminifyDebug runs the same R8 shrinking and obfuscation as the release, to test the keep rules
+            // on a device without touching the release app (the release has the same app id and key as the real install).
+            if (project.hasProperty("minifyDebug")) {
+                isMinifyEnabled = true
+                isShrinkResources = true
+                proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            }
         }
         release {
             resValue("string", "app_name", "Misty Steps")
@@ -69,8 +76,11 @@ android {
             // Only for moving data into a release install by hand (run-as needs a debuggable app):
             // ./gradlew assembleRelease -PdebuggableRelease. tools/release.sh refuses such builds.
             isDebuggable = project.hasProperty("debuggableRelease")
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // R8: shrink, optimize and obfuscate the code, and drop unused resources. Play vitals ("DEX code optimization")
+            // warns when this is off. Keep rules live in proguard-rules.pro, and only for what really needs them.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
