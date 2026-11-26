@@ -82,9 +82,13 @@ class CharactersFileTest {
     fun theReviewedFunFactSentencesReadNaturally() {
         val en = File("strings/values/strings.xml").readText()
         val nl = File("strings/values-nl/strings.xml").readText()
-        assertTrue("You cleared Monaco %1\$s times over." in en)
-        assertTrue("You cleared Vatican City %1\$s times over." in en)
-        assertTrue("Je hebt al %1\$s van de weg naar de maan afgelegd." in nl)
+        assertTrue("You cleared Vlieland %1\$s times over." in en)
+        assertTrue("You wandered %1\$s Frisian horses, nose to tail." in en)
+        assertTrue("Je liep %1\$s keer de Zeelandbrug." in nl)
+        // Only Dutch references now: the foreign landmarks, countries and the moon are gone.
+        for (gone in listOf("Eiffel", "Burj", "Monaco", "Vatican", "Luxembourg", "Windermere", "Pyramid", "Empire State", "moon")) {
+            assertTrue(gone !in en, "the English strings still mention $gone")
+        }
     }
 
     @Test
